@@ -1,0 +1,86 @@
+[
+    {
+        "problem_type": "dense_la",
+        "language": "rust",
+        "name": "01_dense_la_solve",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\npub fn solve_linear_system(A: &[f64], b: &[f64], x: &mut [f64], N: usize) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            {
+                "generated_output": "\n    let mut mat = A.to_vec();\n    // We augment the matrix with vector b essentially\n    let mut rhs = b.to_vec();\n\n    // Forward Elimination\n    for k in 0..N {\n        // 1. Partial Pivoting: Find max in column k\n        let mut max_row = k;\n        let mut max_val = mat[k * N + k].abs();\n\n        for i in (k + 1)..N {\n            let val = mat[i * N + k].abs();\n            if val > max_val {\n                max_val = val;\n                max_row = i;\n            }\n        }\n\n        // Swap rows if needed\n        if max_row != k {\n            for j in k..N {\n                mat.swap(k * N + j, max_row * N + j);\n            }\n            rhs.swap(k, max_row);\n        }\n\n        let pivot = mat[k * N + k];\n        // Singular check (basic)\n        if pivot.abs() < 1e-12 {\n            continue; \n        }\n\n        // Eliminate rows below\n        for i in (k + 1)..N {\n            let factor = mat[i * N + k] / pivot;\n            for j in (k + 1)..N {\n                mat[i * N + j] -= factor * mat[k * N + j];\n            }\n            rhs[i] -= factor * rhs[k];\n        }\n    }\n\n    // Back Substitution\n    for i in (0..N).rev() {\n        let mut sum = rhs[i];\n        for j in (i + 1)..N {\n            sum -= mat[i * N + j] * x[j];\n        }\n        x[i] = sum / mat[i * N + i];\n    }",
+                "source_write_success": true,
+                "did_build": true,
+                "is_source_valid": false,
+                "did_any_run": false,
+                "did_all_run": false,
+                "are_any_valid": false,
+                "are_all_valid": false,
+                "best_sequential_runtime": null,
+                "runs": [
+                    {
+                        "did_run": false,
+                        "is_valid": null,
+                        "runtime": null,
+                        "num_threads": 1
+                    },
+                    {
+                        "did_run": false,
+                        "is_valid": null,
+                        "runtime": null,
+                        "num_threads": 2
+                    },
+                    {
+                        "did_run": false,
+                        "is_valid": null,
+                        "runtime": null,
+                        "num_threads": 4
+                    },
+                    {
+                        "did_run": false,
+                        "is_valid": null,
+                        "runtime": null,
+                        "num_threads": 8
+                    },
+                    {
+                        "did_run": false,
+                        "is_valid": null,
+                        "runtime": null,
+                        "num_threads": 16
+                    },
+                    {
+                        "did_run": false,
+                        "is_valid": null,
+                        "runtime": null,
+                        "num_threads": 32
+                    },
+                    {
+                        "did_run": false,
+                        "is_valid": null,
+                        "runtime": null,
+                        "num_threads": 64
+                    }
+                ]
+            },
+            {
+                "generated_output": "\nlet mut a_clone = A.to_vec();\nlet mut b_clone = b.to_vec();\n\nfor k in 0..N {\n    let mut max_row = k;\n    for i in (k + 1)..N {\n        if a_clone[i * N + k].abs() > a_clone[max_row * N + k].abs() {\n            max_row = i;\n        }\n    }\n\n    if max_row != k {\n        for j in 0..N {\n            let temp = a_clone[k * N + j];\n            a_clone[k * N + j] = a_clone[max_row * N + j];\n            a_clone[max_row * N + j] = temp;\n        }\n        let temp_b = b_clone[k];\n        b_clone[k] = b_clone[max_row];\n        b_clone[max_row] = temp_b;\n    }\n\n    let pivot_val = a_clone[k * N + k];\n\n    (k + 1..N).into_par_iter().for_each(|i| {\n        let factor = a_clone[i * N + k] / pivot_val;\n\n        for j in k..N {\n            a_clone[i * N + j] -= factor * a_clone[k * N + j];\n        }\n        b_clone[i] -= factor * b_clone[k];\n    });\n}\n\nfor i in (0..N).rev() {\n    let mut sum = 0.0;\n    for j in (i + 1)..N {\n        sum += a_clone[i * N + j] * x[j];\n    }\n    x[i] = (b_clone[i] - sum) / a_clone[i * N + i];\n}\n",
+                "source_write_success": true,
+                "did_build": false,
+                "is_source_valid": true,
+                "did_any_run": false,
+                "did_all_run": false,
+                "are_any_valid": false,
+                "are_all_valid": false,
+                "best_sequential_runtime": null,
+                "runs": null
+            }
+        ],
+        "finish_reasons": [
+            1,
+            1
+        ]
+    }
+]

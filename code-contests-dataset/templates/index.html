@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolution Results Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #252526;
+            padding: 15px 20px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .problem-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .problem-selector label {
+            font-size: 13px;
+            color: #858585;
+        }
+        
+        .problem-selector select {
+            background: #3c3c3c;
+            color: #d4d4d4;
+            border: 1px solid #3e3e42;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 380px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .controls {
+            padding: 10px;
+            background: #2d2d30;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .controls button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .controls button:hover {
+            background: #1177bb;
+        }
+        
+        .controls button:disabled {
+            background: #3e3e42;
+            cursor: not-allowed;
+        }
+        
+        .compile-error {
+            background: #1e1e1e;
+            border: 1px solid #f48771;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 10px;
+        }
+
+        .compile-error .error-line { color: #f48771; }
+        .compile-error .warning-line { color: #ce9178; }
+        .compile-error .note-line { color: #4ec9b0; }
+
+        .iteration-item {
+            background: #2d2d30;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .iteration-item:hover {
+            background: #37373d;
+        }
+        
+        .iteration-item.selected {
+            border-color: #0e639c !important;
+            background: #37373d !important;
+        }
+        
+        .iteration-item.compare-selected {
+            border-color: #4ec9b0 !important;
+            background: #37373d !important;
+        }
+        
+        .iteration-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .iteration-number {
+            font-weight: 600;
+            color: #4ec9b0;
+        }
+        
+        .score {
+            font-weight: 600;
+            color: #ce9178;
+        }
+        
+        .score.zero {
+            color: #f48771;
+        }
+        
+        .iteration-details {
+            font-size: 12px;
+            color: #858585;
+            margin-top: 4px;
+        }
+        
+        .iteration-timestamp {
+            font-size: 11px;
+            color: #606060;
+            margin-top: 4px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .status-passed {
+            background: #447d44;
+            color: white;
+        }
+        
+        .status-failed {
+            background: #a52a2a;
+            color: white;
+        }
+        
+        .content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .code-header {
+            background: #2d2d30;
+            padding: 10px 20px;
+            border-bottom: 1px solid #3e3e42;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .copy-btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .copy-btn:hover {
+            background: #1177bb;
+        }
+        
+        .copy-btn.copied {
+            background: #447d44;
+        }
+        
+        .code-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .code-panel {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .code-panel-header {
+            background: #2d2d30;
+            padding: 8px 12px;
+            border-radius: 4px 4px 0 0;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-wrapper {
+            background: #1e1e1e;
+            border-radius: 0 0 4px 4px;
+            border: 1px solid #3e3e42;
+            overflow: hidden;
+        }
+        
+        .problem-link {
+            color: #569cd6;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 12px;
+            background: #3c3c3c;
+            border-radius: 4px;
+        }
+        .problem-link:hover {
+            background: #4c4c4c;
+        }
+        
+        pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+        
+        pre code {
+            display: block;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #858585;
+            font-size: 14px;
+        }
+        
+        .stats {
+            background: #2d2d30;
+            padding: 8px 12px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+        
+        .stats-label {
+            color: #858585;
+        }
+        
+        .stats-value {
+            color: #d4d4d4;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧬 Evolution Results Viewer</h1>
+        <div class="problem-selector">
+            <label>Problem:</label>
+            <select id="problemSelect">
+                {% for problem in problems %}
+                <option value="{{ problem }}" {% if problem == default_problem %}selected{% endif %}>{{ problem }}</option>
+                {% endfor %}
+            </select>
+            <a id="problemLink" class="problem-link" href="https://dmoj.ca/problem/{{ default_problem }}" target="_blank">DMOJ Problem Page</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="controls">
+                <button id="compareModeBtn">Enter Compare Mode</button>
+                <button id="sortBtn">Sort: Iteration ↓</button>
+                <button id="clearBtn">Clear Selection</button>
+                <div id="compareHint" style="display: none; margin-top: 8px; font-size: 12px; color: #4ec9b0;">
+                    Select 2 iterations to compare
+                </div>
+            </div>
+            <div id="iterationList"></div>
+        </div>
+        
+        <div class="content">
+            <div class="code-header">
+                <span id="modeIndicator">Select an iteration to view code</span>
+                <button class="copy-btn" id="copyBtn" style="display: none;">Copy Code</button>
+            </div>
+            <div class="code-container" id="codeContainer">
+                <div class="empty-state">Click on an iteration from the list to view its code</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let results = [];
+        let selectedIteration = null;
+        let compareMode = false;
+        let compareIterations = [];
+        let sortMode = 'iteration-desc'; // 'iteration-desc', 'iteration-asc', 'score', 'timestamp'
+        let currentProblemId = '{{ default_problem }}';
+
+        function parseAnsiToHtml(text) {
+            if (!text) return '';
+            
+            text = text.replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            
+            text = text.replace(/\x1b/g, '');
+            text = text.replace(/\[01m\[K/g, '<span class="bold">');
+            text = text.replace(/\[01;31m\[K/g, '<span class="bold error-line">');
+            text = text.replace(/\[01;35m\[K/g, '<span class="bold warning-line">');
+            text = text.replace(/\[01;32m\[K/g, '<span class="bold note-line">');
+            text = text.replace(/\[m\[K/g, '</span>');
+            text = text.replace(/\[\d+;\d+m\[K/g, '');
+            text = text.replace(/\[\d+m/g, '');
+            text = text.replace(/\[K/g, '');
+            text = text.replace(/\]8;;[^\]]*\]8;;/g, '');
+            text = text.replace(/(error:)/g, '<span class="error-line">$1</span>');
+            text = text.replace(/(warning:)/g, '<span class="warning-line">$1</span>');
+            text = text.replace(/(note:)/g, '<span class="note-line">$1</span>');
+            
+            return text;
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        async function loadResults() {
+            currentProblemId = document.getElementById('problemSelect').value;
+            document.getElementById('problemLink').href = `https://dmoj.ca/problem/${currentProblemId}`;
+            const response = await fetch(`/api/results/${currentProblemId}`); // RESULTS_ENDPOINT
+            results = await response.json();
+            renderIterationList();
+        }
+
+        function renderIterationList() {
+            const container = document.getElementById('iterationList');
+            container.innerHTML = '';
+            
+            let sortedResults = [...results];
+            
+            if (sortMode === 'score') {
+                sortedResults.sort((a, b) => b.combined_score - a.combined_score);
+            } else if (sortMode === 'iteration-asc') {
+                sortedResults.sort((a, b) => a.iteration - b.iteration);
+            } else if (sortMode === 'iteration-desc') {
+                sortedResults.sort((a, b) => b.iteration - a.iteration);
+            } else if (sortMode === 'timestamp') {
+                sortedResults.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            }
+            
+            sortedResults.forEach(result => {
+                const item = document.createElement('div');
+                item.className = 'iteration-item';
+                item.dataset.iteration = result.iteration;
+                
+                // Mark as selected or compare-selected
+                if (compareMode && compareIterations.some(r => r.iteration === result.iteration)) {
+                    item.classList.add('compare-selected');
+                } else if (!compareMode && selectedIteration && selectedIteration.iteration === result.iteration) {
+                    item.classList.add('selected');
+                }
+                
+                const passed = result.passed === 'True' || result.passed === true;
+                const statusClass = passed ? 'status-passed' : 'status-failed';
+                const statusText = passed ? 'PASSED' : 'FAILED';
+                const scoreClass = result.combined_score > 0 ? '' : 'zero';
+                
+                item.innerHTML = `
+                    <div class="iteration-header">
+                        <span class="iteration-number">Iteration #${result.iteration}</span>
+                        <span class="score ${scoreClass}">Score: ${result.combined_score.toFixed(4)}</span>
+                    </div>
+                    <div class="iteration-details">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <span>${result.tests_passed}/${result.tests_total} tests</span>
+                        <span style="margin-left: 10px;">${(result.avg_time * 1000).toFixed(2)}ms</span>
+                    </div>
+                    <div class="iteration-timestamp">📅 ${formatTimestamp(result.timestamp)}</div>
+                `;
+                
+                item.addEventListener('click', () => handleIterationClick(result));
+                container.appendChild(item);
+            });
+        }
+        
+        function handleIterationClick(result) {
+            if (compareMode) {
+                toggleCompareSelection(result);
+            } else {
+                selectIteration(result);
+            }
+        }
+        
+        function selectIteration(result) {
+            selectedIteration = result;
+            updateSelection();
+            showSingleCode(result);
+        }
+        
+        function toggleCompareSelection(result) {
+            const index = compareIterations.findIndex(r => r.iteration === result.iteration);
+            if (index > -1) {
+                compareIterations.splice(index, 1);
+            } else {
+                if (compareIterations.length < 2) {
+                    compareIterations.push(result);
+                }
+            }
+            updateSelection();
+            
+            if (compareIterations.length === 2) {
+                showComparison();
+            } else {
+                document.getElementById('copyBtn').style.display = 'none';
+            }
+        }
+        
+        function updateSelection() {
+            renderIterationList(); // Re-render to update selection classes
+        }
+
+        function showSingleCode(result) {
+            const container = document.getElementById('codeContainer');
+            const modeIndicator = document.getElementById('modeIndicator');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            const passed = result.passed === 'True' || result.passed === true;
+            modeIndicator.textContent = `Iteration #${result.iteration} - ${passed ? '✓ PASSED' : '✗ FAILED'} - Score: ${result.combined_score.toFixed(4)}`;
+            
+            copyBtn.style.display = 'block';
+            copyBtn.textContent = 'Copy Code';
+            copyBtn.classList.remove('copied');
+            copyBtn.onclick = () => copyCode(result.code);
+            
+            container.innerHTML = `
+                <div class="code-panel">
+                    <div class="code-wrapper">
+                        <pre><code class="language-cpp">${escapeHtml(result.code)}</code></pre>
+                    </div>
+                    <div class="stats">
+                        <div class="stats-row">
+                            <span class="stats-label">Timestamp:</span>
+                            <span class="stats-value">${formatTimestamp(result.timestamp)}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Tests Passed:</span>
+                            <span class="stats-value">${result.tests_passed}/${result.tests_total}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Average Time:</span>
+                            <span class="stats-value">${(result.avg_time * 1000).toFixed(2)} ms</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Standard Deviation Time:</span>
+                            <span class="stats-value">${(Math.sqrt(result.variance_time) * 1000).toFixed(2)} ms</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Max Time:</span>
+                            <span class="stats-value">${(result.max_time * 1000).toFixed(2)} ms</span>
+                        </div>
+                        ${result.compile_error ? `
+                        <div class="compile-error">
+                        <strong style="color: #f48771;">Compilation Error:</strong>
+                        ${parseAnsiToHtml(result.compile_error)}
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            hljs.highlightAll();
+        }
+        
+        function showComparison() {
+            const container = document.getElementById('codeContainer');
+            const modeIndicator = document.getElementById('modeIndicator');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            const [left, right] = compareIterations;
+            modeIndicator.textContent = `Comparing: Iteration #${left.iteration} (Score: ${left.combined_score.toFixed(4)}) vs #${right.iteration} (Score: ${right.combined_score.toFixed(4)})`;
+            
+            copyBtn.style.display = 'none';
+            
+            container.innerHTML = `
+                <div class="code-panel">
+                    <div class="code-panel-header">
+                        <span>Iteration #${left.iteration}</span>
+                        <button class="copy-btn" onclick="copyCode(\`${escapeHtml(left.code).replace(/`/g, '\\`')}\`)">Copy</button>
+                    </div>
+                    <div class="code-wrapper">
+                        <pre><code class="language-cpp">${escapeHtml(left.code)}</code></pre>
+                    </div>
+                    <div class="stats">
+                        <div class="stats-row">
+                            <span class="stats-label">Timestamp:</span>
+                            <span class="stats-value">${formatTimestamp(left.timestamp)}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Score:</span>
+                            <span class="stats-value">${left.combined_score.toFixed(4)}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Tests:</span>
+                            <span class="stats-value">${left.tests_passed}/${left.tests_total}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Avg Time:</span>
+                            <span class="stats-value">${(left.avg_time * 1000).toFixed(2)} ms</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="code-panel">
+                    <div class="code-panel-header">
+                        <span>Iteration #${right.iteration}</span>
+                        <button class="copy-btn" onclick="copyCode(\`${escapeHtml(right.code).replace(/`/g, '\\`')}\`)">Copy</button>
+                    </div>
+                    <div class="code-wrapper">
+                        <pre><code class="language-cpp">${escapeHtml(right.code)}</code></pre>
+                    </div>
+                    <div class="stats">
+                        <div class="stats-row">
+                            <span class="stats-label">Timestamp:</span>
+                            <span class="stats-value">${formatTimestamp(right.timestamp)}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Score:</span>
+                            <span class="stats-value">${right.combined_score.toFixed(4)}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Tests:</span>
+                            <span class="stats-value">${right.tests_passed}/${right.tests_total}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Avg Time:</span>
+                            <span class="stats-value">${(right.avg_time * 1000).toFixed(2)} ms</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            hljs.highlightAll();
+        }
+        
+        function copyCode(code) {
+            // The code is already unescaped HTML, just copy it directly
+            // Don't use textarea.innerHTML which interprets entities
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+        
+        
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            compareMode = false;
+            compareIterations = [];
+            selectedIteration = null;
+            const btn = document.getElementById('compareModeBtn');
+            const hint = document.getElementById('compareHint');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            btn.textContent = 'Enter Compare Mode';
+            btn.style.background = '#0e639c';
+            hint.style.display = 'none';
+            copyBtn.style.display = 'none';
+            
+            document.getElementById('modeIndicator').textContent = 'Select an iteration to view code';
+            document.getElementById('codeContainer').innerHTML = '<div class="empty-state">Click on an iteration from the list to view its code</div>';
+            updateSelection();
+        });
+
+        document.getElementById('compareModeBtn').addEventListener('click', () => {
+            compareMode = !compareMode;
+            const btn = document.getElementById('compareModeBtn');
+            const hint = document.getElementById('compareHint');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            if (compareMode) {
+                btn.textContent = 'Exit Compare Mode';
+                btn.style.background = '#4ec9b0';
+                hint.style.display = 'block';
+                compareIterations = [];
+                copyBtn.style.display = 'none';
+                document.getElementById('modeIndicator').textContent = 'Compare Mode: Select 2 iterations';
+                document.getElementById('codeContainer').innerHTML = '<div class="empty-state">Select 2 iterations to compare</div>';
+            } else {
+                btn.textContent = 'Enter Compare Mode';
+                btn.style.background = '#0e639c';
+                hint.style.display = 'none';
+                compareIterations = [];
+                if (selectedIteration) {
+                    showSingleCode(selectedIteration);
+                } else {
+                    copyBtn.style.display = 'none';
+                    document.getElementById('modeIndicator').textContent = 'Select an iteration to view code';
+                    document.getElementById('codeContainer').innerHTML = '<div class="empty-state">Click on an iteration from the list to view its code</div>';
+                }
+            }
+            updateSelection();
+        });
+
+        document.getElementById('sortBtn').addEventListener('click', () => {
+            const btn = document.getElementById('sortBtn');
+            
+            const sortModes = ['iteration-desc', 'iteration-asc', 'score', 'timestamp'];
+            const sortLabels = ['Iteration ↓', 'Iteration ↑', 'Score ↓', 'Time ↓'];
+            
+            const currentIndex = sortModes.indexOf(sortMode);
+            const nextIndex = (currentIndex + 1) % sortModes.length;
+            sortMode = sortModes[nextIndex];
+            btn.textContent = `Sort: ${sortLabels[nextIndex]}`;
+            
+            renderIterationList();
+        });
+        
+        document.getElementById('problemSelect').addEventListener('change', (e) => {
+            currentProblemId = e.target.value;
+            selectedIteration = null;
+            compareIterations = [];
+            compareMode = false;
+            const btn = document.getElementById('compareModeBtn');
+            const hint = document.getElementById('compareHint');
+            const copyBtn = document.getElementById('copyBtn');
+            btn.textContent = 'Enter Compare Mode';
+            btn.style.background = '#0e639c';
+            hint.style.display = 'none';
+            copyBtn.style.display = 'none';
+            document.getElementById('problemLink').href = `https://dmoj.ca/problem/${currentProblemId}`;
+            document.getElementById('modeIndicator').textContent = 'Select an iteration to view code';
+            document.getElementById('codeContainer').innerHTML = '<div class="empty-state">Loading...</div>';
+            loadResults();
+        });
+        
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+        
+        loadResults();
+        setInterval(loadResults, 2000); // AUTO_REFRESH
+    </script>
+</body>
+</html>

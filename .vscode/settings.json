@@ -1,0 +1,9 @@
+{
+    "cmake.ignoreCMakeListsMissing": true,
+    "files.associations": {
+        "BFS.C": "cpp",
+        "BFSCheck.C": "cpp",
+        "BFSTime.C": "cpp",
+        "MST.C": "cpp"
+    }
+}

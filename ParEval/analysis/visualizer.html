@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON Comparison Visualizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .file-input {
+      margin-bottom: 10px;
+    }
+    .file-input label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .dropdown {
+      margin-bottom: 10px;
+    }
+    .dropdown label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .container {
+      display: flex;
+      margin-top: 20px;
+    }
+    .file-section {
+      flex: 1;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-right: 20px;
+    }
+    .file-section:last-child {
+      margin-right: 0;
+    }
+    pre {
+      background-color: #f9f9f9;
+      padding: 10px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+    .prompt-section {
+      margin-bottom: 20px;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .prompt-section h2 {
+      margin-top: 0;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>JSON Comparison Visualizer</h1>
+  
+  <div class="file-input">
+    <label for="file1">Fastest Implementation JSON File 1:</label>
+    <input type="file" id="file1" accept=".json">
+  </div>
+  
+  <div class="file-input">
+    <label for="file2">Fastest Implementation JSON File 2:</label>
+    <input type="file" id="file2" accept=".json">
+  </div>
+  
+  <div class="file-input">
+    <label for="file3">Generation Prompt:</label>
+    <input type="file" id="file3" accept=".json">
+  </div>
+  
+  <button onclick="compareFiles()">Compare</button>
+  
+  <div class="dropdown">
+    <label for="name">Name:</label>
+    <select id="name"></select>
+  </div>
+  
+  <div class="dropdown">
+    <label for="problemType">Problem Type:</label>
+    <select id="problemType"></select>
+  </div>
+  
+  <div class="dropdown">
+    <label for="parallelismModel">Parallelism Model:</label>
+    <select id="parallelismModel"></select>
+  </div>
+  
+  <div class="prompt-section">
+    <h2>Prompt</h2>
+    <pre id="prompt"></pre>
+  </div>
+  
+  <div class="container">
+    <div class="file-section">
+      <h2>File 1</h2>
+      <pre id="output1"></pre>
+    </div>
+    <div class="file-section">
+      <h2>File 2</h2>
+      <pre id="output2"></pre>
+    </div>
+  </div>
+  
+  <script>
+    let jsonData1 = [];
+    let jsonData2 = [];
+    let jsonData3 = [];
+    
+    function compareFiles() {
+      const file1 = document.getElementById('file1').files[0];
+      const file2 = document.getElementById('file2').files[0];
+      const file3 = document.getElementById('file3').files[0];
+      
+      const reader1 = new FileReader();
+      const reader2 = new FileReader();
+      const reader3 = new FileReader();
+      
+      reader1.onload = function() {
+        jsonData1 = JSON.parse(reader1.result);
+        populateDropdowns();
+        compareSelectedObjects();
+      };
+      
+      reader2.onload = function() {
+        jsonData2 = JSON.parse(reader2.result);
+        populateDropdowns();
+        compareSelectedObjects();
+      };
+      
+      reader3.onload = function() {
+        jsonData3 = JSON.parse(reader3.result);
+        populateDropdowns();
+        compareSelectedObjects();
+      };
+      
+      reader1.readAsText(file1);
+      reader2.readAsText(file2);
+      reader3.readAsText(file3);
+    }
+    
+    function populateDropdowns() {
+      const nameDropdown = document.getElementById('name');
+      const problemTypeDropdown = document.getElementById('problemType');
+      const parallelismModelDropdown = document.getElementById('parallelismModel');
+      
+      const names = [...new Set([...jsonData1, ...jsonData2].map(obj => obj.name))];
+      const problemTypes = [...new Set([...jsonData1, ...jsonData2].map(obj => obj.problem_type))];
+      const parallelismModels = [...new Set([...jsonData1, ...jsonData2].map(obj => obj.parallelism_model))];
+      
+      nameDropdown.innerHTML = '<option value="">Select Name</option>' + names.map(name => `<option>${name}</option>`).join('');
+      problemTypeDropdown.innerHTML = '<option value="">Select Problem Type</option>' + problemTypes.map(type => `<option>${type}</option>`).join('');
+      parallelismModelDropdown.innerHTML = '<option value="">Select Parallelism Model</option>' + parallelismModels.map(model => `<option>${model}</option>`).join('');
+      
+      nameDropdown.addEventListener('change', compareSelectedObjects);
+      problemTypeDropdown.addEventListener('change', compareSelectedObjects);
+      parallelismModelDropdown.addEventListener('change', compareSelectedObjects);
+    }
+    
+    function compareSelectedObjects() {
+      const selectedName = document.getElementById('name').value;
+      const selectedProblemType = document.getElementById('problemType').value;
+      const selectedParallelismModel = document.getElementById('parallelismModel').value;
+      
+      const obj1 = jsonData1.find(obj => obj.name === selectedName && obj.problem_type === selectedProblemType && obj.parallelism_model === selectedParallelismModel);
+      const obj2 = jsonData2.find(obj => obj.name === selectedName && obj.problem_type === selectedProblemType && obj.parallelism_model === selectedParallelismModel);
+      const obj3 = jsonData3.find(obj => obj.name === selectedName && obj.problem_type === selectedProblemType && obj.parallelism_model === selectedParallelismModel);
+      
+      document.getElementById('output1').innerHTML = obj1 ? obj1.generated_output.replace(/\\n/g, '<br>') : '';
+      document.getElementById('output2').innerHTML = obj2 ? obj2.generated_output.replace(/\\n/g, '<br>') : '';
+      document.getElementById('prompt').textContent = obj3 ? obj3.prompt : '';
+    }
+  </script>
+</body>
+</html>

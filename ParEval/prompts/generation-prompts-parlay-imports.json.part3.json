@@ -1,0 +1,674 @@
+[
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "serial",
+    "prompt": "/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\nvoid gemmParallel(std::vector<double> const& A, std::vector<double> const& B, std::vector<double> &C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A and B. Store the result in C on rank 0.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\nvoid gemmParallel(std::vector<double> const& A, std::vector<double> const& B, std::vector<double> &C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\nvoid gemmParallel(std::vector<double> const& A, std::vector<double> const& B, std::vector<double> &C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A and B. Store the result in C on rank 0.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\nvoid gemmParallel(std::vector<double> const& A, std::vector<double> const& B, std::vector<double> &C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "cuda",
+    "prompt": "/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use CUDA to compute in parallel. The kernel is launched on an MxN grid of threads.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\n__global__ void gemmParallel(const double *A, const double *B, double *C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\nvoid gemmParallel(Kokkos::View<const double**> &A, Kokkos::View<const double**> &B, Kokkos::View<double**> &C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "hip",
+    "prompt": "/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use AMD HIP to compute in parallel. The kernel is launched on an MxN grid of threads.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\n__global__ void gemmParallel(const double *A, const double *B, double *C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "02_dense_la_gemm",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\nvoid gemmParallel(parlay::sequence<double> const& A, parlay::sequence<double> const& B, parlay::sequence<double> &C, size_t M, size_t K, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "serial",
+    "prompt": "/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\nvoid solveLinearSystemParallel(std::vector<double> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A and b. Store the result in x on rank 0.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\nvoid solveLinearSystemParallel(std::vector<double> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\nvoid solveLinearSystemParallel(std::vector<double> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A and b. Store the result in x on rank 0.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\nvoid solveLinearSystemParallel(std::vector<double> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "cuda",
+    "prompt": "/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\n__global__ void solveLinearSystemParallel(const double *A, const double *b, double *x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Solve the linear system Ax=b for x.\n   A is an NxN matrix. x and b have N elements.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\nvoid solveLinearSystemParallel(Kokkos::View<const double**> &A, Kokkos::View<const double*> &b, Kokkos::View<double*> &x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "hip",
+    "prompt": "/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\n__global__ void solveLinearSystemParallel(const double *A, const double *b, double *x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "01_dense_la_solve",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use ParlayLib to compute in parallel.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\nvoid solveLinearSystemParallel(parlay::sequence<double> const& A, parlay::sequence<double> const& b, parlay::sequence<double> &x, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "serial",
+    "prompt": "/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix stored in row-major.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorizeParallel(std::vector<double> &A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix stored in row-major.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. Store the result in A on rank 0.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorizeParallel(std::vector<double> &A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix stored in row-major.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorizeParallel(std::vector<double> &A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix stored in row-major.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. Store the result in A on rank 0.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorizeParallel(std::vector<double> &A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "cuda",
+    "prompt": "/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix stored in row-major.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\n__global__ void luFactorizeParallel(double *A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorizeParallel(Kokkos::View<double**> &A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "hip",
+    "prompt": "/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix stored in row-major.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\n__global__ void luFactorizeParallel(double *A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A.\n   A is an NxN matrix stored in row-major.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorizeParallel(parlay::sequence<double> &A, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpyParallel(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x and y. Store the result in z on rank 0.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpyParallel(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpyParallel(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x and y. Store the result in z on rank 0.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpyParallel(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\n__global__ void axpyParallel(double alpha, const double *x, const double *y, double *z, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpyParallel(double alpha, Kokkos::View<const double*> &x, Kokkos::View<const double*> &y, Kokkos::View<double*> &z) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\n__global__ void axpyParallel(double alpha, const double *x, const double *y, double *z, size_t N) {"
+  },
+  {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "03_dense_la_axpy",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use ParlayLib to compute in parallel.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpyParallel(double alpha, parlay::sequence<double> const& x, parlay::sequence<double> const& y, parlay::sequence<double> &z) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftConjugateParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. The final result is stored on rank 0.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftConjugateParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftConjugateParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. The final result is stored on rank 0.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftConjugateParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\n__global__ void fftConjugateParallel(cuDoubleComplex *x, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftConjugateParallel(Kokkos::View<Kokkos::complex<double>*> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\n__global__ void fftConjugateParallel(hipDoubleComplex *x, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "07_fft_fft_conjugate",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftConjugateParallel(parlay::sequence<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<double> &r, std::vector<double> &i) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. The final result is stored on rank 0.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<double> &r, std::vector<double> &i) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<double> &r, std::vector<double> &i) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. The final result is stored on rank 0.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<double> &r, std::vector<double> &i) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\n__global__ void fftParallel(const cuDoubleComplex *x, double *r, double *i, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\nvoid fftParallel(Kokkos::View<Kokkos::complex<double>*> const& x, Kokkos::View<double*> &r, Kokkos::View<double*> &i) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\n__global__ void fftParallel(const hipDoubleComplex *x, double *r, double *i, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "08_fft_split_fft",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\nvoid fftParallel(parlay::sequence<std::complex<double>> const& x, parlay::sequence<double> &r, parlay::sequence<double> &i) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "serial",
+    "prompt": "/* forward declare fft. computes fourier transform in-place */\nvoid fft(std::vector<std::complex<double>> &x);\n\n/* Compute the inverse fourier transform of x in-place.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\nvoid ifftParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* forward declare fft. computes fourier transform in-place */\nvoid fft(std::vector<std::complex<double>> &x);\n\n/* Compute the inverse fourier transform of x in-place.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. The final result is stored on rank 0.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\nvoid ifftParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* forward declare fft. computes fourier transform in-place */\nvoid fft(std::vector<std::complex<double>> &x);\n\n/* Compute the inverse fourier transform of x in-place.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\nvoid ifftParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* forward declare fft. computes fourier transform in-place */\nvoid fft(std::vector<std::complex<double>> &x);\n\n/* Compute the inverse fourier transform of x in-place.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. The final result is stored on rank 0.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\nvoid ifftParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the inverse fourier transform of x in-place.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\n__global__ void ifftParallel(cuDoubleComplex *x, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* forward declare fft. computes fourier transform in-place */\nvoid fft(Kokkos::View<Kokkos::complex<double>*> &x);\n\n/* Compute the inverse fourier transform of x in-place.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\nvoid ifftParallel(Kokkos::View<Kokkos::complex<double>*> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the inverse fourier transform of x in-place.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\n__global__ void ifftParallel(hipDoubleComplex *x, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "05_fft_inverse_fft",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the inverse fourier transform of x in-place.\n   Use ParlayLib to compute in parallel.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\nvoid ifftParallel(parlay::sequence<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the discrete fourier transform of x. Store the result in output.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\nvoid dftParallel(std::vector<double> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the discrete fourier transform of x. Store the result in output.\n   Use MPI to compute in parallel. Assume MPI is already initialized.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\nvoid dftParallel(std::vector<double> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the discrete fourier transform of x. Store the result in output.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\nvoid dftParallel(std::vector<double> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the discrete fourier transform of x. Store the result in output.\n   Use MPI and OpenMP to compute in parallel. Assume MPI is already initialized.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\nvoid dftParallel(std::vector<double> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the discrete fourier transform of x. Store the result in output.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\n__global__ void dftParallel(const double *x, cuDoubleComplex *output, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the discrete fourier transform of x. Store the result in output.\n   Use Kokkos to compute in parallel. Assume Kokkos is already initialized.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\nvoid dftParallel(Kokkos::View<const double*> &x, Kokkos::View<Kokkos::complex<double>*> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the discrete fourier transform of x. Store the result in output.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\n__global__ void dftParallel(const double *x, cuDoubleComplex *output, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "06_fft_dft",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the discrete fourier transform of x. Store the result in output.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\nvoid dftParallel(parlay::sequence<double> const& x, parlay::sequence<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the fourier transform of x. Store the result in output.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the fourier transform of x. Store the result in output.\n   Use MPI to compute in parallel. Assume MPI is already initialized.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the fourier transform of x. Store the result in output.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the discrete fourier transform of x. Store the result in output.\n   Use MPI and OpenMP to compute in parallel. Assume MPI is already initialized.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftParallel(std::vector<std::complex<double>> const& x, std::vector<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the fourier transform of x. Store the result in output.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\n__global__ void fftParallel(const cuDoubleComplex *x, cuDoubleComplex *output, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the fourier transform of x. Store the result in output.\n   Use Kokkos to compute in parallel. Assume Kokkos is already initialized.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftParallel(Kokkos::View<const Kokkos::complex<double>*> &x, Kokkos::View<Kokkos::complex<double>*> &output) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the fourier transform of x. Store the result in output.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\n__global__ void fftParallel(const hipDoubleComplex *x, hipDoubleComplex *output, size_t N) {"
+  },
+  {
+    "problem_type": "fft",
+    "language": "cpp",
+    "name": "09_fft_fft_out_of_place",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the fourier transform of x. Store the result in output.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\nvoid fftParallel(parlay::sequence<std::complex<double>> const& x, parlay::sequence<std::complex<double>> &output) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "serial",
+    "prompt": "/* Return the index of the value in the vector x that is closest to the math constant PI.\n   Use M_PI for the value of PI.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\nsize_t findClosestToPiParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Return the index of the value in the vector x that is closest to the math constant PI.\n   Use M_PI for the value of PI.\n   Use MPI to search in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\nsize_t findClosestToPiParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Return the index of the value in the vector x that is closest to the math constant PI.\n   Use M_PI for the value of PI.\n   Use OpenMP to search in parallel.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\nsize_t findClosestToPiParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Return the index of the value in the vector x that is closest to the math constant PI.\n   Use M_PI for the value of PI.\n   Use MPI and OpenMP to search in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\nsize_t findClosestToPiParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "cuda",
+    "prompt": "/* Find the index of the value in the vector x that is closest to the math constant PI. Store the index in closestToPiIndex.\n   Use M_PI for the value of PI.\n   Use CUDA to search in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\n__global__ void findClosestToPiParallel(const double *x, size_t N, size_t *closestToPiIndex) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Return the index of the value in the vector x that is closest to the math constant PI.\n   Use M_PI for the value of PI.\n   Use Kokkos to search in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\nsize_t findClosestToPiParallel(Kokkos::View<const double*> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "hip",
+    "prompt": "/* Find the index of the value in the vector x that is closest to the math constant PI. Store the index in closestToPiIndex.\n   Use M_PI for the value of PI.\n   Use AMD HIP to search in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\n__global__ void findClosestToPiParallel(const double *x, size_t N, size_t *closestToPiIndex) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "37_search_find_the_closest_number_to_pi",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Return the index of the value in the vector x that is closest to the math constant PI.\n   Use M_PI for the value of PI.\n   Use ParlayLib to search in parallel.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\nsize_t findClosestToPiParallel(parlay::sequence<double> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "serial",
+    "prompt": "/* Return true if `val` is only in one of vectors x or y.\n   Return false if it is in both or neither.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\nbool xorContainsParallel(std::vector<int> const& x, std::vector<int> const& y, int val) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Return true if `val` is only in one of vectors x or y.\n   Return false if it is in both or neither.\n   Use MPI to search in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x and y. Return the result on rank 0.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\nbool xorContainsParallel(std::vector<int> const& x, std::vector<int> const& y, int val) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Return true if `val` is only in one of vectors x or y.\n   Return false if it is in both or neither.\n   Use OpenMP to search in parallel.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\nbool xorContainsParallel(std::vector<int> const& x, std::vector<int> const& y, int val) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Return true if `val` is only in one of vectors x or y.\n   Return false if it is in both or neither.\n   Use MPI and OpenMP to search in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x and y. Return the result on rank 0.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\nbool xorContainsParallel(std::vector<int> const& x, std::vector<int> const& y, int val) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "cuda",
+    "prompt": "/* Set `found` to true if `val` is only in one of vectors x or y.\n   Set it to false if it is in both or neither.\n   Use CUDA to search in parallel. The kernel is launched with at least N threads.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\n__global__ void xorContainsParallel(const int *x, const int *y, size_t N, int val, bool *found) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Return true if `val` is only in one of vectors x or y.\n   Return false if it is in both or neither.\n   Use Kokkos to search in parallel. Assume Kokkos has already been initialized.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\nbool xorContainsParallel(Kokkos::View<const int*> const& x, Kokkos::View<const int*> const& y, int val) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "hip",
+    "prompt": "/* Set `found` to true if `val` is only in one of vectors x or y.\n   Set it to false if it is in both or neither.\n   Use AMD HIP to search in parallel. The kernel is launched with at least N threads.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\n__global__ void xorContainsParallel(const int *x, const int *y, size_t N, int val, bool *found) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "39_search_xor_contains",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Return true if `val` is only in one of vectors x or y.\n   Return false if it is in both or neither.\n   Use ParlayLib to search in parallel.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\nbool xorContainsParallel(parlay::sequence<int> const& x, parlay::sequence<int> const& y, int val) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "serial",
+    "prompt": "/* Return the index of the first even number in the vector x.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEvenParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Return the index of the first even number in the vector x.\n   Use MPI to parallelize the search. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEvenParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Return the index of the first even number in the vector x.\n   Use OpenMP to parallelize the search.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEvenParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Return the index of the first even number in the vector x.\n   Use MPI and OpenMP to parallelize the search. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEvenParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "cuda",
+    "prompt": "/* Find the index of the first even number in the vector x. Store it in firstEvenIndex.\n   Use CUDA to parallelize the search. The kernel is launched with at least as many threads as values in x.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\n__global__ void findFirstEvenParallel(const int *x, size_t N, size_t *firstEvenIndex) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Return the index of the first even number in the vector x.\n   Use Kokkos to parallelize the search. Assume Kokkos has already been initialized.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEvenParallel(Kokkos::View<const int*> const& x) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "hip",
+    "prompt": "/* Find the index of the first even number in the vector x. Store it in firstEvenIndex.\n   Use AMD HIP to parallelize the search. The kernel is launched with at least as many threads as values in x.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\n__global__ void findFirstEvenParallel(const int *x, size_t N, size_t *firstEvenIndex) {"
+  },
+  {
+    "problem_type": "search",
+    "language": "cpp",
+    "name": "38_search_find_the_first_even_number",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Return the index of the first even number in the vector x.\n   Use ParlayLib to parallelize the search.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEvenParallel(parlay::sequence<int> const& x) {"
+  }
+]

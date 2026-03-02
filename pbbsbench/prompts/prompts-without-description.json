@@ -1,0 +1,947 @@
+[
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "integerSort/parallelRadixSort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Sorts a sequence of integers, possibly with tag-along values. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n\ntemplate <class T>\nauto int_sort(parlay::slice<T*,T*> In, size_t bits) {\n    }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "integerSort/parallelRadixSort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Sorts a sequence of integers, possibly with tag-along values. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n\ntemplate <class T>\nauto int_sort(parlay::slice<T*,T*> In, size_t bits) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "integerSort/parallelRadixSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Sorts a sequence of integers, possibly with tag-along values. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\ntemplate <class T>\nauto int_sort(parlay::slice<T*,T*> In, size_t bits) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "integerSort/serialRadixSort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Sorts a sequence of integers, possibly with tag-along values. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n#include \"parlay/parallel.h\"\n\ntemplate <class T>\nauto int_sort(parlay::slice<T*,T*> In, size_t bits) {\n   }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "integerSort/serialRadixSort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Sorts a sequence of integers, possibly with tag-along values. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n#include \"parlay/parallel.h\"\n\n\ntemplate <class T>\nauto int_sort(parlay::slice<T*,T*> In, size_t bits) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "integerSort/serialRadixSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Sorts a sequence of integers, possibly with tag-along values. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n#include \"parlay/parallel.h\"\n\n\ntemplate <class T>\nauto int_sort(parlay::slice<T*,T*> In, size_t bits) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/sampleSort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenMP to compute in parallel.\n#include \"sample_sort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/sampleSort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenCilk to compute in parallel.\n#include \"sample_sort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/sampleSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use ParlayLib to compute in parallel.\n#include \"sample_sort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/quickSort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenMP to compute in parallel.\n#include \"parlay/internal/quicksort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T>  &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/quickSort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenCilk to compute in parallel.\n#include \"parlay/internal/quicksort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T>  &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/quickSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use ParlayLib to compute in parallel.\n#include \"parlay/internal/quicksort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T>  &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/mergeSort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenMP to compute in parallel.\n#include \"parlay/internal/merge_sort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/mergeSort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenCilk to compute in parallel.\n#include \"parlay/internal/merge_sort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/mergeSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use ParlayLib to compute in parallel.\n#include \"parlay/internal/merge_sort.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/stableSampleSort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenMP to compute in parallel.\n#include \"parlay/internal/sample_sort.h\"\n\nconstexpr bool INPLACE = false;\n\ntemplate <class T, class BinPred>\nparlay::sequence<T> compSort(parlay::sequence<T> const &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/stableSampleSort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenCilk to compute in parallel.\n#include \"parlay/internal/sample_sort.h\"\n\nconstexpr bool INPLACE = false;\n\ntemplate <class T, class BinPred>\nparlay::sequence<T> compSort(parlay::sequence<T> const &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/stableSampleSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use ParlayLib to compute in parallel.\n#include \"parlay/internal/sample_sort.h\"\n\nconstexpr bool INPLACE = false;\n\ntemplate <class T, class BinPred>\nparlay::sequence<T> compSort(parlay::sequence<T> const &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/serialSort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the sorted input based on a comparison-based sort.\n#include <algorithm>\n#include \"parlay/sequence.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/serialSort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the sorted input based on a comparison-based sort.\n#include <algorithm>\n#include \"parlay/sequence.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/serialSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the sorted input based on a comparison-based sort.\n#include <algorithm>\n#include \"parlay/sequence.h\"\n\nconstexpr bool INPLACE = true;\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/ips4o",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenMP to compute in parallel.\n#include \"ips4o.hpp\"\n#include \"parlay/sequence.h\"\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/ips4o",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use OpenCilk to compute in parallel.\n#include \"ips4o.hpp\"\n#include \"parlay/sequence.h\"\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "comparisonSort/ips4o",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the sorted input based on a comparison-based sort. Use ParlayLib to compute in parallel.\n#include \"ips4o.hpp\"\n#include \"parlay/sequence.h\"\n\ntemplate <class T, class BinPred>\nvoid compSort(parlay::sequence<T> &A, const BinPred& f) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/serial_hash",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the input sequence with duplicates removed.\n#include \"parlay/primitives.h\"\n#include <unordered_set>\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/serial_hash",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the input sequence with duplicates removed.\n#include \"parlay/primitives.h\"\n#include <unordered_set>\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/serial_hash",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the input sequence with duplicates removed.\n#include \"parlay/primitives.h\"\n#include <unordered_set>\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &A) {\n }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/serial_sort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the input sequence with duplicates removed.\n#include \"parlay/primitives.h\"\n#include <unordered_set>\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &_A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/serial_sort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the input sequence with duplicates removed.\n#include \"parlay/primitives.h\"\n#include <unordered_set>\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &_A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/serial_sort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the input sequence with duplicates removed.\n#include \"parlay/primitives.h\"\n#include <unordered_set>\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &_A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/parlayhash",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the input sequence with duplicates removed. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/parlayhash",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the input sequence with duplicates removed. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "removeDuplicates/parlayhash",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the input sequence with duplicates removed. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\ntemplate <class T>\nparlay::sequence<T> dedup(parlay::sequence<T> const &A) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "histogram/sequential",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the histogram for a sequence of integers.\n#include \"parlay/primitives.h\"\n\nparlay::sequence<uint> histogram(parlay::sequence<uint> const &In, uint buckets);\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "histogram/sequential",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the histogram for a sequence of integers.\n#include \"parlay/primitives.h\"\n\nparlay::sequence<uint> histogram(parlay::sequence<uint> const &In, uint buckets);\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "histogram/sequential",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the histogram for a sequence of integers.\n#include \"parlay/primitives.h\"\n\nparlay::sequence<uint> histogram(parlay::sequence<uint> const &In, uint buckets);\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "histogram/parallel",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the histogram for a sequence of integers. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n#include \"parlay/io.h\"\n\nparlay::sequence<uint> histogram(parlay::sequence<uint> const &In, uint buckets) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "histogram/parallel",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the histogram for a sequence of integers. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n#include \"parlay/io.h\"\n\nparlay::sequence<uint> histogram(parlay::sequence<uint> const &In, uint buckets) {\n  }\n"
+  },
+  {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "histogram/parallel",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the histogram for a sequence of integers. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n#include \"parlay/io.h\"\n\nparlay::sequence<uint> histogram(parlay::sequence<uint> const &In, uint buckets) {\n  }\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "wordCounts/histogram",
+    "parallelism_model": "OpenMP",
+    "prompt": "Counts the number of occurrences of each word in a string. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\nusing result_type = std::pair<charseq,size_t>;\nparlay::sequence<result_type> wordCounts(charseq const &s, bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "wordCounts/histogram",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Counts the number of occurrences of each word in a string. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\nusing result_type = std::pair<charseq,size_t>;\nparlay::sequence<result_type> wordCounts(charseq const &s, bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "wordCounts/histogram",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Counts the number of occurrences of each word in a string. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\nusing result_type = std::pair<charseq,size_t>;\nparlay::sequence<result_type> wordCounts(charseq const &s, bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "wordCounts/serial",
+    "parallelism_model": "OpenMP",
+    "prompt": "Counts the number of occurrences of each word in a string.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\nusing result_type = std::pair<charseq,size_t>;\nparlay::sequence<result_type> wordCounts(charseq const &s, bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "wordCounts/serial",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Counts the number of occurrences of each word in a string.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\nusing result_type = std::pair<charseq,size_t>;\nparlay::sequence<result_type> wordCounts(charseq const &s, bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "wordCounts/serial",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Counts the number of occurrences of each word in a string.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\nusing result_type = std::pair<charseq,size_t>;\nparlay::sequence<result_type> wordCounts(charseq const &s, bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "invertedIndex/sequential",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns an inverted index given a string of documents.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\n\ncharseq build_index(charseq const &s, charseq const &doc_start,\n\t\t    bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "invertedIndex/sequential",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns an inverted index given a string of documents.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\n\ncharseq build_index(charseq const &s, charseq const &doc_start,\n\t\t    bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "invertedIndex/sequential",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns an inverted index given a string of documents.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\n\ncharseq build_index(charseq const &s, charseq const &doc_start,\n\t\t    bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "invertedIndex/parallel",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns an inverted index given a string of documents. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\n\ncharseq build_index(charseq const &s, charseq const &doc_start,\n\t\t    bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "invertedIndex/parallel",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns an inverted index given a string of documents. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\n\ncharseq build_index(charseq const &s, charseq const &doc_start,\n\t\t    bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "invertedIndex/parallel",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns an inverted index given a string of documents. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<char>;\n\ncharseq build_index(charseq const &s, charseq const &doc_start,\n\t\t    bool verbose);\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/parallelKS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the suffix array for a string. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/parallelKS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the suffix array for a string. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/parallelKS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the suffix array for a string. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/parallelRange",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the suffix array for a string. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/parallelRange",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the suffix array for a string. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/parallelRange",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the suffix array for a string. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/serialDivsufsort",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the suffix array for a string.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/serialDivsufsort",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the suffix array for a string.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "suffixArray/serialDivsufsort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the suffix array for a string.\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\n\nparlay::sequence<indexT> suffixArray(parlay::sequence<unsigned char> const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "longestRepeatedSubstring/doubling",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the longest repeated substring in a string. Use OpenMP to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<unsigned char>;\n\n\n\n\n\nusing result_type = std::tuple<size_t,size_t,size_t>;\n  \nresult_type lrs(charseq const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "longestRepeatedSubstring/doubling",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the longest repeated substring in a string. Use OpenCilk to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<unsigned char>;\n\n\n\n\n\nusing result_type = std::tuple<size_t,size_t,size_t>;\n  \nresult_type lrs(charseq const &s);\n\n"
+  },
+  {
+    "problem_type": "test_processing",
+    "language": "cpp",
+    "name": "longestRepeatedSubstring/doubling",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the longest repeated substring in a string. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\nusing charseq = parlay::sequence<unsigned char>;\n\n\n\n\n\nusing result_type = std::tuple<size_t,size_t,size_t>;\n  \nresult_type lrs(charseq const &s);\n\n"
+  },
+  {
+    "problem_type": "other",
+    "language": "cpp",
+    "name": "classify/decisionTree",
+    "parallelism_model": "OpenMP",
+    "prompt": "Predicts labels for feature vectors based on a training vectors with attached labels. Use OpenMP to compute in parallel.\nconstexpr int max_value = 255;\nusing value = unsigned char; \nusing row = parlay::sequence<value>;\nusing rows = parlay::sequence<row>;\n\nstruct feature {\n  bool discrete; \n  int num;       \n  row vals;      \n  feature(bool discrete, int num) : discrete(discrete), num(num) {}\n  feature(bool d, int n, row v) : discrete(d), num(n), vals(v) {}\n};\n\nusing features = parlay::sequence<feature>;\n\nrow classify(features const &Train, rows const &Test, bool verbose);\n"
+  },
+  {
+    "problem_type": "other",
+    "language": "cpp",
+    "name": "classify/decisionTree",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Predicts labels for feature vectors based on a training vectors with attached labels. Use OpenCilk to compute in parallel.\nconstexpr int max_value = 255;\nusing value = unsigned char; \nusing row = parlay::sequence<value>;\nusing rows = parlay::sequence<row>;\n\nstruct feature {\n  bool discrete; \n  int num;       \n  row vals;      \n  feature(bool discrete, int num) : discrete(discrete), num(num) {}\n  feature(bool d, int n, row v) : discrete(d), num(n), vals(v) {}\n};\n\nusing features = parlay::sequence<feature>;\n\nrow classify(features const &Train, rows const &Test, bool verbose);\n"
+  },
+  {
+    "problem_type": "other",
+    "language": "cpp",
+    "name": "classify/decisionTree",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Predicts labels for feature vectors based on a training vectors with attached labels. Use ParlayLib to compute in parallel.\nconstexpr int max_value = 255;\nusing value = unsigned char; \nusing row = parlay::sequence<value>;\nusing rows = parlay::sequence<row>;\n\nstruct feature {\n  bool discrete; \n  int num;       \n  row vals;      \n  feature(bool discrete, int num) : discrete(discrete), num(num) {}\n  feature(bool d, int n, row v) : discrete(d), num(n), vals(v) {}\n};\n\nusing features = parlay::sequence<feature>;\n\nrow classify(features const &Train, rows const &Test, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "minSpanningForest/parallelFilterKruskal",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a minimum spanning forest of a weighed undirected graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/primitives.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing edgeWeight = float;\n\nparlay::sequence<edgeId> mst(wghEdgeArray<vertexId,edgeWeight> &E);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "minSpanningForest/parallelFilterKruskal",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a minimum spanning forest of a weighed undirected graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/primitives.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing edgeWeight = float;\n\nparlay::sequence<edgeId> mst(wghEdgeArray<vertexId,edgeWeight> &E);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "minSpanningForest/parallelFilterKruskal",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a minimum spanning forest of a weighed undirected graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/primitives.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing edgeWeight = float;\n\nparlay::sequence<edgeId> mst(wghEdgeArray<vertexId,edgeWeight> &E);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "minSpanningForest/serialMST",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a minimum spanning forest of a weighed undirected graph.\n#include \"common/graph.h\"\n#include \"parlay/primitives.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing edgeWeight = float;\n\nparlay::sequence<edgeId> mst(wghEdgeArray<vertexId,edgeWeight> &E);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "minSpanningForest/serialMST",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a minimum spanning forest of a weighed undirected graph.\n#include \"common/graph.h\"\n#include \"parlay/primitives.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing edgeWeight = float;\n\nparlay::sequence<edgeId> mst(wghEdgeArray<vertexId,edgeWeight> &E);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "minSpanningForest/serialMST",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a minimum spanning forest of a weighed undirected graph.\n#include \"common/graph.h\"\n#include \"parlay/primitives.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing edgeWeight = float;\n\nparlay::sequence<edgeId> mst(wghEdgeArray<vertexId,edgeWeight> &E);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/incrementalST",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a spanning forest of an undirected graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/incrementalST",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a spanning forest of an undirected graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/incrementalST",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a spanning forest of an undirected graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/ndST",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a spanning forest of an undirected graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/ndST",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a spanning forest of an undirected graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/ndST",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a spanning forest of an undirected graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/serialST",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a spanning forest of an undirected graph.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/serialST",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a spanning forest of an undirected graph.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "spanningForest/serialST",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a spanning forest of an undirected graph.\n#include \"common/graph.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\n\nparlay::sequence<edgeId> st(edgeArray<vertexId> const &EA);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/simpleBFS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/simpleBFS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/simpleBFS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/backForwardBFS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/backForwardBFS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/backForwardBFS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/deterministicBFS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/deterministicBFS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/deterministicBFS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/serialBFS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/serialBFS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "breadthFirstSearch/serialBFS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a breadth-first-search tree from a given vertex in a graph.\n#include \"common/graph.h\"\n#include \"parlay/sequence.h\"\n\n\nusing vertexId = int;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\n\n\nparlay::sequence<vertexId> BFS(vertexId start, const Graph &G, bool verbose);\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalMatching/serialMatching",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a maximal matching for an undirected graph.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing edges = edgeArray<vertexId>;\n\nparlay::sequence<edgeId> maximalMatching(edges const &EA);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalMatching/serialMatching",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a maximal matching for an undirected graph.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing edges = edgeArray<vertexId>;\n\nparlay::sequence<edgeId> maximalMatching(edges const &EA);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalMatching/serialMatching",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a maximal matching for an undirected graph.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing edges = edgeArray<vertexId>;\n\nparlay::sequence<edgeId> maximalMatching(edges const &EA);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalMatching/incrementalMatching",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a maximal matching for an undirected graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing edges = edgeArray<vertexId>;\n\nparlay::sequence<edgeId> maximalMatching(edges const &EA);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalMatching/incrementalMatching",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a maximal matching for an undirected graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing edges = edgeArray<vertexId>;\n\nparlay::sequence<edgeId> maximalMatching(edges const &EA);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalMatching/incrementalMatching",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a maximal matching for an undirected graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing edges = edgeArray<vertexId>;\n\nparlay::sequence<edgeId> maximalMatching(edges const &EA);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/incrementalMIS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a maximal independent set for an undirected graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/incrementalMIS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a maximal independent set for an undirected graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/incrementalMIS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a maximal independent set for an undirected graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/ndMIS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a maximal independent set for an undirected graph. Use OpenMP to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/ndMIS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a maximal independent set for an undirected graph. Use OpenCilk to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/ndMIS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a maximal independent set for an undirected graph. Use ParlayLib to compute in parallel.\n#include \"common/graph.h\"\n\nusing vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/serialMIS",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns a maximal independent set for an undirected graph.\n#include \"common/graph.h\"\n\n using vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/serialMIS",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns a maximal independent set for an undirected graph.\n#include \"common/graph.h\"\n\n using vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "maximalIndependentSet/serialMIS",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns a maximal independent set for an undirected graph.\n#include \"common/graph.h\"\n\n using vertexId = uint;\nusing edgeId = uint;\nusing Graph = graph<vertexId,edgeId>;\n\nparlay::sequence<char> maximalIndependentSet(Graph const &G);\n\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "nearestNeighbors/octTree",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the k nearest neighbors for points in 2d and 3d. Use OpenMP to compute in parallel.\n bool report_stats = false;\nint algorithm_version = 2;\n\n\n#include <algorithm>\n#include <math.h> \n#include <queue>\n#include \"parlay/parallel.h\"\n#include \"parlay/primitives.h\"\n#include \"common/geometry.h\"\n#include \"k_nearest_neighbors.h\"\n\n\n\ntemplate <int max_k, class vtx>\nvoid ANN(parlay::sequence<vtx*> &v, int k) {\n  }\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "nearestNeighbors/octTree",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the k nearest neighbors for points in 2d and 3d. Use OpenCilk to compute in parallel.\n bool report_stats = false;\nint algorithm_version = 2;\n\n\n#include <algorithm>\n#include <math.h> \n#include <queue>\n#include \"parlay/parallel.h\"\n#include \"parlay/primitives.h\"\n#include \"common/geometry.h\"\n#include \"k_nearest_neighbors.h\"\n\n\n\ntemplate <int max_k, class vtx>\nvoid ANN(parlay::sequence<vtx*> &v, int k) {\n  }\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "nearestNeighbors/octTree",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the k nearest neighbors for points in 2d and 3d. Use ParlayLib to compute in parallel.\n bool report_stats = false;\nint algorithm_version = 2;\n\n\n#include <algorithm>\n#include <math.h> \n#include <queue>\n#include \"parlay/parallel.h\"\n#include \"parlay/primitives.h\"\n#include \"common/geometry.h\"\n#include \"k_nearest_neighbors.h\"\n\n\n\ntemplate <int max_k, class vtx>\nvoid ANN(parlay::sequence<vtx*> &v, int k) {\n  }\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rayCast/kdTree",
+    "parallelism_model": "OpenMP",
+    "prompt": "For a set of rays and a set of triangles returns the first triangle each ray intersects. Use OpenMP to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/sequence.h\"\n\nusing coord = double;\nusing point = point3d<double>;\nusing index_t = int; \n\nparlay::sequence<index_t> rayCast(triangles<point> const &Tri,\n\t\t\t\t  parlay::sequence<ray<point>> const &rays, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rayCast/kdTree",
+    "parallelism_model": "OpenCilk",
+    "prompt": "For a set of rays and a set of triangles returns the first triangle each ray intersects. Use OpenCilk to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/sequence.h\"\n\nusing coord = double;\nusing point = point3d<double>;\nusing index_t = int; \n\nparlay::sequence<index_t> rayCast(triangles<point> const &Tri,\n\t\t\t\t  parlay::sequence<ray<point>> const &rays, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rayCast/kdTree",
+    "parallelism_model": "ParlayLib",
+    "prompt": "For a set of rays and a set of triangles returns the first triangle each ray intersects. Use ParlayLib to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/sequence.h\"\n\nusing coord = double;\nusing point = point3d<double>;\nusing index_t = int; \n\nparlay::sequence<index_t> rayCast(triangles<point> const &Tri,\n\t\t\t\t  parlay::sequence<ray<point>> const &rays, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "convexHull/quickHull",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the convex hull for a set of points in 2 dimensions. Use OpenMP to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\nusing coord = double;\nusing point = point2d<coord>;\n\nparlay::sequence<indexT> hull(parlay::sequence<point> const &S);\n\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "convexHull/quickHull",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the convex hull for a set of points in 2 dimensions. Use OpenCilk to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\nusing coord = double;\nusing point = point2d<coord>;\n\nparlay::sequence<indexT> hull(parlay::sequence<point> const &S);\n\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "convexHull/quickHull",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the convex hull for a set of points in 2 dimensions. Use ParlayLib to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\nusing coord = double;\nusing point = point2d<coord>;\n\nparlay::sequence<indexT> hull(parlay::sequence<point> const &S);\n\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "convexHull/serialHull",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the convex hull for a set of points in 2 dimensions.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\nusing coord = double;\nusing point = point2d<coord>;\n\nparlay::sequence<indexT> hull(parlay::sequence<point> const &S);\n\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "convexHull/serialHull",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the convex hull for a set of points in 2 dimensions.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\nusing coord = double;\nusing point = point2d<coord>;\n\nparlay::sequence<indexT> hull(parlay::sequence<point> const &S);\n\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "convexHull/serialHull",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the convex hull for a set of points in 2 dimensions.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing indexT = unsigned int;\nusing coord = double;\nusing point = point2d<coord>;\n\nparlay::sequence<indexT> hull(parlay::sequence<point> const &S);\n\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "delaunayTriangulation/incrementalDelaunay",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns the Delaunay triangulation of points in 2d. Use OpenMP to compute in parallel.\n\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point2d<coord>;\n\ntriangles<point> delaunay(parlay::sequence<point>& P);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "delaunayTriangulation/incrementalDelaunay",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns the Delaunay triangulation of points in 2d. Use OpenCilk to compute in parallel.\n\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point2d<coord>;\n\ntriangles<point> delaunay(parlay::sequence<point>& P);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "delaunayTriangulation/incrementalDelaunay",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns the Delaunay triangulation of points in 2d. Use ParlayLib to compute in parallel.\n\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point2d<coord>;\n\ntriangles<point> delaunay(parlay::sequence<point>& P);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "delaunayRefine/incrementalRefine",
+    "parallelism_model": "OpenMP",
+    "prompt": "Adds points to a Delaunay triangulation (DT) in 2d, so resulting DT has no small angles. Use OpenMP to compute in parallel.\n\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point2d<coord>;\n\ntriangles<point> refine(triangles<point> &In);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "delaunayRefine/incrementalRefine",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Adds points to a Delaunay triangulation (DT) in 2d, so resulting DT has no small angles. Use OpenCilk to compute in parallel.\n\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point2d<coord>;\n\ntriangles<point> refine(triangles<point> &In);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "delaunayRefine/incrementalRefine",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Adds points to a Delaunay triangulation (DT) in 2d, so resulting DT has no small angles. Use ParlayLib to compute in parallel.\n\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point2d<coord>;\n\ntriangles<point> refine(triangles<point> &In);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rangeQuery2d/parallelPlaneSweep",
+    "parallelism_model": "OpenMP",
+    "prompt": "For a set of points and a set of rectangles, returns a count of the number of points in each rectangle. Use OpenMP to compute in parallel.\nusing coord = double;\nstruct point {\n  coord x, y;\n  point(coord x, coord y) : x(x), y(y) {}\n  point() {}\n};\nstruct query {coord x1, x2, y1, y2;};\nusing Points = parlay::sequence<point>;\nusing Queries = parlay::sequence<query>;\n\nlong range(Points const &points, Queries const &queries, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rangeQuery2d/parallelPlaneSweep",
+    "parallelism_model": "OpenCilk",
+    "prompt": "For a set of points and a set of rectangles, returns a count of the number of points in each rectangle. Use OpenCilk to compute in parallel.\nusing coord = double;\nstruct point {\n  coord x, y;\n  point(coord x, coord y) : x(x), y(y) {}\n  point() {}\n};\nstruct query {coord x1, x2, y1, y2;};\nusing Points = parlay::sequence<point>;\nusing Queries = parlay::sequence<query>;\n\nlong range(Points const &points, Queries const &queries, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rangeQuery2d/parallelPlaneSweep",
+    "parallelism_model": "ParlayLib",
+    "prompt": "For a set of points and a set of rectangles, returns a count of the number of points in each rectangle. Use ParlayLib to compute in parallel.\nusing coord = double;\nstruct point {\n  coord x, y;\n  point(coord x, coord y) : x(x), y(y) {}\n  point() {}\n};\nstruct query {coord x1, x2, y1, y2;};\nusing Points = parlay::sequence<point>;\nusing Queries = parlay::sequence<query>;\n\nlong range(Points const &points, Queries const &queries, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rangeQuery2d/serial",
+    "parallelism_model": "OpenMP",
+    "prompt": "For a set of points and a set of rectangles, returns a count of the number of points in each rectangle.\nusing coord = double;\nstruct point {\n  coord x, y;\n  point(coord x, coord y) : x(x), y(y) {}\n  point() {}\n};\nstruct query {coord x1, x2, y1, y2;};\nusing Points = parlay::sequence<point>;\nusing Queries = parlay::sequence<query>;\n\nlong range(Points const &points, Queries const &queries, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rangeQuery2d/serial",
+    "parallelism_model": "OpenCilk",
+    "prompt": "For a set of points and a set of rectangles, returns a count of the number of points in each rectangle.\nusing coord = double;\nstruct point {\n  coord x, y;\n  point(coord x, coord y) : x(x), y(y) {}\n  point() {}\n};\nstruct query {coord x1, x2, y1, y2;};\nusing Points = parlay::sequence<point>;\nusing Queries = parlay::sequence<query>;\n\nlong range(Points const &points, Queries const &queries, bool verbose);\n"
+  },
+  {
+    "problem_type": "computational_geometry/graphics",
+    "language": "cpp",
+    "name": "rangeQuery2d/serial",
+    "parallelism_model": "ParlayLib",
+    "prompt": "For a set of points and a set of rectangles, returns a count of the number of points in each rectangle.\nusing coord = double;\nstruct point {\n  coord x, y;\n  point(coord x, coord y) : x(x), y(y) {}\n  point() {}\n};\nstruct query {coord x1, x2, y1, y2;};\nusing Points = parlay::sequence<point>;\nusing Queries = parlay::sequence<query>;\n\nlong range(Points const &points, Queries const &queries, bool verbose);\n"
+  },
+  {
+    "problem_type": "other",
+    "language": "cpp",
+    "name": "nBody/parallelCK",
+    "parallelism_model": "OpenMP",
+    "prompt": "Returns gravitational forces among points in 3d. Use OpenMP to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point3d<coord>;\nusing vect = vector3d<coord>;\n\nclass particle {\npublic:\n  point pt;\n  vect force;\n  double mass;\n  particle(point p, double m) : pt(p), mass(m) {}\n};\n\nvoid nbody(parlay::sequence<particle*> &particles);\n"
+  },
+  {
+    "problem_type": "other",
+    "language": "cpp",
+    "name": "nBody/parallelCK",
+    "parallelism_model": "OpenCilk",
+    "prompt": "Returns gravitational forces among points in 3d. Use OpenCilk to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point3d<coord>;\nusing vect = vector3d<coord>;\n\nclass particle {\npublic:\n  point pt;\n  vect force;\n  double mass;\n  particle(point p, double m) : pt(p), mass(m) {}\n};\n\nvoid nbody(parlay::sequence<particle*> &particles);\n"
+  },
+  {
+    "problem_type": "other",
+    "language": "cpp",
+    "name": "nBody/parallelCK",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Returns gravitational forces among points in 3d. Use ParlayLib to compute in parallel.\n#include \"common/geometry.h\"\n#include \"parlay/primitives.h\"\n\nusing coord = double;\nusing point = point3d<coord>;\nusing vect = vector3d<coord>;\n\nclass particle {\npublic:\n  point pt;\n  vect force;\n  double mass;\n  particle(point p, double m) : pt(p), mass(m) {}\n};\n\nvoid nbody(parlay::sequence<particle*> &particles);\n"
+  }
+]

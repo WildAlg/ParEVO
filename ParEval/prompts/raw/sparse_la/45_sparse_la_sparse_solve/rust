@@ -1,0 +1,15 @@
+pub struct COOElement {
+   pub row: usize,
+   pub column: usize,
+   pub value: f64,
+}
+
+/* Solve the sparse linear system Ax=b for x.
+   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.
+   Use Rust Rayon to compute in parallel.
+   Example:
+   
+   input: A=[{0,0,1}, {0,1,1}, {1,1,-2}] b=[1,4]
+   output: x=[3,-2]
+*/
+pub fn solveLinearSystem(A: &[COOElement], b: &[f64], x: &mut [f64], N: usize) {

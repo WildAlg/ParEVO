@@ -1,0 +1,5 @@
+{
+    "brain_batch" : "https://storage.googleapis.com/graph-files/brain_batch",
+    "dblp_small_batch" : "https://storage.googleapis.com/graph-files/dblp_small_batch",
+    "ctr_batch" : "https://storage.googleapis.com/graph-files/ctr_batch"
+}

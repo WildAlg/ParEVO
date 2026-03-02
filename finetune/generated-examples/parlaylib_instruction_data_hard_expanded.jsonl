@@ -1,0 +1,165 @@
+{"instruction": "Implement a parallel version using ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Implement a parallel version using ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Apply ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Implement a parallel version using ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Transform the loop to run in parallel using ParlayLib.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Apply ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Write a ParlayLib expression to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Implement a parallel version using ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Implement a parallel version using ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Apply ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Apply ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Write a ParlayLib expression to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Write a ParlayLib expression to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Rewrite the serial code using ParlayLib.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Implement a parallel version using ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Write a ParlayLib expression to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Write a ParlayLib expression to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Implement a parallel version using ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Transform the loop to run in parallel using ParlayLib.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Write a ParlayLib expression to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Apply ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Write a ParlayLib expression to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Apply ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Write a ParlayLib expression to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Implement a parallel version using ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Implement a parallel version using ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Write a ParlayLib expression to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Write a ParlayLib expression to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Write a ParlayLib expression to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Write a ParlayLib expression to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Write a ParlayLib expression to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Transform the loop to run in parallel using ParlayLib.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Write a ParlayLib expression to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Apply ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Apply ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Apply ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Transform the loop to run in parallel using ParlayLib.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Apply ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Write a ParlayLib expression to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Write a ParlayLib expression to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Implement a parallel version using ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Apply ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Apply ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Apply ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Apply ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Implement a parallel version using ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Write a ParlayLib expression to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Write a ParlayLib expression to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Apply ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Rewrite the serial code using ParlayLib.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Write a ParlayLib expression to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Write a ParlayLib expression to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Write a ParlayLib expression to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Write a ParlayLib expression to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Apply ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Implement a parallel version using ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Apply ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Implement a parallel version using ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Write a ParlayLib expression to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Write a ParlayLib expression to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Implement a parallel version using ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Implement a parallel version using ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Convert the following loop to a ParlayLib expression.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Implement a parallel version using ParlayLib to compute the maximum element in a sequence.", "input": "", "output": "auto max_val = parlay::reduce(seq, parlay::maxm<int>());"}
+{"instruction": "Apply ParlayLib to compute the sum of squares of a sequence.", "input": "", "output": "auto sum_sq = parlay::reduce(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Generate a sequence of ones using ParlayLib.", "input": "", "output": "auto ones = parlay::tabulate(n, [] (size_t i) { return 1; });"}
+{"instruction": "Apply ParlayLib to reverse a sequence.", "input": "", "output": "auto reversed = parlay::reverse(seq);"}
+{"instruction": "Apply the absolute value to each element in a sequence using ParlayLib.", "input": "", "output": "auto abs_vals = parlay::map(seq, [] (int x) { return std::abs(x); });"}
+{"instruction": "Apply ParlayLib to count how many elements are greater than 10.", "input": "", "output": "auto count = parlay::count_if(seq, [] (int x) { return x > 10; });"}
+{"instruction": "Rewrite the serial code using ParlayLib.", "input": "for (int i = 0; i < n; i++) { B[i] = A[i] * A[i]; }", "output": "auto B = parlay::tabulate(n, [&] (int i) { return A[i] * A[i]; });"}
+{"instruction": "Use ParlayLib to Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Use ParlayLib to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Use ParlayLib to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Implement using ParlayLib: Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Write a ParlayLib expression to Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Implement using ParlayLib: Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Implement using ParlayLib: Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Use ParlayLib to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Use ParlayLib to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Implement using ParlayLib: Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Implement using ParlayLib: Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Implement using ParlayLib: Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Use ParlayLib to Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Use ParlayLib to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Implement using ParlayLib: Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Use ParlayLib to Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Write a ParlayLib expression to Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Write a ParlayLib expression to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Write a ParlayLib expression to Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Write a ParlayLib expression to Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Implement using ParlayLib: Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Implement using ParlayLib: Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Use ParlayLib to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Use ParlayLib to Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Write a ParlayLib expression to Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Write a ParlayLib expression to Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Use ParlayLib to Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Write a ParlayLib expression to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Write a ParlayLib expression to Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Use ParlayLib to Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Write a ParlayLib expression to Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Implement using ParlayLib: Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Implement using ParlayLib: Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Use ParlayLib to Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Write a ParlayLib expression to Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Write a ParlayLib expression to Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Use ParlayLib to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Use ParlayLib to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Implement using ParlayLib: Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Implement using ParlayLib: Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Implement using ParlayLib: Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Implement using ParlayLib: Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Use ParlayLib to Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Write a ParlayLib expression to Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Use ParlayLib to Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Implement using ParlayLib: Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}
+{"instruction": "Write a ParlayLib expression to Compute the prefix sum (scan) of squared values in a sequence.", "input": "", "output": "auto result = parlay::scan(parlay::map(seq, [] (int x) { return x * x; }));"}
+{"instruction": "Use ParlayLib to Compute the number of even numbers in a sequence.", "input": "", "output": "auto evens = parlay::count_if(seq, [] (int x) { return x % 2 == 0; });"}
+{"instruction": "Implement using ParlayLib: Find all indices in a sequence where the element is greater than its index using parlaylib.", "input": "", "output": "auto indices = parlay::filter(parlay::tabulate(seq.size(), [&] (size_t i) { return i; }), [&] (size_t i) { return seq[i] > i; });"}
+{"instruction": "Implement using ParlayLib: Sort a sequence of key-value pairs by key using parlaylib.", "input": "", "output": "auto sorted = parlay::sort(pairs, [] (auto a, auto b) { return a.first < b.first; });"}
+{"instruction": "Implement using ParlayLib: Remove duplicates from a sequence of integers.", "input": "", "output": "auto unique_vals = parlay::remove_duplicates(parlay::sort(seq));"}
+{"instruction": "Write a ParlayLib expression to Compute the dot product of two sequences.", "input": "", "output": "auto dot = parlay::reduce(parlay::tabulate(seq1.size(), [&] (size_t i) {return seq1[i] * seq2[i]; }));"}

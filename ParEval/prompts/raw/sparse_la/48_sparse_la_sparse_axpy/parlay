@@ -1,0 +1,13 @@
+struct Element {
+	size_t index;
+  double value;
+};
+
+/* Compute z = alpha*x+y where x and y are sparse vectors. Store the result in the dense vector z.
+   Use ParlayLib to compute in parallel.
+   Example:
+   
+   input: x=[{5, 12}, {8, 3}, {12, -1}], y=[{3, 1}, {5, -2}, {7, 1}, {8, -3}], alpha=1
+   output: z=[0, 0, 0, 1, 0, 10, 0, 1, 0, 0, 0, 0, -1]
+*/
+void sparseAxpy(double alpha, parlay::sequence<Element> const& x, parlay::sequence<Element> const& y, parlay::sequence<double> &z) {

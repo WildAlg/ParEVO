@@ -1,0 +1,36 @@
+[submodule "parlaylib"]
+	path = parlaylib
+	url = https://github.com/YangLiuWillow/parlaylib.git
+[submodule "gbbs"]
+	path = gbbs
+	url = https://github.com/ParAlg/gbbs.git
+[submodule "pbbsbench"]
+	path = pbbsbench
+	url = https://github.com/YangLiuWillow/pbbsbench.git
+[submodule "NPB-CPP"]
+	path = NPB-CPP
+	url = https://github.com/GMAP/NPB-CPP.git
+[submodule "gapbs"]
+	path = gapbs
+	url = https://github.com/sbeamer/gapbs.git
+[submodule "PAM"]
+	path = PAM
+	url = https://github.com/cmuparlay/PAM.git
+[submodule "aspen"]
+	path = aspen
+	url = https://github.com/ldhulipala/aspen.git
+[submodule "ligra"]
+	path = ligra
+	url = https://github.com/jshun/ligra.git
+[submodule "ParEval"]
+	path = ParEval
+	url = https://github.com/YangLiuWillow/ParEval.git
+[submodule "CodeRosetta"]
+	path = CodeRosetta
+	url = https://github.com/tehranixyz/CodeRosetta.git
+[submodule "MonoCoder"]
+	path = MonoCoder
+	url = https://github.com/Scientific-Computing-Lab/MonoCoder.git
+[submodule "openevolve"]
+	path = openevolve
+	url = /home/ly337/project_pi_ql324/ly337/gemini/openevolve

@@ -1,0 +1,11 @@
+model_list:
+  - model_name: gemini-2.5-pro-tuned
+    litellm_params:
+      model: vertex_ai_beta/gemini-2.5-pro
+      vertex_project: XXXXX
+      vertex_location: us-central1
+      vertex_ai_tuned_model: projects/XXXXX/locations/us-central1/endpoints/XXXXX
+  - model_name: gpt-5.2-pro
+    litellm_params:
+      model: openai/gpt-5.2-pro
+      api_key: os.environ/OPENAI_API_KEY

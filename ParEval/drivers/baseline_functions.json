@@ -1,0 +1,242 @@
+{
+    "02_dense_la_gemm": {
+        "function_name": "correct_gemm",
+        "code": "\n    for i in 0..M {\n        for k in 0..K {\n            for j in 0..N {\n                C[i * N + j] += A[i * K + k] * B[k * N + j];\n            }\n        }\n    }"
+    },
+    "03_dense_la_axpy": {
+        "function_name": "correct_axpy",
+        "code": "\n    for i in 0..x.len() {\n        z[i] = alpha * x[i] + y[i];\n    }"
+    },
+    "01_dense_la_solve": {
+        "function_name": "correct_solve_linear_system",
+        "code": "\n    // Since input A is immutable, we must make a working copy\n    let mut mat = A.to_vec();\n    // We augment the matrix with vector b essentially\n    let mut rhs = b.to_vec();\n\n    // Forward Elimination\n    for k in 0..N {\n        // 1. Partial Pivoting: Find max in column k\n        let mut max_row = k;\n        let mut max_val = mat[k * N + k].abs();\n\n        for i in (k + 1)..N {\n            let val = mat[i * N + k].abs();\n            if val > max_val {\n                max_val = val;\n                max_row = i;\n            }\n        }\n\n        // Swap rows if needed\n        if max_row != k {\n            for j in k..N {\n                mat.swap(k * N + j, max_row * N + j);\n            }\n            rhs.swap(k, max_row);\n        }\n\n        let pivot = mat[k * N + k];\n        // Singular check (basic)\n        if pivot.abs() < 1e-12 {\n            continue; \n        }\n\n        // Eliminate rows below\n        for i in (k + 1)..N {\n            let factor = mat[i * N + k] / pivot;\n            for j in (k + 1)..N {\n                mat[i * N + j] -= factor * mat[k * N + j];\n            }\n            rhs[i] -= factor * rhs[k];\n        }\n    }\n\n    // Back Substitution\n    for i in (0..N).rev() {\n        let mut sum = rhs[i];\n        for j in (i + 1)..N {\n            sum -= mat[i * N + j] * x[j];\n        }\n        x[i] = sum / mat[i * N + i];\n    }"
+    },
+    "04_dense_la_gemv": {
+        "function_name": "correct_gemv",
+        "code": "\n    // A is MxN, x is N, y is M\n    for i in 0..M {\n        let mut val = 0.0;\n        for j in 0..N {\n            val += A[i * N + j] * x[j];\n        }\n        y[i] = val;\n    }"
+    },
+    "00_dense_la_lu_decomp": {
+        "function_name": "correct_lu_factorize",
+        "code": "\n    for k in 0..N {\n        let pivot = A[k * N + k];\n        let inv_pivot = 1.0 / pivot;\n\n        // Compute L column\n        for i in (k + 1)..N {\n            A[i * N + k] *= inv_pivot;\n        }\n\n        // Update submatrix\n        for i in (k + 1)..N {\n            let val_ik = A[i * N + k];\n            for j in (k + 1)..N {\n                let val_kj = A[k * N + j];\n                A[i * N + j] -= val_ik * val_kj;\n            }\n        }\n    }"
+    },
+    "40_sort_sort_an_array_of_complex_numbers_by_magnitude": {
+        "function_name": "correct_sort_complex_by_magnitude",
+        "code": "\n    // C++ std::sort is unstable. We use sort_unstable_by to match behavior.\n    // We compare magnitudes. Since sqrt is monotonic, comparing squared magnitudes is sufficient and faster.\n    x.sort_unstable_by(|a, b| {\n        let mag_sq_a = a.norm_sqr();\n        let mag_sq_b = b.norm_sqr();\n        // Handle floating point comparison\n        mag_sq_a.partial_cmp(&mag_sq_b).unwrap_or(std::cmp::Ordering::Equal)\n    });"
+    },
+    "43_sort_sort_an_array_of_structs_by_key": {
+        "function_name": "correct_sort_by_start_time",
+        "code": "\n    // Using sort_by (stable) to act as the reference implementation\n    results.sort_by(|a, b| a.start_time.cmp(&b.start_time));"
+    },
+    "44_sort_sort_non-zero_elements": {
+        "function_name": "correct_sort_ignore_zero",
+        "code": "\n    // Extract non-zero elements\n    let mut non_zero_elements: Vec<i32> = x.iter().cloned().filter(|&n| n != 0).collect();\n    \n    // Sort them\n    non_zero_elements.sort_unstable();\n\n    // Place them back into the original vector, skipping zeros\n    let mut non_zero_index = 0;\n    for i in 0..x.len() {\n        if x[i] != 0 {\n            x[i] = non_zero_elements[non_zero_index];\n            non_zero_index += 1;\n        }\n    }"
+    },
+    "42_sort_sorted_ranks": {
+        "function_name": "correct_ranks",
+        "code": "\n    // Create indices [0, 1, ..., N-1]\n    let mut indices: Vec<usize> = (0..x.len()).collect();\n\n    // Sort indices based on the values in x.\n    // std::sort is unstable, so we use sort_unstable_by for comparable behavior/performance.\n    indices.sort_unstable_by(|&i1, &i2| {\n        // Handle float comparison. We assume no NaNs in input as per benchmark standard.\n        x[i1].partial_cmp(&x[i2]).unwrap_or(std::cmp::Ordering::Equal)\n    });\n\n    // Assign ranks\n    for (i, &idx) in indices.iter().enumerate() {\n        ranks[idx] = i;\n    }"
+    },
+    "41_sort_k-th_smallest_element": {
+        "function_name": "correct_find_kth_smallest",
+        "code": "\n    let mut x_copy = x.to_vec();\n    x_copy.sort_unstable(); // equivalent to std::sort\n    x_copy[(k - 1) as usize]"
+    },
+    "52_stencil_1d_jacobi_3-point_stencil": {
+        "function_name": "correct_jacobi1d",
+        "code": "\n    let n = input.len();\n    for i in 0..n {\n        let mut sum = 0.0;\n        if i > 0 {\n            sum += input[i - 1];\n        }\n        if i < n - 1 {\n            sum += input[i + 1];\n        }\n        sum += input[i];\n        output[i] = sum / 3.0;\n    }"
+    },
+    "54_stencil_game_of_life": {
+        "function_name": "correct_game_of_life",
+        "code": "\n    for i in 0..n {\n        for j in 0..n {\n            let mut sum = 0;\n            if i > 0 {\n                sum += input[(i - 1) * n + j];\n            }\n            if i < n - 1 {\n                sum += input[(i + 1) * n + j];\n            }\n            if j > 0 {\n                sum += input[i * n + (j - 1)];\n            }\n            if j < n - 1 {\n                sum += input[i * n + (j + 1)];\n            }\n            if i > 0 && j > 0 {\n                sum += input[(i - 1) * n + (j - 1)];\n            }\n            if i > 0 && j < n - 1 {\n                sum += input[(i - 1) * n + (j + 1)];\n            }\n            if i < n - 1 && j > 0 {\n                sum += input[(i + 1) * n + (j - 1)];\n            }\n            if i < n - 1 && j < n - 1 {\n                sum += input[(i + 1) * n + (j + 1)];\n            }\n\n            if input[i * n + j] == 1 {\n                if sum < 2 {\n                    output[i * n + j] = 0;\n                } else if sum == 2 || sum == 3 {\n                    output[i * n + j] = 1;\n                } else {\n                    output[i * n + j] = 0;\n                }\n            } else {\n                if sum == 3 {\n                    output[i * n + j] = 1;\n                } else {\n                    output[i * n + j] = 0;\n                }\n            }\n        }\n    }"
+    },
+    "50_stencil_xor_kernel": {
+        "function_name": "correct_cells_xor",
+        "code": "\n    for i in 0..n {\n        for j in 0..n {\n            let mut count = 0;\n            // Check Up\n            if i > 0 && input[(i - 1) * n + j] == 1 {\n                count += 1;\n            }\n            // Check Down\n            if i < n - 1 && input[(i + 1) * n + j] == 1 {\n                count += 1;\n            }\n            // Check Left\n            if j > 0 && input[i * n + j - 1] == 1 {\n                count += 1;\n            }\n            // Check Right\n            if j < n - 1 && input[i * n + j + 1] == 1 {\n                count += 1;\n            }\n\n            output[i * n + j] = if count == 1 { 1 } else { 0 };\n        }\n    }"
+    },
+    "53_stencil_2d_jacobi_5-point_stencil": {
+        "function_name": "correct_jacobi_2d",
+        "code": "\n    for i in 0..N {\n        for j in 0..N {\n            let mut sum = 0.0;\n            // Up\n            if i > 0 {\n                sum += input[(i - 1) * N + j];\n            }\n            // Down\n            if i < N - 1 {\n                sum += input[(i + 1) * N + j];\n            }\n            // Left\n            if j > 0 {\n                sum += input[i * N + (j - 1)];\n            }\n            // Right\n            if j < N - 1 {\n                sum += input[i * N + (j + 1)];\n            }\n            // Center\n            sum += input[i * N + j];\n            \n            output[i * N + j] = sum / 5.0;\n        }\n    }"
+    },
+    "51_stencil_edge_kernel": {
+        "function_name": "correct_convolve_kernel",
+        "code": "\n    for i in 0..n {\n        for j in 0..n {\n            let mut sum = 0;\n            // Iterate over the 3x3 kernel\n            for k in -1..=1 {\n                for l in -1..=1 {\n                    let x = i as isize + k;\n                    let y = j as isize + l;\n\n                    // Check bounds\n                    if x >= 0 && x < n as isize && y >= 0 && y < n as isize {\n                        let val = image_in[(x as usize) * n + (y as usize)];\n                        let k_val = EDGE_KERNEL[(k + 1) as usize][(l + 1) as usize];\n                        sum += val * k_val;\n                    } \n                    // else: implicit 0 value for out-of-bounds pixels, so sum += 0\n                }\n            }\n\n            // Clamp output\n            if sum < 0 {\n                image_out[i * n + j] = 0;\n            } else if sum > 255 {\n                image_out[i * n + j] = 255;\n            } else {\n                image_out[i * n + j] = sum;\n            }\n        }\n    }"
+    },
+    "27_reduce_average": {
+        "function_name": "correct_average",
+        "code": "\n    if x.is_empty() {\n        return 0.0;\n    }\n    x.iter().sum::<f64>() / x.len() as f64"
+    },
+    "25_reduce_xor": {
+        "function_name": "correct_reduce_logical_xor",
+        "code": "\n    x.iter().fold(false, |acc, &val| acc ^ val)"
+    },
+    "29_reduce_sum_of_min_of_pairs": {
+        "function_name": "correct_sum_of_minimum_elements",
+        "code": "\n    x.iter()\n        .zip(y.iter())\n        .map(|(&a, &b)| a.min(b))\n        .sum()"
+    },
+    "26_reduce_product_of_inverses": {
+        "function_name": "correct_product_with_inverses",
+        "code": "\n    x.iter()\n        .enumerate()\n        .map(|(i, &val)| if i % 2 != 0 { 1.0 / val } else { val })\n        .product()"
+    },
+    "28_reduce_smallest_odd_number": {
+        "function_name": "correct_smallest_odd",
+        "code": "\n    x.iter()\n        .filter(|&&v| v % 2 != 0) // Check if number is odd\n        .cloned()\n        .min()\n        .unwrap_or(i32::MAX) // Default to MAX if no odd numbers found"
+    },
+    "19_graph_shortest_path": {
+        "function_name": "correct_shortest_path_length",
+        "code": "\n    let mut visited = vec![false; N];\n    let mut queue = VecDeque::new();\n\n    visited[source as usize] = true;\n    queue.push_back((source, 0));\n\n    while let Some((current, path_length)) = queue.pop_front() {\n        if current == dest {\n            return path_length;\n        }\n\n        // Check all adjacent vertices\n        // Since A is stored in row-major, the neighbors of `current` are in the row `current`.\n        let row_offset = (current as usize) * N;\n        for i in 0..N {\n            if A[row_offset + i] != 0 && !visited[i] {\n                visited[i] = true;\n                queue.push_back((i as i32, path_length + 1));\n            }\n        }\n    }\n\n    i32::MAX"
+    },
+    "16_graph_largest_component": {
+        "function_name": "correct_largest_component",
+        "code": "\n    let mut visited = vec![false; n];\n    let mut max_count = 0;\n    for i in 0..n {\n        if !visited[i] {\n            let mut count = 0;\n            dfs(adj, i, n, &mut visited, &mut count);\n            if count > max_count {\n                max_count = count;\n            }\n        }\n    }\n    max_count"
+    },
+    "18_graph_count_components": {
+        "function_name": "correct_component_count",
+        "code": "\n    let mut visited = vec![false; n];\n    let mut count = 0;\n    for i in 0..n {\n        if !visited[i] {\n            dfs(a, i, n, &mut visited);\n            count += 1;\n        }\n    }\n    count"
+    },
+    "15_graph_edge_count": {
+        "function_name": "correct_edge_count",
+        "code": "\n    let mut count = 0;\n    for i in 0..n {\n        for j in 0..n {\n            if A[i * n + j] == 1 {\n                count += 1;\n            }\n        }\n    }\n    count"
+    },
+    "17_graph_highest_degree": {
+        "function_name": "correct_max_degree",
+        "code": "\n    let mut max_deg = 0;\n    for i in 0..n {\n        let mut degree = 0;\n        for j in 0..n {\n            degree += a[i * n + j];\n        }\n        if degree > max_deg {\n            max_deg = degree;\n        }\n    }\n    max_deg as usize"
+    },
+    "31_scan_scan_with_min_function": {
+        "function_name": "correct_partial_minimums",
+        "code": "\n    let mut running_min = std::f32::MAX;\n    for val in x.iter_mut() {\n        if *val < running_min {\n            running_min = *val;\n        }\n        *val = running_min;\n    }"
+    },
+    "32_scan_sum_of_prefix_sum_array": {
+        "function_name": "correct_sum_of_prefix_sum",
+        "code": "\n    // Equivalent to:\n    // std::vector<double> prefixSum(x.size());\n    // std::inclusive_scan(x.begin(), x.end(), prefixSum.begin());\n    // return std::accumulate(prefixSum.begin(), prefixSum.end(), 0.0);\n\n    let mut prefix_sum = vec![0.0; x.len()];\n    let mut current_sum = 0.0;\n    \n    // Inclusive scan\n    for (i, &val) in x.iter().enumerate() {\n        current_sum += val;\n        prefix_sum[i] = current_sum;\n    }\n\n    // Accumulate\n    prefix_sum.iter().sum()"
+    },
+    "34_scan_largest_contiguous_subarray_sum": {
+        "function_name": "correct_maximum_subarray",
+        "code": "\n    let mut largest_sum = i32::MIN;\n    for i in 0..x.len() {\n        let mut curr_sum = 0;\n        for j in i..x.len() {\n            curr_sum += x[j];\n            if curr_sum > largest_sum {\n                largest_sum = curr_sum;\n            }\n        }\n    }\n    largest_sum"
+    },
+    "30_scan_prefix_sum": {
+        "function_name": "correct_prefix_sum",
+        "code": "\n    let mut acc = 0.0;\n    for (val, out) in x.iter().zip(output.iter_mut()) {\n        acc += val;\n        *out = acc;\n    }"
+    },
+    "33_scan_reverse_prefix_sum": {
+        "function_name": "correct_reverse_prefix_sum",
+        "code": "\n    let mut sum = 0;\n    // Iterate x in reverse order, accumulate sum, and store in output sequentially\n    for (i, val) in x.iter().rev().enumerate() {\n        sum += val;\n        output[i] = sum;\n    }"
+    },
+    "39_search_xor_contains": {
+        "function_name": "correct_xor_contains",
+        "code": "\n    let found_in_x = x.contains(&val);\n    let found_in_y = y.contains(&val);\n    found_in_x ^ found_in_y"
+    },
+    "37_search_find_the_closest_number_to_pi": {
+        "function_name": "correct_find_closest_to_pi",
+        "code": "\n    if x.is_empty() {\n        return 0;\n    }\n    let mut index = 0;\n    let mut min = (x[0] - PI).abs();\n    for i in 1..x.len() {\n        let diff = (x[i] - PI).abs();\n        if diff < min {\n            min = diff;\n            index = i;\n        }\n    }\n    index"
+    },
+    "36_search_check_if_array_contains_value": {
+        "function_name": "correct_contains",
+        "code": "\n    x.contains(&target)"
+    },
+    "35_search_search_for_last_struct_by_key": {
+        "function_name": "correct_find_last_short_book",
+        "code": "\n    for (i, book) in books.iter().enumerate().rev() {\n        if book.pages < 100 {\n            return i;\n        }\n    }\n    books.len()"
+    },
+    "38_search_find_the_first_even_number": {
+        "function_name": "correct_find_first_even",
+        "code": "\n    for (i, &val) in x.iter().enumerate() {\n        if val % 2 == 0 {\n            return i;\n        }\n    }\n    x.len()"
+    },
+    "07_fft_fft_conjugate": {
+        "function_name": "correct_fft",
+        "code": "\n    let n_total = x.len();\n    let mut k = n_total;\n    let theta_t = PI / (n_total as f64);\n    let mut phi_t = Complex::new(theta_t.cos(), -theta_t.sin());\n    \n    // DFT (Decimation in Frequency)\n    while k > 1 {\n        let n = k;\n        k >>= 1;\n        phi_t = phi_t * phi_t;\n        let mut t_curr = Complex::new(1.0, 0.0);\n        \n        for l in 0..k {\n            for a in (l..n_total).step_by(n) {\n                let b = a + k;\n                let t_val = x[a] - x[b];\n                x[a] = x[a] + x[b];\n                x[b] = t_val * t_curr;\n            }\n            t_curr = t_curr * phi_t;\n        }\n    }\n\n    // Decimate (Bit Reversal)\n    let m = (n_total as f64).log2() as u32;\n    for a in 0..n_total {\n        let mut b = a as u32;\n        // Reverse bits (32-bit integer reversal logic from C++)\n        b = ((b & 0xaaaaaaaa) >> 1) | ((b & 0x55555555) << 1);\n        b = ((b & 0xcccccccc) >> 2) | ((b & 0x33333333) << 2);\n        b = ((b & 0xf0f0f0f0) >> 4) | ((b & 0x0f0f0f0f) << 4);\n        b = ((b & 0xff00ff00) >> 8) | ((b & 0x00ff00ff) << 8);\n        // Shift based on m\n        b = ((b >> 16) | (b << 16)) >> (32 - m);\n        \n        let b = b as usize;\n        if b > a {\n            x.swap(a, b);\n        }\n    }\n\n    // Conjugate\n    for val in x.iter_mut() {\n        *val = val.conj();\n    }"
+    },
+    "05_fft_inverse_fft": {
+        "function_name": "correct_ifft",
+        "code": "\n    // conjugate the complex numbers\n    for val in x.iter_mut() {\n        *val = val.conj();\n    }\n\n    // forward fft\n    fft(x);\n\n    // conjugate again and scale\n    let size = x.len() as f64;\n    for val in x.iter_mut() {\n        *val = val.conj() / size;\n    }"
+    },
+    "08_fft_split_fft": {
+        "function_name": "correct_fft",
+        "code": "\n    let mut x_copy = x.to_vec();\n    let n_total = x_copy.len();\n    let mut k = n_total;\n    \n    // DFT (Iterative Butterfly / Stockham-like structure before bit reversal?)\n    // This matches the logic in baseline.hpp\n    let theta_t = PI / (n_total as f64);\n    let mut phi_t = Complex::new(theta_t.cos(), -theta_t.sin());\n    \n    while k > 1 {\n        let n_curr = k;\n        k >>= 1;\n        phi_t = phi_t * phi_t;\n        let mut t_coeff = Complex::new(1.0, 0.0);\n        \n        for _l in 0..k {\n            for a in (_l..n_total).step_by(n_curr) {\n                let b = a + k;\n                let t = x_copy[a] - x_copy[b];\n                x_copy[a] = x_copy[a] + x_copy[b];\n                x_copy[b] = t * t_coeff;\n            }\n            t_coeff = t_coeff * phi_t;\n        }\n    }\n\n    // Decimate (Bit Reversal)\n    let m = (n_total as f64).log2() as u32;\n    for a in 0..n_total {\n        let mut b = a as u32;\n        // Reverse bits (32-bit integer logic)\n        b = ((b & 0xaaaaaaaa) >> 1) | ((b & 0x55555555) << 1);\n        b = ((b & 0xcccccccc) >> 2) | ((b & 0x33333333) << 2);\n        b = ((b & 0xf0f0f0f0) >> 4) | ((b & 0x0f0f0f0f) << 4);\n        b = ((b & 0xff00ff00) >> 8) | ((b & 0x00ff00ff) << 8);\n        // Shift down to correct width\n        b = ((b >> 16) | (b << 16)) >> (32 - m);\n        \n        let b_idx = b as usize;\n        if b_idx > a {\n            x_copy.swap(a, b_idx);\n        }\n    }\n\n    // Split into real and imaginary parts\n    for j in 0..n_total {\n        r[j] = x_copy[j].re;\n        i[j] = x_copy[j].im;\n    }"
+    },
+    "06_fft_dft": {
+        "function_name": "correct_dft",
+        "code": "\n    let n = x.len();\n    // Output is expected to be a slice of size N, pre-allocated by caller.\n    for k in 0..n {\n        let mut sum = Complex::new(0.0, 0.0);\n        for idx in 0..n {\n            let angle = 2.0 * PI * (idx as f64) * (k as f64) / (n as f64);\n            // Euler's formula: e^(-i * angle) = cos(angle) - i*sin(angle)\n            let c = Complex::new(angle.cos(), -angle.sin());\n            sum += x[idx] * c;\n        }\n        output[k] = sum;\n    }"
+    },
+    "09_fft_fft_out_of_place": {
+        "function_name": "correct_fft",
+        "code": "\n    assert_eq!(x.len(), output.len());\n    output.copy_from_slice(x);\n\n    let n_total = output.len();\n    let mut k = n_total;\n    let mut n;\n    \n    // In the C++ code: thetaT = PI / N (not 2*PI/N, note the logic inside loop doubles the angle)\n    let theta_t = PI / (n_total as f64);\n    let mut phi_t = Complex::new(theta_t.cos(), -theta_t.sin());\n    let mut t_coeff;\n\n    while k > 1 {\n        n = k;\n        k >>= 1;\n        \n        phi_t = phi_t * phi_t;\n        t_coeff = Complex::new(1.0, 0.0);\n\n        for l in 0..k {\n            for a in (l..n_total).step_by(n) {\n                let b = a + k;\n                let t = output[a] - output[b];\n                output[a] = output[a] + output[b];\n                output[b] = t * t_coeff;\n            }\n            t_coeff = t_coeff * phi_t;\n        }\n    }\n\n    // Decimate (Bit Reversal)\n    let m = (n_total as f64).log2() as u32;\n    for a in 0..n_total {\n        let mut b = a as u32;\n        // The C++ code manually reverses bits for a 32-bit integer.\n        // Rust's reverse_bits() reverses all 32 bits.\n        // Shifting right by (32 - m) aligns the reversed 'm' bits to the least significant positions.\n        b = b.reverse_bits();\n        b >>= 32 - m;\n        let b = b as usize;\n\n        if b > a {\n            output.swap(a, b);\n        }\n    }"
+    },
+    "46_sparse_la_spmm": {
+        "function_name": "correct_spmm",
+        "code": "\n    // Fill Y with zeros\n    Y.fill(0.0);\n\n    // Compute Y = A * X\n    // Naive implementation O(|A| * |X|)\n    for a in A {\n        for x in X {\n            if a.column == x.row {\n                Y[a.row * N + x.column] += a.value * x.value;\n            }\n        }\n    }"
+    },
+    "49_sparse_la_sparse_lu_decomp": {
+        "function_name": "correct_lu_factorize",
+        "code": "\n    // Convert sparse A to dense matrix for baseline computation\n    let mut full_a = vec![0.0; N * N];\n    for elem in A {\n        if elem.row < N && elem.column < N {\n            // In case of duplicate entries (same row, col), the later one in the slice overwrites the previous one.\n            // C++ processes the sorted vector sequentially, so last one wins.\n            full_a[elem.row * N + elem.column] = elem.value;\n        }\n    }\n\n    // Standard Dense LU Factorization (Doolittle Algorithm)\n    // Assumes L and U are pre-allocated and zero-initialized in entries where appropriate.\n    // L has 1s on diagonal (set at end of loop).\n    for i in 0..N {\n        for j in 0..N {\n            if j >= i {\n                // Compute U[i][j]\n                let mut sum = 0.0;\n                for k in 0..i {\n                    sum += L[i * N + k] * U[k * N + j];\n                }\n                U[i * N + j] = full_a[i * N + j] - sum;\n            }\n\n            if i > j {\n                // Compute L[i][j]\n                let mut sum = 0.0;\n                for k in 0..j {\n                    sum += L[i * N + k] * U[k * N + j];\n                }\n                let u_jj = U[j * N + j];\n                if u_jj != 0.0 {\n                    L[i * N + j] = (full_a[i * N + j] - sum) / u_jj;\n                } else {\n                    L[i * N + j] = 0.0;\n                }\n            }\n        }\n        // Set diagonal of L to 1\n        L[i * N + i] = 1.0;\n    }"
+    },
+    "47_sparse_la_spmv": {
+        "function_name": "correct_spmv",
+        "code": "\n    // First scale y by beta\n    for element in y.iter_mut() {\n        *element *= beta;\n    }\n\n    // Accumulate A*x into y\n    for elem in A {\n        if elem.row < M && elem.column < N {\n            y[elem.row] += alpha * elem.value * x[elem.column];\n        }\n    }"
+    },
+    "48_sparse_la_sparse_axpy": {
+        "function_name": "correct_sparse_axpy",
+        "code": "\n    let mut xi = 0;\n    let mut yi = 0;\n\n    // Both x and y are sorted by index\n    while xi < x.len() && yi < y.len() {\n        if x[xi].index < y[yi].index {\n            z[x[xi].index] += alpha * x[xi].value;\n            xi += 1;\n        } else if x[xi].index > y[yi].index {\n            z[y[yi].index] += y[yi].value;\n            yi += 1;\n        } else {\n            z[x[xi].index] += alpha * x[xi].value + y[yi].value;\n            xi += 1;\n            yi += 1;\n        }\n    }\n\n    while xi < x.len() {\n        z[x[xi].index] += alpha * x[xi].value;\n        xi += 1;\n    }\n\n    while yi < y.len() {\n        z[y[yi].index] += y[yi].value;\n        yi += 1;\n    }"
+    },
+    "45_sparse_la_sparse_solve": {
+        "function_name": "correct_solve_linear_system",
+        "code": "\n    // Dense matrix conversion\n    let mut matrix = vec![vec![0.0; n]; n];\n    let mut b_copy = b.to_vec();\n\n    // Fill the matrix with the values from A\n    for element in a {\n        matrix[element.row][element.column] = element.value;\n    }\n\n    // Initialize x\n    x.fill(0.0);\n\n    // Perform Gaussian elimination\n    for i in 0..n {\n        // Find pivot\n        let mut max_el = matrix[i][i].abs();\n        let mut max_row = i;\n        for k in (i + 1)..n {\n            if matrix[k][i].abs() > max_el {\n                max_el = matrix[k][i].abs();\n                max_row = k;\n            }\n        }\n\n        // Swap maximum row with current row (column by column)\n        // We iterate k from i to n to match the C++ logic\n        for k in i..n {\n            let temp = matrix[max_row][k];\n            matrix[max_row][k] = matrix[i][k];\n            matrix[i][k] = temp;\n        }\n        b_copy.swap(max_row, i);\n\n        // Make all rows below this one 0 in the current column\n        for k in (i + 1)..n {\n            if matrix[i][i].abs() < 1e-15 { continue; } // Avoid div by zero\n            let c = -matrix[k][i] / matrix[i][i];\n            \n            for j in i..n {\n                if i == j {\n                    matrix[k][j] = 0.0;\n                } else {\n                    matrix[k][j] += c * matrix[i][j];\n                }\n            }\n            b_copy[k] += c * b_copy[i];\n        }\n    }\n\n    // Solve equation Ax=b for an upper triangular matrix A\n    for i in (0..n).rev() {\n        if matrix[i][i].abs() > 1e-15 {\n            x[i] = b_copy[i] / matrix[i][i];\n        } else {\n            x[i] = 0.0;\n        }\n        for k in (0..i).rev() {\n            b_copy[k] -= matrix[k][i] * x[i];\n        }\n    }"
+    },
+    "11_geometry_convex_hull_perimeter": {
+        "function_name": "correct_convex_hull_perimeter",
+        "code": "\n    // The polygon needs to have at least three points\n    if points.len() < 3 {\n        return 0.0;\n    }\n\n    let mut points_sorted = points.to_vec();\n\n    // Sort by x, then by y\n    points_sorted.sort_by(|a, b| {\n        a.x.partial_cmp(&b.x).unwrap().then(a.y.partial_cmp(&b.y).unwrap())\n    });\n\n    // Cross product logic to determine turn direction\n    // Matches C++ logic: (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x) > 0\n    let cross_product = |a: &Point, b: &Point, c: &Point| -> bool {\n        (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x) > 0.0\n    };\n\n    let mut upper_hull = Vec::new();\n    let mut lower_hull = Vec::new();\n\n    // Init upper hull\n    upper_hull.push(points_sorted[0]);\n    upper_hull.push(points_sorted[1]);\n\n    // Init lower hull\n    lower_hull.push(points_sorted[points_sorted.len() - 1]);\n    lower_hull.push(points_sorted[points_sorted.len() - 2]);\n\n    for i in 2..points_sorted.len() {\n        // Build upper hull\n        while upper_hull.len() > 1\n            && !cross_product(\n                &upper_hull[upper_hull.len() - 2],\n                &upper_hull[upper_hull.len() - 1],\n                &points_sorted[i],\n            )\n        {\n            upper_hull.pop();\n        }\n        upper_hull.push(points_sorted[i]);\n\n        // Build lower hull\n        let idx_lower = points_sorted.len() - i - 1;\n        while lower_hull.len() > 1\n            && !cross_product(\n                &lower_hull[lower_hull.len() - 2],\n                &lower_hull[lower_hull.len() - 1],\n                &points_sorted[idx_lower],\n            )\n        {\n            lower_hull.pop();\n        }\n        lower_hull.push(points_sorted[idx_lower]);\n    }\n\n    // Merge lower hull into upper hull\n    // Equivalent to: upperHull.insert(upperHull.end(), lowerHull.begin()+1, lowerHull.end()-1);\n    if lower_hull.len() > 2 {\n        upper_hull.extend_from_slice(&lower_hull[1..lower_hull.len() - 1]);\n    }\n\n    // Calculate perimeter\n    let mut perimeter = 0.0;\n    for i in 0..upper_hull.len() - 1 {\n        perimeter += dist(&upper_hull[i], &upper_hull[i + 1]);\n    }\n    // Close the polygon\n    if !upper_hull.is_empty() {\n        perimeter += dist(&upper_hull[0], &upper_hull[upper_hull.len() - 1]);\n    }\n\n    perimeter"
+    },
+    "13_geometry_closest_pair_2d": {
+        "function_name": "correct_closest_pair",
+        "code": "\n    // The polygon needs to have at least two points\n    if points.len() < 2 {\n        return 0.0;\n    }\n\n    let mut min_dist = f64::MAX;\n    for i in 0..points.len() - 1 {\n        for j in (i + 1)..points.len() {\n            let d = dist(&points[i], &points[j]);\n            if d < min_dist {\n                min_dist = d;\n            }\n        }\n    }\n\n    min_dist"
+    },
+    "10_geometry_convex_hull": {
+        "function_name": "correct_convex_hull",
+        "code": "\n    // The polygon needs to have at least three points\n    if points.len() < 3 {\n        *hull = points.to_vec();\n        return;\n    }\n\n    let mut points_sorted = points.to_vec();\n\n    // Sort by x, then y\n    points_sorted.sort_unstable_by(|a, b| {\n        a.x.partial_cmp(&b.x).unwrap()\n            .then(a.y.partial_cmp(&b.y).unwrap())\n    });\n\n    let cross_product = |a: Point, b: Point, c: Point| -> bool {\n        (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x) > 0.0\n    };\n\n    let mut upper_hull = Vec::new();\n    let mut lower_hull = Vec::new();\n\n    // Initial points\n    upper_hull.push(points_sorted[0]);\n    upper_hull.push(points_sorted[1]);\n\n    let len = points_sorted.len();\n    lower_hull.push(points_sorted[len - 1]);\n    lower_hull.push(points_sorted[len - 2]);\n\n    for i in 2..len {\n        // Upper hull\n        while upper_hull.len() > 1 && !cross_product(\n            upper_hull[upper_hull.len() - 2],\n            upper_hull[upper_hull.len() - 1],\n            points_sorted[i]\n        ) {\n            upper_hull.pop();\n        }\n        upper_hull.push(points_sorted[i]);\n\n        // Lower hull\n        let lower_idx = len - i - 1;\n        while lower_hull.len() > 1 && !cross_product(\n            lower_hull[lower_hull.len() - 2],\n            lower_hull[lower_hull.len() - 1],\n            points_sorted[lower_idx]\n        ) {\n            lower_hull.pop();\n        }\n        lower_hull.push(points_sorted[lower_idx]);\n    }\n\n    // Merge: upperHull.insert(upperHull.end(), lowerHull.begin()+1, lowerHull.end()-1);\n    if lower_hull.len() >= 2 {\n        upper_hull.extend_from_slice(&lower_hull[1..lower_hull.len() - 1]);\n    }\n\n    *hull = upper_hull;"
+    },
+    "12_geometry_smallest_triangle": {
+        "function_name": "correct_smallest_area",
+        "code": "\n    let n = points.len();\n    if n < 3 {\n        return 0.0;\n    }\n\n    let mut min_area = f64::MAX;\n\n    for i in 0..n - 2 {\n        let p1 = points[i];\n        for j in (i + 1)..n - 1 {\n            let p2 = points[j];\n            for k in (j + 1)..n {\n                let p3 = points[k];\n\n                let val = p1.x * (p2.y - p3.y) +\n                          p2.x * (p3.y - p1.y) +\n                          p3.x * (p1.y - p2.y);\n                let area = 0.5 * val.abs();\n\n                if area < min_area {\n                    min_area = area;\n                }\n            }\n        }\n    }\n    min_area"
+    },
+    "14_geometry_closest_pair_1d": {
+        "function_name": "correct_closest_pair",
+        "code": "\n    if x.len() < 2 {\n        return 0.0;\n    }\n\n    let mut min_dist = f64::MAX;\n    for i in 0..x.len() - 1 {\n        for j in (i + 1)..x.len() {\n            let dist = (x[i] - x[j]).abs();\n            if dist < min_dist {\n                min_dist = dist;\n            }\n        }\n    }\n    min_dist"
+    },
+    "59_transform_map_function": {
+        "function_name": "correct_map_powers_of_two",
+        "code": "\n    mask.resize(x.len(), false);\n    for (i, &val) in x.iter().enumerate() {\n        mask[i] = is_power_of_two(val);\n    }"
+    },
+    "57_transform_inverse_offset": {
+        "function_name": "correct_one_minus_inverse",
+        "code": "\n    for val in x.iter_mut() {\n        *val = 1.0 - 1.0 / *val;\n    }"
+    },
+    "56_transform_negate_odds": {
+        "function_name": "correct_negate_odds_and_halve_evens",
+        "code": "\n    for val in x.iter_mut() {\n        if *val % 2 == 0 {\n            *val /= 2;\n        } else {\n            *val = -*val;\n        }\n    }"
+    },
+    "55_transform_relu": {
+        "function_name": "correct_relu",
+        "code": "\n    for v in x.iter_mut() {\n        if *v < 0.0 {\n            *v = 0.0;\n        }\n    }"
+    },
+    "58_transform_squaring": {
+        "function_name": "correct_square_each",
+        "code": "\n    for i in 0..x.len() {\n        x[i] = x[i] * x[i];\n    }"
+    },
+    "22_histogram_count_quadrants": {
+        "function_name": "correct_count_quadrants",
+        "code": "\n    for point in points {\n        if point.x >= 0.0 && point.y >= 0.0 {\n            bins[0] += 1;\n        } else if point.x < 0.0 && point.y >= 0.0 {\n            bins[1] += 1;\n        } else if point.x < 0.0 && point.y < 0.0 {\n            bins[2] += 1;\n        } else if point.x >= 0.0 && point.y < 0.0 {\n            bins[3] += 1;\n        }\n    }"
+    },
+    "21_histogram_bin_0-100": {
+        "function_name": "correct_bins_by_10_count",
+        "code": "\n    for &val in x {\n        let mut bin = (val / 10.0) as usize;\n        // Clamp to the last bin if val is 100.0 (or slightly larger due to float inaccuracies)\n        // C++: bin = std::min(bin, bins.size() - 1);\n        if bin >= 10 {\n            bin = 9;\n        }\n        bins[bin] += 1;\n    }"
+    },
+    "24_histogram_count_quartile": {
+        "function_name": "correct_count_quartiles",
+        "code": "\n    for &val in x {\n        let frac = val - (val as i64 as f64);\n        if frac < 0.25 {\n            bins[0] += 1;\n        } else if frac < 0.5 {\n            bins[1] += 1;\n        } else if frac < 0.75 {\n            bins[2] += 1;\n        } else {\n            bins[3] += 1;\n        }\n    }"
+    },
+    "20_histogram_pixel_histogram": {
+        "function_name": "correct_pixel_counts",
+        "code": "\n    for &pixel in image {\n        bins[pixel as usize] += 1;\n    }"
+    },
+    "23_histogram_first_letter_counts": {
+        "function_name": "correct_first_letter_counts",
+        "code": "\n    for string in s {\n        let bytes = string.as_bytes();\n        if !bytes.is_empty() {\n            let c = bytes[0];\n            // 'a' is 97 in ASCII\n            let index = (c as usize).wrapping_sub(b'a' as usize);\n            if index < 26 {\n                bins[index] += 1;\n            }\n        }\n    }"
+    }
+}

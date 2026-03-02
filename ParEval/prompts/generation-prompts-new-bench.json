@@ -1,0 +1,16 @@
+[
+    {
+        "problem_type": "new_bench",
+        "language": "cpp",
+        "name": "60_majority",
+        "parallelism_model": "parlay",
+        "prompt": "using value = unsigned char;\n\n/* Finds the most frequent value in a sequence of unsigned chars. \n\n's' is the sequence of values. \n\n'm' is the number of possible distinct values (i.e., the size of the histogram).\n\nReturns the value that appears most often.*/\n\nint majority(parlay::sequence<value> const& s, size_t m) {"
+    },
+    {
+        "problem_type": "new_bench",
+        "language": "cpp",
+        "name": "60_majority",
+        "parallelism_model": "serial",
+        "prompt": "using value = unsigned char;\n\n/* Finds the most frequent value in a sequence of unsigned chars. \n\n's' is the sequence of values. \n\n'm' is the number of possible distinct values (i.e., the size of the histogram).\n\nReturns the value that appears most often.*/\n\nint majority(std::vector<value> const& s, size_t m) {"
+    }
+]

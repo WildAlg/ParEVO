@@ -1,0 +1,635 @@
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf ---
+BLEU: 18.80
+ChrF: 42.68
+ROUGE-L: 0.3105
+CodeBLEU: 0.1814
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf ---
+BLEU: 10.19
+ChrF: 24.29
+ROUGE-L: 0.1980
+CodeBLEU: 0.3481
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf ---
+BLEU: 0.01
+ChrF: 7.37
+ROUGE-L: 0.0500
+CodeBLEU: 0.3324
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf ---
+BLEU: 21.02
+ChrF: 32.39
+ROUGE-L: 0.2737
+CodeBLEU: 0.2883
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = False` ---
+BLEU: 17.61
+ChrF: 30.72
+ROUGE-L: 0.3216
+CodeBLEU: 0.3702
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 1.36
+ROUGE-L: 0.0164
+CodeBLEU: 0.3662
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = False` ---
+BLEU: 23.32
+ChrF: 34.87
+ROUGE-L: 0.3011
+CodeBLEU: 0.2774
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = True` ---
+BLEU: 18.47
+ChrF: 36.70
+ROUGE-L: 0.3409
+CodeBLEU: 0.4888
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = False` ---
+BLEU: 16.75
+ChrF: 29.47
+ROUGE-L: 0.2707
+CodeBLEU: 0.2696
+
+--- Role --- 
+
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = False` ---
+BLEU: 17.57
+ChrF: 31.67
+ROUGE-L: 0.3264
+CodeBLEU: 0.3650
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 0.48
+ROUGE-L: 0.0063
+CodeBLEU: 0.3700
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = False` ---
+BLEU: 22.84
+ChrF: 35.28
+ROUGE-L: 0.3192
+CodeBLEU: 0.3080
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = True` ---
+BLEU: 13.35
+ChrF: 29.36
+ROUGE-L: 0.2440
+CodeBLEU: 0.3018
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = False` ---
+BLEU: 21.78
+ChrF: 34.14
+ROUGE-L: 0.2950
+CodeBLEU: 0.3374
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = True` ---
+BLEU: 0.16
+ChrF: 9.94
+ROUGE-L: 0.0488
+CodeBLEU: 0.2001
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = False` ---
+BLEU: 22.14
+ChrF: 34.66
+ROUGE-L: 0.3012
+CodeBLEU: 0.2912
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = True` ---
+BLEU: 25.30
+ChrF: 42.76
+ROUGE-L: 0.5147
+CodeBLEU: 0.5739
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = False` ---
+BLEU: 15.42
+ChrF: 30.76
+ROUGE-L: 0.3371
+CodeBLEU: 0.4212
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 0.01
+ROUGE-L: 0.0000
+CodeBLEU: 0.2501
+
+-- After adjusting the prompts --
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = False` ---
+BLEU: 16.62
+ChrF: 31.04
+ROUGE-L: 0.3159
+CodeBLEU: 0.3573
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = False` ---
+BLEU: 22.29
+ChrF: 34.87
+ROUGE-L: 0.3177
+CodeBLEU: 0.3398
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = False` ---
+BLEU: 11.52
+ChrF: 26.88
+ROUGE-L: 0.1967
+CodeBLEU: 0.1614
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = False` ---
+BLEU: 22.14
+ChrF: 35.36
+ROUGE-L: 0.3063
+CodeBLEU: 0.3043
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf with `prompt_complete_code = False` ---
+BLEU: 5.72
+ChrF: 18.25
+ROUGE-L: 0.1482
+CodeBLEU: 0.2872
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = False` ---
+BLEU: 7.62
+ChrF: 24.28
+ROUGE-L: 0.2542
+CodeBLEU: 0.4227
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = False` ---
+BLEU: 8.08
+ChrF: 21.49
+ROUGE-L: 0.1138
+CodeBLEU: 0.1336
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = True` ---
+BLEU: 37.72
+ChrF: 47.84
+ROUGE-L: 0.4325
+CodeBLEU: 0.3606
+
+--- Evaluation Results of codellama/CodeLlama-13b-hf with `prompt_complete_code = False` ---
+BLEU: 19.20
+ChrF: 30.00
+ROUGE-L: 0.2694
+CodeBLEU: 0.2967
+
+-- After adjusting the prompts to be between #start and #end --
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = False` ---
+BLEU: 0.31
+ChrF: 8.43
+ROUGE-L: 0.1218
+CodeBLEU: 0.2665
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = False` ---
+BLEU: 4.82
+ChrF: 14.25
+ROUGE-L: 0.1858
+CodeBLEU: 0.2261
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = False` ---
+BLEU: 1.16
+ChrF: 11.20
+ROUGE-L: 0.1307
+CodeBLEU: 0.2229
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = False` ---
+BLEU: 14.38
+ChrF: 25.73
+ROUGE-L: 0.2830
+CodeBLEU: 0.2559
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf with `prompt_complete_code = False` ---
+BLEU: 4.91
+ChrF: 15.17
+ROUGE-L: 0.1937
+CodeBLEU: 0.2583
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = False` ---
+BLEU: 6.12
+ChrF: 16.61
+ROUGE-L: 0.1903
+CodeBLEU: 0.2294
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = False` ---
+BLEU: 3.39
+ChrF: 13.87
+ROUGE-L: 0.1690
+CodeBLEU: 0.2394
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = True` ---
+BLEU: 7.43
+ChrF: 24.91
+ROUGE-L: 0.3308
+CodeBLEU: 0.5025
+
+--- Evaluation Results of codellama/CodeLlama-13b-hf with `prompt_complete_code = False` ---
+BLEU: 0.01
+ChrF: 4.00
+ROUGE-L: 0.0642
+CodeBLEU: 0.2147
+
+-- After stripping the extra space and also extract from ```cpp and ``` --
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = False` ---
+BLEU: 5.90
+ChrF: 17.07
+ROUGE-L: 0.1889
+CodeBLEU: 0.2696
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = False` ---
+BLEU: 10.65
+ChrF: 20.33
+ROUGE-L: 0.2115
+CodeBLEU: 0.2292
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = False` ---
+BLEU: 1.13
+ChrF: 11.16
+ROUGE-L: 0.1307
+CodeBLEU: 0.2447
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = False` ---
+BLEU: 17.00
+ChrF: 27.44
+ROUGE-L: 0.2888
+CodeBLEU: 0.2619
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf with `prompt_complete_code = False` ---
+BLEU: 9.19
+ChrF: 20.32
+ROUGE-L: 0.2141
+CodeBLEU: 0.2634
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = False` ---
+BLEU: 6.36
+ChrF: 17.53
+ROUGE-L: 0.1940
+CodeBLEU: 0.2543
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = False` ---
+BLEU: 3.16
+ChrF: 13.88
+ROUGE-L: 0.1716
+CodeBLEU: 0.2670
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = True` ---
+BLEU: 8.89
+ChrF: 26.91
+ROUGE-L: 0.3407
+CodeBLEU: 0.5380
+
+--- Evaluation Results of codellama/CodeLlama-13b-hf with `prompt_complete_code = False` ---
+BLEU: 0.47
+ChrF: 8.71
+ROUGE-L: 0.1096
+CodeBLEU: 0.2517
+
+--- Evaluation Results of Phind/Phind-CodeLlama-34B-v2 with `prompt_complete_code = False` ---
+BLEU: 14.72
+ChrF: 26.14
+ROUGE-L: 0.2764
+CodeBLEU: 0.2523
+
+-- Adjusting the parlaylib code extraction to #start and #end, ```cpp and ```, and original text
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = False` ---
+BLEU: 8.62
+ChrF: 19.93
+ROUGE-L: 0.1656
+CodeBLEU: 0.2308
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 3.35
+ROUGE-L: 0.0432
+CodeBLEU: 0.4864
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = False` ---
+BLEU: 14.01
+ChrF: 24.31
+ROUGE-L: 0.2289
+CodeBLEU: 0.2418
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = True` ---
+BLEU: 4.11
+ChrF: 21.14
+ROUGE-L: 0.2881
+CodeBLEU: 0.4709
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = False` ---
+BLEU: 17.90
+ChrF: 27.25
+ROUGE-L: 0.2112
+CodeBLEU: 0.2646
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 0.49
+ROUGE-L: 0.0025
+CodeBLEU: 0.1940
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = False` ---
+BLEU: 18.35
+ChrF: 28.70
+ROUGE-L: 0.2802
+CodeBLEU: 0.2556
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = True` ---
+BLEU: 5.96
+ChrF: 26.35
+ROUGE-L: 0.3289
+CodeBLEU: 0.5716
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf with `prompt_complete_code = False` ---
+BLEU: 9.35
+ChrF: 19.58
+ROUGE-L: 0.1366
+CodeBLEU: 0.2319
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 10.32
+ROUGE-L: 0.1047
+CodeBLEU: 0.6077
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = False` ---
+BLEU: 11.77
+ChrF: 22.74
+ROUGE-L: 0.2033
+CodeBLEU: 0.2484
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 6.43
+ROUGE-L: 0.0973
+CodeBLEU: 0.5748
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = False` ---
+BLEU: 5.89
+ChrF: 17.89
+ROUGE-L: 0.0994
+CodeBLEU: 0.0828
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = True` ---
+BLEU: 14.61
+ChrF: 28.34
+ROUGE-L: 0.2625
+CodeBLEU: 0.2424
+
+--- Evaluation Results of codellama/CodeLlama-13b-hf with `prompt_complete_code = False` ---
+BLEU: 6.55
+ChrF: 16.51
+ROUGE-L: 0.1386
+CodeBLEU: 0.2230
+
+--- Evaluation Results of codellama/CodeLlama-13b-hf with `prompt_complete_code = True` ---
+BLEU: 6.75
+ChrF: 28.35
+ROUGE-L: 0.2908
+CodeBLEU: 0.5794
+
+--- Evaluation Results of hpcgroup/hpc-coder-v2-6.7b with `prompt_complete_code = False` ---
+BLEU: 21.10
+ChrF: 30.50
+ROUGE-L: 0.2469
+CodeBLEU: 0.2141
+
+--- Evaluation Results of hpcgroup/hpc-coder-v2-6.7b with `prompt_complete_code = False` ---
+BLEU: 22.22
+ChrF: 41.73
+ROUGE-L: 0.3034
+CodeBLEU: 0.2054
+
+--- Evaluation Results of hpcgroup/hpc-coder-v2-6.7b with `prompt_complete_code = False` ---
+BLEU: 25.19
+ChrF: 42.57
+ROUGE-L: 0.3449
+CodeBLEU: 0.2411
+
+--- Evaluation Results of hpcgroup/hpc-coder-v2-6.7b with `prompt_complete_code = False` ---
+BLEU: 23.04
+ChrF: 43.26
+ROUGE-L: 0.3434
+CodeBLEU: 0.2218
+
+-- After adjusting max_new_tokens=1024 and print out all sub-scores of codeBleu --
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = False` ---
+BLEU: 12.73
+ChrF: 22.96
+ROUGE-L: 0.2239
+CodeBLEU: 21.2775
+More on CodeBLEU: 
+ngram_match_score: 7.0861
+weighted_ngram_match_score: 7.7097
+syntax_match_score: 31.4826
+dataflow_match_score: 38.8316
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-base with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 5.19
+ROUGE-L: 0.0579
+CodeBLEU: 48.8627
+More on CodeBLEU: 
+ngram_match_score: 3.1516
+weighted_ngram_match_score: 54.6556
+syntax_match_score: 64.5785
+dataflow_match_score: 73.0650
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = False` ---
+BLEU: 33.80
+ChrF: 38.18
+ROUGE-L: 0.4055
+CodeBLEU: 28.4239
+More on CodeBLEU: 
+ngram_match_score: 13.5161
+weighted_ngram_match_score: 14.7228
+syntax_match_score: 41.1358
+dataflow_match_score: 44.3207
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-6.7b-instruct with `prompt_complete_code = True` ---
+BLEU: 4.21
+ChrF: 20.57
+ROUGE-L: 0.2853
+CodeBLEU: 45.4482
+More on CodeBLEU: 
+ngram_match_score: 8.2071
+weighted_ngram_match_score: 42.6303
+syntax_match_score: 64.2274
+dataflow_match_score: 66.7281
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = False` ---
+BLEU: 7.71
+ChrF: 22.15
+ROUGE-L: 0.2153
+CodeBLEU: 15.0020
+More on CodeBLEU: 
+ngram_match_score: 2.5045
+weighted_ngram_match_score: 4.9656
+syntax_match_score: 22.1744
+dataflow_match_score: 30.3635
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-base-v1.5 with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 0.00
+ROUGE-L: 0.0000
+CodeBLEU: 25.0000
+More on CodeBLEU: 
+ngram_match_score: 0.0000
+weighted_ngram_match_score: 0.0000
+syntax_match_score: 0.0000
+dataflow_match_score: 0.0000
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = False` ---
+BLEU: 22.69
+ChrF: 41.04
+ROUGE-L: 0.3752
+CodeBLEU: 24.9961
+More on CodeBLEU: 
+ngram_match_score: 9.1257
+weighted_ngram_match_score: 11.4427
+syntax_match_score: 34.6239
+dataflow_match_score: 44.7922
+
+--- Evaluation Results of deepseek-ai/deepseek-coder-7b-instruct-v1.5 with `prompt_complete_code = True` ---
+BLEU: 6.02
+ChrF: 25.27
+ROUGE-L: 0.3079
+CodeBLEU: 53.9735
+More on CodeBLEU: 
+ngram_match_score: 14.3213
+weighted_ngram_match_score: 56.4683
+syntax_match_score: 70.9312
+dataflow_match_score: 74.1732
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf with `prompt_complete_code = False` ---
+BLEU: 4.14
+ChrF: 13.72
+ROUGE-L: 0.1651
+CodeBLEU: 9.0923
+More on CodeBLEU: 
+ngram_match_score: 0.3852
+weighted_ngram_match_score: 1.8537
+syntax_match_score: 14.5682
+dataflow_match_score: 19.5620
+
+--- Evaluation Results of codellama/CodeLlama-7b-hf with `prompt_complete_code = True` ---
+BLEU: 0.90
+ChrF: 14.13
+ROUGE-L: 0.1232
+CodeBLEU: 45.7000
+More on CodeBLEU: 
+ngram_match_score: 11.2380
+weighted_ngram_match_score: 51.4103
+syntax_match_score: 84.8238
+dataflow_match_score: 35.3280
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = False` ---
+BLEU: 14.29
+ChrF: 27.49
+ROUGE-L: 0.3106
+CodeBLEU: 19.4462
+More on CodeBLEU: 
+ngram_match_score: 5.5609
+weighted_ngram_match_score: 7.3684
+syntax_match_score: 28.5467
+dataflow_match_score: 36.3089
+
+--- Evaluation Results of codellama/CodeLlama-7b-Instruct-hf with `prompt_complete_code = True` ---
+BLEU: 0.00
+ChrF: 7.69
+ROUGE-L: 0.1023
+CodeBLEU: 61.9365
+More on CodeBLEU: 
+ngram_match_score: 6.2298
+weighted_ngram_match_score: 73.7513
+syntax_match_score: 72.3415
+dataflow_match_score: 95.4233
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = False` ---
+BLEU: 2.80
+ChrF: 9.94
+ROUGE-L: 0.1307
+CodeBLEU: 5.1204
+More on CodeBLEU: 
+ngram_match_score: 0.0000
+weighted_ngram_match_score: 0.5228
+syntax_match_score: 18.6110
+dataflow_match_score: 1.3479
+
+--- Evaluation Results of Qwen/Qwen3-8B with `prompt_complete_code = True` ---
+BLEU: 13.04
+ChrF: 24.36
+ROUGE-L: 0.2181
+CodeBLEU: 12.7131
+More on CodeBLEU: 
+ngram_match_score: 1.1951
+weighted_ngram_match_score: 4.6321
+syntax_match_score: 40.2474
+dataflow_match_score: 4.7777
+
+--- Evaluation Results of codellama/CodeLlama-13b-hf with `prompt_complete_code = False` ---
+BLEU: 9.49
+ChrF: 18.42
+ROUGE-L: 0.1913
+CodeBLEU: 14.6667
+More on CodeBLEU: 
+ngram_match_score: 4.2777
+weighted_ngram_match_score: 5.3100
+syntax_match_score: 24.6616
+dataflow_match_score: 24.4178
+
+--- Evaluation Results of codellama/CodeLlama-13b-hf with `prompt_complete_code = True` ---
+BLEU: 25.41
+ChrF: 27.20
+ROUGE-L: 0.2118
+CodeBLEU: 37.1955
+More on CodeBLEU: 
+ngram_match_score: 23.7166
+weighted_ngram_match_score: 24.0263
+syntax_match_score: 81.2965
+dataflow_match_score: 19.7427
+
+--- Evaluation Results of hpcgroup/hpc-coder-v2-6.7b with `prompt_complete_code = False` ---
+BLEU: 22.43
+ChrF: 39.35
+ROUGE-L: 0.3113
+CodeBLEU: 22.5364
+More on CodeBLEU: 
+ngram_match_score: 6.7850
+weighted_ngram_match_score: 8.9369
+syntax_match_score: 32.9551
+dataflow_match_score: 41.4684
+
+--- Evaluation Results of hpcgroup/hpc-coder-v2-6.7b with `prompt_complete_code = True` ---
+BLEU: 0.07
+ChrF: 12.77
+ROUGE-L: 0.1461
+CodeBLEU: 54.2955
+More on CodeBLEU: 
+ngram_match_score: 9.0880
+weighted_ngram_match_score: 69.2334
+syntax_match_score: 69.0874
+dataflow_match_score: 69.7733
+
+--- Evaluation Results of ../generated-examples/deepseek-parlaylib-finetuned with `prompt_complete_code = False` ---
+BLEU: 31.22
+ChrF: 43.38
+ROUGE-L: 0.5252
+CodeBLEU: 32.9330
+More on CodeBLEU: 
+ngram_match_score: 17.0901
+weighted_ngram_match_score: 18.1480
+syntax_match_score: 48.5623
+dataflow_match_score: 47.9316
+
+--- Evaluation Results of ../generated-examples/deepseek-parlaylib-finetuned with `prompt_complete_code = True` ---
+BLEU: 45.53
+ChrF: 55.18
+ROUGE-L: 0.5964
+CodeBLEU: 68.1564
+More on CodeBLEU: 
+ngram_match_score: 43.9215
+weighted_ngram_match_score: 74.9762
+syntax_match_score: 80.1218
+dataflow_match_score: 73.6062

@@ -1,0 +1,23 @@
+[
+    {
+        "problem_type": "reduce",
+        "language": "cpp",
+        "name": "25_reduce_xor",
+        "parallelism_model": "omp",
+        "prompt": "/* Return the logical XOR reduction of the vector of bools x.\n   Use OpenMP to reduce in parallel.\n   Example:\n\n   input: [false, false, false, true]\n   output: true\n*/\nbool reduceLogicalXOR(std::vector<bool> const& x) {"
+    },
+    {
+        "problem_type": "reduce",
+        "language": "cpp",
+        "name": "27_reduce_average",
+        "parallelism_model": "omp",
+        "prompt": "/* Return the average of the vector x.\n   Use OpenMP to compute in parallel.\n   Examples:\n\t\t\n\t input: [1, 8, 4, 5, 1]\n   output: 3.8\n\n   input: [2, 2, 2, 3]\n   output: 2.25\n*/\ndouble average(std::vector<double> const& x) {"
+    },
+        {
+        "problem_type": "transform",
+        "language": "cpp",
+        "name": "59_transform_map_function",
+        "parallelism_model": "omp",
+        "prompt": "#include <omp.h>\n\nbool isPowerOfTwo(int x) {\n\treturn (x > 0) && !(x & (x - 1));\n}\n\n/* Apply the isPowerOfTwo function to every value in x and store the results in mask.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [8, 0, 9, 7, 15, 64, 3]\n   output: [true, false, false, false, false, true, false]\n*/\nvoid mapPowersOfTwo(std::vector<int> const& x, std::vector<bool> &mask) {"
+    }
+]

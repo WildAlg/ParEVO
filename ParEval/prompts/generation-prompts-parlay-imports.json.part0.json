@@ -1,0 +1,674 @@
+[
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "serial",
+    "prompt": "/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint componentCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n\t Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The component count is returned on rank 0.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint componentCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n\t Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint componentCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n\t Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The component count is returned on rank 0.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint componentCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "cuda",
+    "prompt": "/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n\t Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\n__global__ void componentCountParallel(const int *A, size_t N, int *numComponents) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix. A is an undirected graph.\n\t Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint componentCountParallel(Kokkos::View<const int**> &A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "hip",
+    "prompt": "/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n\t Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\n__global__ void componentCountParallel(const int *A, size_t N, int *numComponents) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "18_graph_count_components",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n\t Use ParlayLib to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint componentCountParallel(parlay::sequence<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegreeParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The result is returned on rank 0.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegreeParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegreeParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The result is returned on rank 0.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegreeParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph. \n   Store the result in maxDegree.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\n__global__ void maxDegreeParallel(const int *A, size_t N, int *maxDegreeParallel) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix. A is an undirected graph.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegreeParallel(Kokkos::View<const int**> &A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Store the result in maxDegree.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\n__global__ void maxDegreeParallel(const int *A, size_t N, int *maxDegreeParallel) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "17_graph_highest_degree",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegreeParallel(parlay::sequence<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "serial",
+    "prompt": "/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The result is returned on rank 0.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The result is returned on rank 0.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCountParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "cuda",
+    "prompt": "/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   Store the result in numEdges. A represents a directed graph.\n   A is an NxN adjacency matrix stored in row-major.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\n__global__ void edgeCountParallel(const int *A, size_t N, int *numEdges) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix. A represents a directed graph.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCountParallel(Kokkos::View<const int**> &A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "hip",
+    "prompt": "/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   Store the result in numEdges. A represents a directed graph.\n   A is an NxN adjacency matrix stored in row-major.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\n__global__ void edgeCountParallel(const int *A, size_t N, int *numEdges) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "15_graph_edge_count",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCountParallel(parlay::sequence<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "serial",
+    "prompt": "/* Return the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\nint shortestPathLengthParallel(std::vector<int> const& A, size_t N, int source, int dest) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Return the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The shortest path length is returned on rank 0.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\nint shortestPathLengthParallel(std::vector<int> const& A, size_t N, int source, int dest) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Return the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\nint shortestPathLengthParallel(std::vector<int> const& A, size_t N, int source, int dest) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Return the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The shortest path length is returned on rank 0.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\nint shortestPathLengthParallel(std::vector<int> const& A, size_t N, int source, int dest) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Store the result in pathLength.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\n__global__ void shortestPathLengthParallel(const int *A, size_t N, int source, int dest, int *pathLength) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Return the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix. A is an undirected graph.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\nint shortestPathLengthParallel(Kokkos::View<const int**> &A, size_t N, int source, int dest) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Store the result in pathLength.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\n__global__ void shortestPathLengthParallel(const int *A, size_t N, int source, int dest, int *pathLength) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "19_graph_shortest_path",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Return the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\nint shortestPathLengthParallel(parlay::sequence<int> const& A, size_t N, int source, int dest) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "serial",
+    "prompt": "/* Return the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint largestComponentParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Return the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The result is returned on rank 0.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint largestComponentParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Return the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint largestComponentParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Return the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of A. The result is returned on rank 0.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint largestComponentParallel(std::vector<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   Store the result in largestComponentSize.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\n__global__ void largestComponentParallel(const int *A, size_t N, int *largestComponentParallelSize) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Return the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix. A is an undirected graph.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint largestComponentParallel(Kokkos::View<const int**> &A, size_t N) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   Store the result in largestComponentSize.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\n__global__ void largestComponentParallel(const int *A, size_t N, int *largestComponentParallelSize) {"
+  },
+  {
+    "problem_type": "graph",
+    "language": "cpp",
+    "name": "16_graph_largest_component",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Return the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\nint largestComponentParallel(parlay::sequence<int> const& A, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "serial",
+    "prompt": "/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitudeParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use MPI to sort in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Store the result in x on rank 0.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitudeParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitudeParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use MPI and OpenMP to sort in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Store the result in x on rank 0.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitudeParallel(std::vector<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "cuda",
+    "prompt": "/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use CUDA to sort in parallel. The kernel is launched with at least as many threads as elements in x.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\n__global__ void sortComplexByMagnitudeParallel(cuDoubleComplex *x, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Sort the array x of complex numbers by their magnitude in ascending order.\n   Use Kokkos to sort in parallel. Assume Kokkos has already been initialized.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitudeParallel(Kokkos::View<Kokkos::complex<double>*> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "hip",
+    "prompt": "/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use AMD HIP to sort in parallel. The kernel is launched with at least as many threads as elements in x.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\n__global__ void sortComplexByMagnitudeParallel(hipDoubleComplex *x, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use ParlayLib to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitudeParallel(parlay::sequence<std::complex<double>> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "serial",
+    "prompt": "/* Sort the vector x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place.\n   Example:\n\n\t input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\nvoid sortIgnoreZeroParallel(std::vector<int> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Sort the vector x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place. \n\t Use MPI to sort x in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of x. Store the result in x on rank 0.\n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\nvoid sortIgnoreZeroParallel(std::vector<int> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Sort the vector x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place. \n\t Use OpenMP to sort x in parallel. \n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\nvoid sortIgnoreZeroParallel(std::vector<int> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Sort the vector x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place. \n\t Use MPI and OpenMP to sort x in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of x. Store the result in x on rank 0.\n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\nvoid sortIgnoreZeroParallel(std::vector<int> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "cuda",
+    "prompt": "/* Sort the array x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place. \n\t Use CUDA to compute in parallel. The kernel will be launched with 1 thread per element.\n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\n__global__ void sortIgnoreZeroParallel(int *x, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Sort the array x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place. \n\t Use Kokkos to sort in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\nvoid sortIgnoreZeroParallel(Kokkos::View<int*> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "hip",
+    "prompt": "/* Sort the array x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place. \n\t Use AMD HIP to compute in parallel. The kernel will be launched with 1 thread per element.\n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\n__global__ void sortIgnoreZeroParallel(int *x, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "44_sort_sort_non-zero_elements",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Sort the vector x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place. \n\t Use ParlayLib to sort x in parallel. \n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\nvoid sortIgnoreZeroParallel(parlay::sequence<int> &x) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "serial",
+    "prompt": "struct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\nvoid sortByStartTimeParallel(std::vector<Result> &results) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\nstruct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use MPI to sort in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of results. Store the output in results on rank 0.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\nvoid sortByStartTimeParallel(std::vector<Result> &results) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\nstruct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\nvoid sortByStartTimeParallel(std::vector<Result> &results) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\nstruct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use MPI and OpenMP to sort in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of results. Store the outputs in results on rank 0.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\nvoid sortByStartTimeParallel(std::vector<Result> &results) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "cuda",
+    "prompt": "struct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use CUDA to sort in parallel. The kernel is launched with at least as many threads as there are elements.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\n__global__ void sortByStartTimeParallel(Result *results, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\nstruct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use Kokkos to sort in parallel. Assume Kokkos has already been initialized.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\nvoid sortByStartTimeParallel(Kokkos::View<Result*> &results) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "hip",
+    "prompt": "struct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use AMD HIP to sort in parallel. The kernel is launched with at least as many threads as there are elements.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\n__global__ void sortByStartTimeParallel(Result *results, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "43_sort_sort_an_array_of_structs_by_key",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\nstruct Result {\n   int startTime, duration;\n   float value;\n};\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use ParlayLib to sort in parallel.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\nvoid sortByStartTimeParallel(parlay::sequence<Result> &results) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "serial",
+    "prompt": "/* Find the k-th smallest element of the vector x.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\nint findKthSmallestParallel(std::vector<int> const& x, int k) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Find the k-th smallest element of the vector x.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\nint findKthSmallestParallel(std::vector<int> const& x, int k) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Find the k-th smallest element of the vector x.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\nint findKthSmallestParallel(std::vector<int> const& x, int k) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Find the k-th smallest element of the vector x.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\nint findKthSmallestParallel(std::vector<int> const& x, int k) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "cuda",
+    "prompt": "/* Find the k-th smallest element of the vector x.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\n__global__ void findKthSmallestParallel(const int *x, size_t N, int k, int *kthSmallest) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Find the k-th smallest element of the vector x.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\nint findKthSmallestParallel(Kokkos::View<const int*> const& x, int k) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "hip",
+    "prompt": "/* Find the k-th smallest element of the vector x.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\n__global__ void findKthSmallestParallel(const int *x, size_t N, int k, int *kthSmallest) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "41_sort_k-th_smallest_element",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Find the k-th smallest element of the vector x.\n   Use ParlayLib to compute in parallel.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\nint findKthSmallestParallel(parlay::sequence<int> const& x, int k) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "serial",
+    "prompt": "/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\nvoid ranksParallel(std::vector<float> const& x, std::vector<size_t> &ranksParallel) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every process has a complete copy of x. Store the result in ranks on process 0.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\nvoid ranksParallel(std::vector<float> const& x, std::vector<size_t> &ranksParallel) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use OpenMP to compute in parallel.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\nvoid ranksParallel(std::vector<float> const& x, std::vector<size_t> &ranksParallel) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every process has a complete copy of x. Store the result in ranks on process 0.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\nvoid ranksParallel(std::vector<float> const& x, std::vector<size_t> &ranksParallel) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "cuda",
+    "prompt": "/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use CUDA to compute in parallel. The kernel will be launched with at least as many threads as elements in x.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\n__global__ void ranksParallel(const float *x, size_t *ranksParallel, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* For each value in the array x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\nvoid ranksParallel(Kokkos::View<const float*> const& x, Kokkos::View<size_t*> &ranksParallel) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "hip",
+    "prompt": "/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use AMD HIP to compute in parallel. The kernel will be launched with at least as many threads as elements in x.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\n__global__ void ranksParallel(const float *x, size_t *ranksParallel, size_t N) {"
+  },
+  {
+    "problem_type": "sort",
+    "language": "cpp",
+    "name": "42_sort_sorted_ranks",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use ParlayLib to compute in parallel.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\nvoid ranksParallel(parlay::sequence<float> const& x, parlay::sequence<size_t> &ranksParallel) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\nvoid jacobi2DParallel(std::vector<double> const& input, std::vector<double> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\nvoid jacobi2DParallel(std::vector<double> const& input, std::vector<double> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\nvoid jacobi2DParallel(std::vector<double> const& input, std::vector<double> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\nvoid jacobi2DParallel(std::vector<double> const& input, std::vector<double> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\n__global__ void jacobi2DParallel(const double *input, double *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\nvoid jacobi2DParallel(Kokkos::View<const double**> &input, Kokkos::View<double**> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\n__global__ void jacobi2DParallel(const double *input, double *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "53_stencil_2d_jacobi_5-point_stencil",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\nvoid jacobi2DParallel(parlay::sequence<double> const& input, parlay::sequence<double> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "serial",
+    "prompt": "const int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\nvoid convolveKernelParallel(std::vector<int> const& imageIn, std::vector<int> &imageOut, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\nconst int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of imageIn. The result is stored in imageOut on rank 0.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\nvoid convolveKernelParallel(std::vector<int> const& imageIn, std::vector<int> &imageOut, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\nconst int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\nvoid convolveKernelParallel(std::vector<int> const& imageIn, std::vector<int> &imageOut, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\nconst int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of imageIn. The result is stored in imageOut on rank 0.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\nvoid convolveKernelParallel(std::vector<int> const& imageIn, std::vector<int> &imageOut, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "cuda",
+    "prompt": "__constant__ int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\n__global__ void convolveKernelParallel(const int *imageIn, int *imageOut, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\nconst int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images.\n   Store the output of the computation in imageOut.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\nvoid convolveKernelParallel(Kokkos::View<const int**> &imageIn, Kokkos::View<int**> &imageOut, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "hip",
+    "prompt": "__constant__ int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\n__global__ void convolveKernelParallel(const int *imageIn, int *imageOut, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "51_stencil_edge_kernel",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\nconst int edgeKernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\nvoid convolveKernelParallel(parlay::sequence<int> const& imageIn, parlay::sequence<int> &imageOut, size_t N) {"
+  }
+]

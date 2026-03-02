@@ -1,0 +1,8 @@
+/* Return the logical XOR reduction of the vector of bools x.
+   Use Rust Rayon to reduce in parallel.
+   Example:
+
+   input: [false, false, false, true]
+   output: true
+*/
+pub fn reduceLogicalXOR(x: &[bool]) -> bool {

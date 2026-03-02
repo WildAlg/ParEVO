@@ -1,0 +1,14 @@
+[
+    {
+    "problem_type": "dense_la",
+    "language": "cpp",
+    "name": "00_dense_la_lu_decomp",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A.\n   A is an NxN matrix stored in row-major.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorize(parlay::sequence<double> &A, size_t N) {",
+    "translation_prompt": "// OpenMP implementation of luFactorize\n// #include <omp.h>\n// \n// /* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n//    Store the results for L and U into the original matrix A. \n//    A is an NxN matrix stored in row-major.\n//    Use OpenMP to compute in parallel.\n//    Example:\n// \n//    input: [[4, 3], [6, 3]]\n//    output: [[4, 3], [1.5, -1.5]]\n// */\n// void luFactorize(std::vector<double> &A, size_t N) {\n// \n// \n//     for (size_t k = 0; k < N; ++k) {\n//         #pragma omp parallel for\n//         for (size_t i = k + 1; i < N; ++i) {\n//             double factor = A[i * N + k] / A[k * N + k];\n//             A[i * N + k] = factor;\n//             for (size_t j = k + 1; j < N; ++j) {\n//                 A[i * N + j] -= factor * A[k * N + j];\n//             }\n//         }\n//     }\n// }\n\n// ParlayLib implementation of luFactorize\n#include <parlay/primitives.h>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A.\n   A is an NxN matrix stored in row-major.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorize(parlay::sequence<double> &A, size_t N) {\n",
+    "translation_src_model": "omp",
+    "translation_dst_model": "parlay",
+    "translation_src_example": "#include <omp.h>\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A. \n   A is an NxN matrix stored in row-major.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\nvoid luFactorize(std::vector<double> &A, size_t N) {\n\n\n    for (size_t k = 0; k < N; ++k) {\n        #pragma omp parallel for\n        for (size_t i = k + 1; i < N; ++i) {\n            double factor = A[i * N + k] / A[k * N + k];\n            A[i * N + k] = factor;\n            for (size_t j = k + 1; j < N; ++j) {\n                A[i * N + j] -= factor * A[k * N + j];\n            }\n        }\n    }\n}\n",
+    "translation_function_name": "luFactorize"
+    }
+]

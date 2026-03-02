@@ -1,0 +1,30 @@
+# local
+.vscode
+
+# python
+*.pyc
+__pycache__
+.env
+
+# cpp
+*.out
+*.exe
+a.out
+*.o
+
+# editor buffers
+*~
+
+generate/generation-outputs-*.json
+generate/cache-*.json
+generate/pbbs-parlay-cilk-omp-outputs/*
+generate/pure-parlay-cilk-outputs/*
+generate/all-parallel-outputs/*
+generate/pure-omp-parlay-cilk/*
+generate/slurm-*
+
+driver/eval-outputs/*
+driver/new-eval-outputs/*
+driver/slurm-*
+analysis/eval-analysis/*
+analysis/new-eval-analysis/*

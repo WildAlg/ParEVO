@@ -1,0 +1,8 @@
+/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.
+   Use Rust Rayon to compute in parallel.
+   Example:
+
+   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]
+   output: 13.4477
+*/
+pub fn convex_hull_perimeter(points: &[Point]) -> f64 {

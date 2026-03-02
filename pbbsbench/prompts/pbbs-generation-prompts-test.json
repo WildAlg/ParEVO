@@ -1,0 +1,9 @@
+[
+    {
+    "problem_type": "basic_building_blocks",
+    "language": "cpp",
+    "name": "integerSort/parallelRadixSort",
+    "parallelism_model": "ParlayLib",
+    "prompt": "Sorts a sequence of integers, possibly with tag-along values. Use ParlayLib to compute in parallel.\n#include \"parlay/primitives.h\"\n\ntemplate <class T>\nauto int_sort(parlay::slice<T*,T*> In, size_t bits) {\n   }\n"
+    }
+]

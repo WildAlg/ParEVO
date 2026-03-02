@@ -1,0 +1,501 @@
+[
+    {
+        "model": "unknown",
+        "mix_value": "baseline",
+        "algorithm": "backForwardBFS",
+        "scheduler": "omp",
+        "server": "XXXXXX",
+        "input_size": "large",
+        "results_by_threads": {
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=1 ./BFS  -r 5 -o /tmp/ofile588171_169352 ../graphData/data/randLocalGraph_J_10_20000000"
+            },
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.044,
+                    "rMatGraph_J_12_16000000": 0.053
+                },
+                "overall_geomean": null,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.045,
+                        0.044,
+                        0.043,
+                        0.044,
+                        0.045
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.042,
+                        0.042,
+                        0.042,
+                        0.136,
+                        0.042
+                    ]
+                },
+                "error": "PARLAY_NUM_THREADS=16 ./BFS  -r 5 -o /tmp/ofile589423_614541 ../graphData/data/3Dgrid_J_64000000"
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.044,
+                    "rMatGraph_J_12_16000000": 0.049,
+                    "3Dgrid_J_64000000": 0.94
+                },
+                "overall_geomean": 0.127,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.044,
+                        0.044,
+                        0.044,
+                        0.045,
+                        0.044
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.048,
+                        0.049,
+                        0.052,
+                        0.048,
+                        0.047
+                    ],
+                    "3Dgrid_J_64000000": [
+                        0.944,
+                        0.939,
+                        0.938,
+                        0.941,
+                        0.938
+                    ]
+                },
+                "error": null
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=32 ./BFS  -r 5 -o /tmp/ofile860273_500586 ../graphData/data/randLocalGraph_J_10_20000000"
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=36 ./BFS  -r 5 -o /tmp/ofile169405_44352 ../graphData/data/randLocalGraph_J_10_20000000"
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=4 ./BFS  -r 5 -o /tmp/ofile868940_218575 ../graphData/data/randLocalGraph_J_10_20000000"
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=48 ./BFS  -r 5 -o /tmp/ofile413583_654300 ../graphData/data/randLocalGraph_J_10_20000000"
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=64 ./BFS  -r 5 -o /tmp/ofile279834_427186 ../graphData/data/randLocalGraph_J_10_20000000"
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=8 ./BFS  -r 5 -o /tmp/ofile48842_676099 ../graphData/data/randLocalGraph_J_10_20000000"
+            }
+        }
+    },
+    {
+        "model": "unknown",
+        "mix_value": "baseline",
+        "algorithm": "backForwardBFS",
+        "scheduler": "parlay",
+        "server": "XXXXXX",
+        "input_size": "large",
+        "results_by_threads": {
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 1.428,
+                    "rMatGraph_J_12_16000000": 1.374,
+                    "3Dgrid_J_64000000": 6.745
+                },
+                "overall_geomean": 2.366,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        1.443,
+                        1.413,
+                        1.431,
+                        1.417,
+                        1.439
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        1.391,
+                        1.39,
+                        1.359,
+                        1.364,
+                        1.365
+                    ],
+                    "3Dgrid_J_64000000": [
+                        6.866,
+                        6.664,
+                        6.676,
+                        6.852,
+                        6.672
+                    ]
+                },
+                "error": null
+            },
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.108,
+                    "rMatGraph_J_12_16000000": 0.101,
+                    "3Dgrid_J_64000000": 0.631
+                },
+                "overall_geomean": 0.19,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.107,
+                        0.107,
+                        0.107,
+                        0.11,
+                        0.108
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.102,
+                        0.101,
+                        0.1,
+                        0.102,
+                        0.102
+                    ],
+                    "3Dgrid_J_64000000": [
+                        0.607,
+                        0.622,
+                        0.637,
+                        0.651,
+                        0.64
+                    ]
+                },
+                "error": null
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.725,
+                    "rMatGraph_J_12_16000000": 0.685,
+                    "3Dgrid_J_64000000": 3.282
+                },
+                "overall_geomean": 1.177,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.718,
+                        0.735,
+                        0.717,
+                        0.726,
+                        0.727
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.694,
+                        0.685,
+                        0.682,
+                        0.684,
+                        0.682
+                    ],
+                    "3Dgrid_J_64000000": [
+                        3.335,
+                        3.275,
+                        3.234,
+                        3.317,
+                        3.25
+                    ]
+                },
+                "error": null
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.051,
+                    "rMatGraph_J_12_16000000": 0.048,
+                    "3Dgrid_J_64000000": 0.374
+                },
+                "overall_geomean": 0.097,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.051,
+                        0.051,
+                        0.052,
+                        0.052,
+                        0.052
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.048,
+                        0.048,
+                        0.048,
+                        0.048,
+                        0.048
+                    ],
+                    "3Dgrid_J_64000000": [
+                        0.366,
+                        0.37,
+                        0.374,
+                        0.381,
+                        0.379
+                    ]
+                },
+                "error": null
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.048,
+                    "rMatGraph_J_12_16000000": 0.044
+                },
+                "overall_geomean": null,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.048,
+                        0.048,
+                        0.048,
+                        0.049,
+                        0.048
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.044,
+                        0.045,
+                        0.044,
+                        0.045,
+                        0.045
+                    ]
+                },
+                "error": "PARLAY_NUM_THREADS=36 ./BFS  -r 5 -o /tmp/ofile707100_78833 ../graphData/data/3Dgrid_J_64000000"
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.412,
+                    "rMatGraph_J_12_16000000": 0.381,
+                    "3Dgrid_J_64000000": 1.755
+                },
+                "overall_geomean": 0.651,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.415,
+                        0.411,
+                        0.41,
+                        0.409,
+                        0.415
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.381,
+                        0.383,
+                        0.38,
+                        0.382,
+                        0.379
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.782,
+                        1.765,
+                        1.729,
+                        1.768,
+                        1.732
+                    ]
+                },
+                "error": null
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.038,
+                    "rMatGraph_J_12_16000000": 0.035,
+                    "3Dgrid_J_64000000": 0.292
+                },
+                "overall_geomean": 0.073,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.038,
+                        0.039,
+                        0.038,
+                        0.038,
+                        0.038
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.035,
+                        0.035,
+                        0.035,
+                        0.035,
+                        0.035
+                    ],
+                    "3Dgrid_J_64000000": [
+                        0.298,
+                        0.289,
+                        0.289,
+                        0.294,
+                        0.289
+                    ]
+                },
+                "error": null
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "PARLAY_NUM_THREADS=64 ./BFS  -r 5 -o /tmp/ofile936210_834606 ../graphData/data/randLocalGraph_J_10_20000000"
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.213,
+                    "rMatGraph_J_12_16000000": 0.202,
+                    "3Dgrid_J_64000000": 1.079
+                },
+                "overall_geomean": 0.359,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.212,
+                        0.212,
+                        0.214,
+                        0.213,
+                        0.214
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.203,
+                        0.203,
+                        0.199,
+                        0.204,
+                        0.2
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.102,
+                        1.074,
+                        1.07,
+                        1.082,
+                        1.069
+                    ]
+                },
+                "error": null
+            }
+        }
+    },
+    {
+        "model": "unknown",
+        "mix_value": "baseline",
+        "algorithm": "backForwardBFS",
+        "scheduler": "parlay",
+        "server": "XXXXXX",
+        "input_size": "small",
+        "results_by_threads": {
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.111,
+                    "rMatGraph_J_12_2250000": 0.289,
+                    "3Dgrid_J_8000000": 0.457
+                },
+                "overall_geomean": 0.245,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.111,
+                        0.111,
+                        0.111,
+                        0.112,
+                        0.112
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.287,
+                        0.289,
+                        0.291,
+                        0.288,
+                        0.288
+                    ],
+                    "3Dgrid_J_8000000": [
+                        0.456,
+                        0.456,
+                        0.457,
+                        0.458,
+                        0.457
+                    ]
+                },
+                "error": null
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.058,
+                    "rMatGraph_J_12_2250000": 0.142,
+                    "3Dgrid_J_8000000": 0.256
+                },
+                "overall_geomean": 0.128,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.058,
+                        0.058,
+                        0.058,
+                        0.058,
+                        0.058
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.142,
+                        0.142,
+                        0.143,
+                        0.141,
+                        0.143
+                    ],
+                    "3Dgrid_J_8000000": [
+                        0.256,
+                        0.258,
+                        0.254,
+                        0.252,
+                        0.258
+                    ]
+                },
+                "error": null
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.032,
+                    "rMatGraph_J_12_2250000": 0.082,
+                    "3Dgrid_J_8000000": 0.224
+                },
+                "overall_geomean": 0.084,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.032,
+                        0.032,
+                        0.033,
+                        0.032,
+                        0.032
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.081,
+                        0.081,
+                        0.082,
+                        0.081,
+                        0.083
+                    ],
+                    "3Dgrid_J_8000000": [
+                        0.223,
+                        0.227,
+                        0.222,
+                        0.224,
+                        0.224
+                    ]
+                },
+                "error": null
+            }
+        }
+    }
+]

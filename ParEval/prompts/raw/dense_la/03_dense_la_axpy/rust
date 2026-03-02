@@ -1,0 +1,8 @@
+/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.
+   Use Rust Rayon to compute in parallel.
+   Example:
+   
+   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2
+   output: z=[2, -6, 5, 17]
+*/
+pub fn axpy(alpha: f64, x: &[f64], y: &[f64], z: &mut [f64]) {

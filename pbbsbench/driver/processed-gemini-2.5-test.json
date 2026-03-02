@@ -1,0 +1,1577 @@
+[
+    {
+        "model": "gemini-2.5-pro",
+        "mix_value": 62,
+        "algorithm": "backForwardBFS",
+        "scheduler": "omp",
+        "server": "XXXXXX",
+        "input_size": "large",
+        "results_by_threads": {
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.415,
+                    "rMatGraph_J_12_16000000": 0.377,
+                    "3Dgrid_J_64000000": 6.713
+                },
+                "overall_geomean": 1.017,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.433,
+                        0.414,
+                        0.419,
+                        0.39,
+                        0.418
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.393,
+                        0.38,
+                        0.37,
+                        0.361,
+                        0.383
+                    ],
+                    "3Dgrid_J_64000000": [
+                        6.741,
+                        6.662,
+                        6.82,
+                        6.687,
+                        6.657
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_4.txt"
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.064,
+                    "rMatGraph_J_12_16000000": 0.067,
+                    "3Dgrid_J_64000000": 1.125
+                },
+                "overall_geomean": 0.17,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.065,
+                        0.065,
+                        0.064,
+                        0.063,
+                        0.065
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.066,
+                        0.068,
+                        0.067,
+                        0.067,
+                        0.067
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.12,
+                        1.117,
+                        1.126,
+                        1.137,
+                        1.124
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_32.txt"
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.619,
+                    "rMatGraph_J_12_16000000": 0.596,
+                    "3Dgrid_J_64000000": 8.977
+                },
+                "overall_geomean": 1.491,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.623,
+                        0.617,
+                        0.619,
+                        0.617,
+                        0.619
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.6,
+                        0.594,
+                        0.593,
+                        0.595,
+                        0.599
+                    ],
+                    "3Dgrid_J_64000000": [
+                        8.894,
+                        8.892,
+                        8.95,
+                        9.023,
+                        9.13
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_2.txt"
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.059,
+                    "rMatGraph_J_12_16000000": 0.061,
+                    "3Dgrid_J_64000000": 1.048
+                },
+                "overall_geomean": 0.156,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.058,
+                        0.059,
+                        0.058,
+                        0.059,
+                        0.059
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.061,
+                        0.061,
+                        0.061,
+                        0.061,
+                        0.061
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.04,
+                        1.047,
+                        1.049,
+                        1.05,
+                        1.055
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_36.txt"
+            },
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 1.176,
+                    "rMatGraph_J_12_16000000": 1.111,
+                    "3Dgrid_J_64000000": 18.098
+                },
+                "overall_geomean": 2.87,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        1.169,
+                        1.182,
+                        1.178,
+                        1.178,
+                        1.171
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        1.129,
+                        1.11,
+                        1.104,
+                        1.104,
+                        1.109
+                    ],
+                    "3Dgrid_J_64000000": [
+                        18.09,
+                        18.121,
+                        18.079,
+                        18.124,
+                        18.077
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_1.txt"
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.047,
+                    "rMatGraph_J_12_16000000": 0.046,
+                    "3Dgrid_J_64000000": 0.946
+                },
+                "overall_geomean": 0.127,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.047,
+                        0.047,
+                        0.047,
+                        0.046,
+                        0.048
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.047,
+                        0.046,
+                        0.046,
+                        0.047,
+                        0.046
+                    ],
+                    "3Dgrid_J_64000000": [
+                        0.938,
+                        0.944,
+                        0.944,
+                        0.95,
+                        0.953
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_64.txt"
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.052,
+                    "rMatGraph_J_12_16000000": 0.053,
+                    "3Dgrid_J_64000000": 0.948
+                },
+                "overall_geomean": 0.138,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.052,
+                        0.052,
+                        0.052,
+                        0.052,
+                        0.052
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.053,
+                        0.053,
+                        0.053,
+                        0.053,
+                        0.055
+                    ],
+                    "3Dgrid_J_64000000": [
+                        0.937,
+                        0.944,
+                        0.951,
+                        0.949,
+                        0.957
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_48.txt"
+            },
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.112,
+                    "rMatGraph_J_12_16000000": 0.119,
+                    "3Dgrid_J_64000000": 1.898
+                },
+                "overall_geomean": 0.294,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.112,
+                        0.113,
+                        0.113,
+                        0.114,
+                        0.109
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.119,
+                        0.12,
+                        0.12,
+                        0.121,
+                        0.118
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.905,
+                        1.9,
+                        1.908,
+                        1.89,
+                        1.888
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_16.txt"
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.209,
+                    "rMatGraph_J_12_16000000": 0.203,
+                    "3Dgrid_J_64000000": 3.462
+                },
+                "overall_geomean": 0.528,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.215,
+                        0.211,
+                        0.208,
+                        0.206,
+                        0.207
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.198,
+                        0.217,
+                        0.2,
+                        0.202,
+                        0.198
+                    ],
+                    "3Dgrid_J_64000000": [
+                        3.509,
+                        3.454,
+                        3.443,
+                        3.47,
+                        3.434
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_omp_bouchet_large_8.txt"
+            }
+        }
+    },
+    {
+        "model": "gemini-2.5-pro",
+        "mix_value": 62,
+        "algorithm": "backForwardBFS",
+        "scheduler": "parlay",
+        "server": "mac-air-m2-8GB",
+        "input_size": "large",
+        "results_by_threads": {
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.186,
+                    "rMatGraph_J_12_16000000": 0.231,
+                    "3Dgrid_J_64000000": 8.781
+                },
+                "overall_geomean": 0.723,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.155,
+                        0.179,
+                        0.154,
+                        0.219,
+                        0.242
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.367,
+                        0.211,
+                        0.22,
+                        0.204,
+                        0.188
+                    ],
+                    "3Dgrid_J_64000000": [
+                        7.773,
+                        8.619,
+                        9.243,
+                        9.514,
+                        8.86
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_16.txt"
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.433
+                },
+                "overall_geomean": null,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.436,
+                        0.44,
+                        0.44,
+                        0.422,
+                        0.427
+                    ]
+                },
+                "error": "TEST TERMINATED ABNORMALLY",
+                "abnormal_terminated": true,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_2.txt"
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.461,
+                    "rMatGraph_J_12_16000000": 0.361,
+                    "3Dgrid_J_64000000": 14.052
+                },
+                "overall_geomean": 1.329,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.507,
+                        0.88,
+                        0.349,
+                        0.355,
+                        0.378
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.323,
+                        0.371,
+                        0.535,
+                        0.307,
+                        0.313
+                    ],
+                    "3Dgrid_J_64000000": [
+                        14.203,
+                        13.345,
+                        13.687,
+                        13.767,
+                        15.342
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_48.txt"
+            },
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "TEST TERMINATED ABNORMALLY",
+                "abnormal_terminated": true,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_1.txt"
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.245,
+                    "rMatGraph_J_12_16000000": 0.211
+                },
+                "overall_geomean": null,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.235,
+                        0.253,
+                        0.237,
+                        0.24,
+                        0.259
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.209,
+                        0.209,
+                        0.225,
+                        0.21,
+                        0.205
+                    ]
+                },
+                "error": "TEST TERMINATED ABNORMALLY",
+                "abnormal_terminated": true,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_4.txt"
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.42,
+                    "rMatGraph_J_12_16000000": 0.3,
+                    "3Dgrid_J_64000000": 12.088
+                },
+                "overall_geomean": 1.151,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.343,
+                        0.557,
+                        0.428,
+                        0.478,
+                        0.336
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.311,
+                        0.394,
+                        0.241,
+                        0.237,
+                        0.346
+                    ],
+                    "3Dgrid_J_64000000": [
+                        12.967,
+                        12.51,
+                        10.439,
+                        11.41,
+                        13.359
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_64.txt"
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.174,
+                    "rMatGraph_J_12_16000000": 0.167,
+                    "3Dgrid_J_64000000": 5.384
+                },
+                "overall_geomean": 0.539,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.186,
+                        0.179,
+                        0.179,
+                        0.154,
+                        0.173
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.161,
+                        0.175,
+                        0.166,
+                        0.156,
+                        0.177
+                    ],
+                    "3Dgrid_J_64000000": [
+                        5.488,
+                        5.771,
+                        5.229,
+                        5.275,
+                        5.178
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_8.txt"
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.316,
+                    "rMatGraph_J_12_16000000": 0.296,
+                    "3Dgrid_J_64000000": 19.782
+                },
+                "overall_geomean": 1.229,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.287,
+                        0.342,
+                        0.349,
+                        0.298,
+                        0.307
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.336,
+                        0.291,
+                        0.268,
+                        0.3,
+                        0.291
+                    ],
+                    "3Dgrid_J_64000000": [
+                        17.086,
+                        20.912,
+                        22.151,
+                        19.141,
+                        19.997
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_36.txt"
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.316,
+                    "rMatGraph_J_12_16000000": 0.267,
+                    "3Dgrid_J_64000000": 13.633
+                },
+                "overall_geomean": 1.049,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.269,
+                        0.317,
+                        0.313,
+                        0.294,
+                        0.4
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.333,
+                        0.242,
+                        0.293,
+                        0.229,
+                        0.254
+                    ],
+                    "3Dgrid_J_64000000": [
+                        13.539,
+                        13.402,
+                        13.249,
+                        14.095,
+                        13.899
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_32.txt"
+            }
+        }
+    },
+    {
+        "model": "gemini-2.5-pro",
+        "mix_value": 65,
+        "algorithm": "backForwardBFS",
+        "scheduler": "parlay",
+        "server": "XXXXXX",
+        "input_size": "large",
+        "results_by_threads": {
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.144,
+                    "rMatGraph_J_12_16000000": 0.096,
+                    "3Dgrid_J_64000000": 3.093
+                },
+                "overall_geomean": 0.35,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.144,
+                        0.144,
+                        0.144,
+                        0.144,
+                        0.145
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.095,
+                        0.095,
+                        0.096,
+                        0.097,
+                        0.096
+                    ],
+                    "3Dgrid_J_64000000": [
+                        3.074,
+                        3.087,
+                        3.106,
+                        3.087,
+                        3.113
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_16.txt"
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.039,
+                    "rMatGraph_J_12_16000000": 0.027,
+                    "3Dgrid_J_64000000": 1.107
+                },
+                "overall_geomean": 0.106,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.039,
+                        0.039,
+                        0.04,
+                        0.04,
+                        0.039
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.027,
+                        0.027,
+                        0.027,
+                        0.027,
+                        0.027
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.101,
+                        1.105,
+                        1.106,
+                        1.109,
+                        1.112
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_64.txt"
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.05,
+                    "rMatGraph_J_12_16000000": 0.034,
+                    "3Dgrid_J_64000000": 1.276
+                },
+                "overall_geomean": 0.131,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.05,
+                        0.05,
+                        0.05,
+                        0.05,
+                        0.05
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.035,
+                        0.034,
+                        0.034,
+                        0.034,
+                        0.035
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.28,
+                        1.285,
+                        1.269,
+                        1.271,
+                        1.273
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_48.txt"
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.289,
+                    "rMatGraph_J_12_16000000": 0.188,
+                    "3Dgrid_J_64000000": 5.979
+                },
+                "overall_geomean": 0.688,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.289,
+                        0.289,
+                        0.291,
+                        0.288,
+                        0.289
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.187,
+                        0.188,
+                        0.188,
+                        0.188,
+                        0.188
+                    ],
+                    "3Dgrid_J_64000000": [
+                        5.925,
+                        5.96,
+                        5.987,
+                        5.977,
+                        6.047
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_8.txt"
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.556,
+                    "rMatGraph_J_12_16000000": 0.348,
+                    "3Dgrid_J_64000000": 10.573
+                },
+                "overall_geomean": 1.27,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.559,
+                        0.556,
+                        0.555,
+                        0.555,
+                        0.555
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.349,
+                        0.346,
+                        0.35,
+                        0.348,
+                        0.347
+                    ],
+                    "3Dgrid_J_64000000": [
+                        10.379,
+                        10.594,
+                        10.6,
+                        10.629,
+                        10.668
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_4.txt"
+            },
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 2.012,
+                    "rMatGraph_J_12_16000000": 1.137,
+                    "3Dgrid_J_64000000": 33.327
+                },
+                "overall_geomean": 4.241,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        2.017,
+                        2.018,
+                        2.012,
+                        2.012,
+                        2.003
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        1.139,
+                        1.135,
+                        1.139,
+                        1.136,
+                        1.138
+                    ],
+                    "3Dgrid_J_64000000": [
+                        33.213,
+                        33.363,
+                        33.341,
+                        33.367,
+                        33.35
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_1.txt"
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 1.019,
+                    "rMatGraph_J_12_16000000": 0.589,
+                    "3Dgrid_J_64000000": 16.921
+                },
+                "overall_geomean": 2.166,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        1.018,
+                        1.019,
+                        1.016,
+                        1.018,
+                        1.021
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.589,
+                        0.592,
+                        0.59,
+                        0.586,
+                        0.59
+                    ],
+                    "3Dgrid_J_64000000": [
+                        16.989,
+                        16.84,
+                        16.998,
+                        16.896,
+                        16.882
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_2.txt"
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.07,
+                    "rMatGraph_J_12_16000000": 0.046,
+                    "3Dgrid_J_64000000": 1.738
+                },
+                "overall_geomean": 0.178,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.07,
+                        0.07,
+                        0.07,
+                        0.07,
+                        0.071
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.045,
+                        0.046,
+                        0.046,
+                        0.046,
+                        0.046
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.664,
+                        1.737,
+                        1.759,
+                        1.762,
+                        1.767
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_32.txt"
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.064,
+                    "rMatGraph_J_12_16000000": 0.042,
+                    "3Dgrid_J_64000000": 1.556
+                },
+                "overall_geomean": 0.162,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.064,
+                        0.063,
+                        0.064,
+                        0.064,
+                        0.064
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.043,
+                        0.042,
+                        0.042,
+                        0.042,
+                        0.042
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.524,
+                        1.556,
+                        1.564,
+                        1.567,
+                        1.568
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_parlay_bouchet_large_36.txt"
+            }
+        }
+    },
+    {
+        "model": "gemini-2.5-pro",
+        "mix_value": 62,
+        "algorithm": "backForwardBFS",
+        "scheduler": "parlay",
+        "server": "mac-air-m2-8GB",
+        "input_size": "small",
+        "results_by_threads": {
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.028,
+                    "rMatGraph_J_12_2250000": 0.062,
+                    "3Dgrid_J_8000000": 1.398
+                },
+                "overall_geomean": 0.135,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.029,
+                        0.038,
+                        0.036,
+                        0.017,
+                        0.027
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.051,
+                        0.064,
+                        0.1,
+                        0.046,
+                        0.061
+                    ],
+                    "3Dgrid_J_8000000": [
+                        1.295,
+                        1.339,
+                        1.324,
+                        1.529,
+                        1.522
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_16.txt"
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.068,
+                    "rMatGraph_J_12_2250000": 0.111,
+                    "3Dgrid_J_8000000": 3.415
+                },
+                "overall_geomean": 0.296,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.197,
+                        0.016,
+                        0.028,
+                        0.05,
+                        0.322
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.067,
+                        0.076,
+                        0.466,
+                        0.078,
+                        0.09
+                    ],
+                    "3Dgrid_J_8000000": [
+                        3.869,
+                        4.199,
+                        3.712,
+                        3.11,
+                        2.476
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_64.txt"
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.054,
+                    "rMatGraph_J_12_2250000": 0.073,
+                    "3Dgrid_J_8000000": 2.019
+                },
+                "overall_geomean": 0.2,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.021,
+                        0.181,
+                        0.033,
+                        0.039,
+                        0.094
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.05,
+                        0.078,
+                        0.085,
+                        0.079,
+                        0.079
+                    ],
+                    "3Dgrid_J_8000000": [
+                        1.572,
+                        1.906,
+                        2.427,
+                        2.656,
+                        1.736
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_48.txt"
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.017,
+                    "rMatGraph_J_12_2250000": 0.036,
+                    "3Dgrid_J_8000000": 0.665
+                },
+                "overall_geomean": 0.074,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.018,
+                        0.015,
+                        0.018,
+                        0.017,
+                        0.017
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.037,
+                        0.035,
+                        0.036,
+                        0.037,
+                        0.034
+                    ],
+                    "3Dgrid_J_8000000": [
+                        0.68,
+                        0.711,
+                        0.669,
+                        0.578,
+                        0.697
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_8.txt"
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.019,
+                    "rMatGraph_J_12_2250000": 0.052,
+                    "3Dgrid_J_8000000": 0.836
+                },
+                "overall_geomean": 0.095,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.019,
+                        0.021,
+                        0.021,
+                        0.019,
+                        0.016
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.049,
+                        0.051,
+                        0.049,
+                        0.06,
+                        0.052
+                    ],
+                    "3Dgrid_J_8000000": [
+                        0.802,
+                        0.738,
+                        0.826,
+                        0.937,
+                        0.89
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_4.txt"
+            },
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.056,
+                    "rMatGraph_J_12_2250000": 0.145,
+                    "3Dgrid_J_8000000": 2.782
+                },
+                "overall_geomean": 0.283,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.056,
+                        0.056,
+                        0.056,
+                        0.056,
+                        0.056
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.14,
+                        0.144,
+                        0.15,
+                        0.146,
+                        0.144
+                    ],
+                    "3Dgrid_J_8000000": [
+                        2.814,
+                        2.559,
+                        2.771,
+                        2.912,
+                        2.865
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_1.txt"
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.031,
+                    "rMatGraph_J_12_2250000": 0.076,
+                    "3Dgrid_J_8000000": 1.478
+                },
+                "overall_geomean": 0.153,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.032,
+                        0.031,
+                        0.031,
+                        0.031,
+                        0.033
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.076,
+                        0.076,
+                        0.076,
+                        0.077,
+                        0.077
+                    ],
+                    "3Dgrid_J_8000000": [
+                        1.51,
+                        1.505,
+                        1.478,
+                        1.448,
+                        1.451
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_2.txt"
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.037,
+                    "rMatGraph_J_12_2250000": 0.099,
+                    "3Dgrid_J_8000000": 1.496
+                },
+                "overall_geomean": 0.177,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.038,
+                        0.036,
+                        0.022,
+                        0.053,
+                        0.044
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.061,
+                        0.101,
+                        0.158,
+                        0.108,
+                        0.092
+                    ],
+                    "3Dgrid_J_8000000": [
+                        1.63,
+                        1.646,
+                        1.49,
+                        1.278,
+                        1.47
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_32.txt"
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_2000000": 0.03,
+                    "rMatGraph_J_12_2250000": 0.05,
+                    "3Dgrid_J_8000000": 1.913
+                },
+                "overall_geomean": 0.143,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_2000000": [
+                        0.035,
+                        0.028,
+                        0.07,
+                        0.02,
+                        0.018
+                    ],
+                    "rMatGraph_J_12_2250000": [
+                        0.104,
+                        0.049,
+                        0.029,
+                        0.039,
+                        0.052
+                    ],
+                    "3Dgrid_J_8000000": [
+                        2.048,
+                        2.224,
+                        1.514,
+                        1.838,
+                        2.02
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_small_36.txt"
+            }
+        }
+    },
+    {
+        "model": "gemini-2.5-pro",
+        "mix_value": 65,
+        "algorithm": "backForwardBFS",
+        "scheduler": "omp",
+        "server": "XXXXXX",
+        "input_size": "large",
+        "results_by_threads": {
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.358,
+                    "rMatGraph_J_12_16000000": 0.239,
+                    "3Dgrid_J_64000000": 6.527
+                },
+                "overall_geomean": 0.824,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.363,
+                        0.349,
+                        0.35,
+                        0.361,
+                        0.366
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.24,
+                        0.24,
+                        0.24,
+                        0.236,
+                        0.238
+                    ],
+                    "3Dgrid_J_64000000": [
+                        6.558,
+                        6.396,
+                        6.589,
+                        6.551,
+                        6.544
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_8.txt"
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.095,
+                    "rMatGraph_J_12_16000000": 0.113,
+                    "3Dgrid_J_64000000": 1.973
+                },
+                "overall_geomean": 0.277,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.096,
+                        0.095,
+                        0.095,
+                        0.094,
+                        0.094
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.112,
+                        0.113,
+                        0.111,
+                        0.117,
+                        0.112
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.955,
+                        1.944,
+                        1.993,
+                        1.973,
+                        2.003
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_32.txt"
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.085,
+                    "rMatGraph_J_12_16000000": 0.118,
+                    "3Dgrid_J_64000000": 1.846
+                },
+                "overall_geomean": 0.265,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.085,
+                        0.084,
+                        0.087,
+                        0.085,
+                        0.086
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.118,
+                        0.118,
+                        0.118,
+                        0.117,
+                        0.117
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.829,
+                        1.834,
+                        1.86,
+                        1.845,
+                        1.862
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_36.txt"
+            },
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.18,
+                    "rMatGraph_J_12_16000000": 0.145,
+                    "3Dgrid_J_64000000": 3.447
+                },
+                "overall_geomean": 0.448,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.179,
+                        0.178,
+                        0.178,
+                        0.182,
+                        0.182
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.147,
+                        0.145,
+                        0.145,
+                        0.144,
+                        0.144
+                    ],
+                    "3Dgrid_J_64000000": [
+                        3.438,
+                        3.448,
+                        3.467,
+                        3.454,
+                        3.43
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_16.txt"
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.701,
+                    "rMatGraph_J_12_16000000": 0.437,
+                    "3Dgrid_J_64000000": 12.399
+                },
+                "overall_geomean": 1.561,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.722,
+                        0.717,
+                        0.671,
+                        0.684,
+                        0.714
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.446,
+                        0.438,
+                        0.432,
+                        0.438,
+                        0.432
+                    ],
+                    "3Dgrid_J_64000000": [
+                        12.173,
+                        12.611,
+                        12.227,
+                        12.176,
+                        12.82
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_4.txt"
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.057,
+                    "rMatGraph_J_12_16000000": 0.124,
+                    "3Dgrid_J_64000000": 1.647
+                },
+                "overall_geomean": 0.228,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.057,
+                        0.057,
+                        0.058,
+                        0.058,
+                        0.057
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.124,
+                        0.124,
+                        0.122,
+                        0.126,
+                        0.124
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.636,
+                        1.652,
+                        1.642,
+                        1.658,
+                        1.65
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_64.txt"
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 1.091,
+                    "rMatGraph_J_12_16000000": 0.649,
+                    "3Dgrid_J_64000000": 16.921
+                },
+                "overall_geomean": 2.289,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        1.089,
+                        1.094,
+                        1.09,
+                        1.095,
+                        1.089
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.65,
+                        0.646,
+                        0.652,
+                        0.646,
+                        0.651
+                    ],
+                    "3Dgrid_J_64000000": [
+                        16.974,
+                        16.794,
+                        17.043,
+                        17.013,
+                        16.784
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_2.txt"
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.068,
+                    "rMatGraph_J_12_16000000": 0.12,
+                    "3Dgrid_J_64000000": 1.721
+                },
+                "overall_geomean": 0.242,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.068,
+                        0.069,
+                        0.068,
+                        0.068,
+                        0.068
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.12,
+                        0.121,
+                        0.12,
+                        0.12,
+                        0.12
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.719,
+                        1.702,
+                        1.733,
+                        1.714,
+                        1.739
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_48.txt"
+            },
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 2.068,
+                    "rMatGraph_J_12_16000000": 1.187,
+                    "3Dgrid_J_64000000": 33.843
+                },
+                "overall_geomean": 4.364,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        2.07,
+                        2.071,
+                        2.066,
+                        2.067,
+                        2.068
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        1.186,
+                        1.188,
+                        1.187,
+                        1.188,
+                        1.186
+                    ],
+                    "3Dgrid_J_64000000": [
+                        33.706,
+                        33.913,
+                        33.832,
+                        33.913,
+                        33.852
+                    ]
+                },
+                "error": null,
+                "abnormal_terminated": false,
+                "log_file": "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_65_backForwardBFS_omp_bouchet_large_1.txt"
+            }
+        }
+    }
+]

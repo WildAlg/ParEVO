@@ -1,0 +1,11 @@
+pub fn is_power_of_two(x: i32) -> bool {
+    x > 0 && (x & (x - 1)) == 0
+}
+/* Apply the isPowerOfTwo function to every value in x and store the results in mask.
+   Use Rust Rayon to compute in parallel.
+   Example:
+
+   input: [8, 0, 9, 7, 15, 64, 3]
+   output: [true, false, false, false, false, true, false]
+*/
+pub fn mapPowersOfTwo(x: &[i32], mask: &mut Vec<bool>) {

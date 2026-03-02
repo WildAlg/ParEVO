@@ -1,0 +1,10 @@
+[package]
+name = "pareval_runner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rayon = "1.10"  # Or the version you wish to test
+rand = "0.8"    # Often needed for initializing data in benchmarks
+clap = { version = "4.4", features = ["derive"] }
+num-complex = "0.4"

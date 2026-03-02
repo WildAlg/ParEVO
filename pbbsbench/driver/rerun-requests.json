@@ -1,0 +1,38 @@
+[
+    {
+        "name": "comparisonSort/mergeSort",
+        "generate_model": "gemini-2.5-pro",
+        "mix_value": 62,
+        "algorithm": "mergeSort",
+        "scheduler": "parlay",
+        "server": "XXXXXX",
+        "input_size": null,
+        "threads": [
+            8
+        ],
+        "reason": "TEST TERMINATED ABNORMALLY",
+        "log_files": [
+            "../benchmarks/comparisonSort/mergeSort/eval-output/gemini-2.5-pro_62_mergeSort_parlay_bouchet_8.txt"
+        ]
+    },
+    {
+        "name": "breadthFirstSearch/backForwardBFS",
+        "generate_model": "gemini-2.5-pro",
+        "mix_value": 62,
+        "algorithm": "backForwardBFS",
+        "scheduler": "parlay",
+        "server": "mac-air-m2-8GB",
+        "input_size": "large",
+        "threads": [
+            1,
+            2,
+            4
+        ],
+        "reason": "TEST TERMINATED ABNORMALLY",
+        "log_files": [
+            "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_2.txt",
+            "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_1.txt",
+            "../benchmarks/breadthFirstSearch/backForwardBFS/eval-output/gemini-2.5-pro_62_backForwardBFS_parlay_mac-air-m2-8GB_large_4.txt"
+        ]
+    }
+]

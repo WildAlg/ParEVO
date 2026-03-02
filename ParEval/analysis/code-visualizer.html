@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON Comparison Visualizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .file-section {
+      flex: 1;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-right: 20px;
+    }
+    .image-section {
+      flex: 4;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .comparison-section {
+      display: flex;
+      margin-top: 20px;
+    }
+    
+    .file-comparison {
+      flex: 1;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-right: 20px;
+    }
+    .file-section:last-child {
+      flex: 4; /* Increase the flex value to make the image section take up 80% of the width */
+    }
+    .file-input, .image-input {
+      margin-bottom: 10px;
+    }
+    .file-input label, .image-input label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .dropdown {
+      margin-bottom: 10px;
+    }
+    .dropdown label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    pre {
+      background-color: #f9f9f9;
+      padding: 10px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      border-radius: 5px;
+    }
+    .image-preview {
+      max-width: 100%;
+      max-height: 400px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .prompt-section {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .prompt-section h2 {
+      margin-top: 0;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>JSON Comparison Visualizer</h1>
+  
+  <div class="container">
+    <div class="file-selection">
+      <div class="file-input">
+        <label for="file1">JSON File 1:</label>
+        <input type="file" id="file1" accept=".json">
+      </div>
+      
+      <div class="file-input">
+        <label for="file2">JSON File 2:</label>
+        <input type="file" id="file2" accept=".json">
+      </div>
+      
+      <div class="image-input">
+        <label for="imageFile">Select Image:</label>
+        <input type="file" id="imageFile" accept=".png">
+      </div>
+      
+      <button onclick="compareFiles()">Compare</button>
+      
+      <div class="dropdown">
+        <label for="numThreads">Number of Threads:</label>
+        <select id="numThreads" onchange="compareSelectedObjects()"></select>
+      </div>
+      
+      <div class="dropdown">
+        <label for="name">Name:</label>
+        <select id="name" onchange="compareSelectedObjects()"></select>
+      </div>
+      
+      <div class="dropdown">
+        <label for="parallelismModel">Parallelism Model:</label>
+        <select id="parallelismModel" onchange="compareSelectedObjects()"></select>
+      </div>
+    </div>
+    
+    <div class="image-section">
+      <img id="imagePreview" class="image-preview" src="" alt="Selected Image">
+    </div>
+  </div>
+  
+  <div class="prompt-section">
+    <h2>Prompt</h2>
+    <pre id="prompt"></pre>
+  </div>
+  
+  <div class="comparison-section">
+    <div class="file-comparison">
+      <h2>File 1: <span id="fileName1"></span></h2>
+      <div class="dropdown">
+        <label for="sampleId1">Sample ID:</label>
+        <select id="sampleId1" onchange="compareSelectedObjects()"></select>
+      </div>
+      <pre id="output1"></pre>
+      <p>Runtime: <span id="runtime1"></span></p>
+    </div>
+    <div class="file-comparison">
+      <h2>File 2: <span id="fileName2"></span></h2>
+      <div class="dropdown">
+        <label for="sampleId2">Sample ID:</label>
+        <select id="sampleId2" onchange="compareSelectedObjects()"></select>
+      </div>
+      <pre id="output2"></pre>
+      <p>Runtime: <span id="runtime2"></span></p>
+    </div>
+  </div>
+  
+  <script>
+    let jsonData1 = [];
+    let jsonData2 = [];
+    
+    function compareFiles() {
+      const file1 = document.getElementById('file1').files[0];
+      const file2 = document.getElementById('file2').files[0];
+      
+      const reader1 = new FileReader();
+      const reader2 = new FileReader();
+      
+      reader1.onload = function() {
+        jsonData1 = JSON.parse(reader1.result);
+        document.getElementById('fileName1').textContent = file1.name;
+        populateDropdowns();
+        compareSelectedObjects();
+      };
+      
+      reader2.onload = function() {
+        jsonData2 = JSON.parse(reader2.result);
+        document.getElementById('fileName2').textContent = file2.name;
+        populateDropdowns();
+        compareSelectedObjects();
+      };
+      
+      reader1.readAsText(file1);
+      reader2.readAsText(file2);
+    }
+    
+    function populateDropdowns() {
+      const numThreadsDropdown = document.getElementById('numThreads');
+      const sampleId1Dropdown = document.getElementById('sampleId1');
+      const sampleId2Dropdown = document.getElementById('sampleId2');
+      const nameDropdown = document.getElementById('name');
+      const parallelismModelDropdown = document.getElementById('parallelismModel');
+      
+      const numThreads = [...new Set([...jsonData1, ...jsonData2].flatMap(obj => obj.outputs.flatMap(output => output.runs ? output.runs.map(run => run.num_threads) : [])))];
+      const sampleIds1 = [...Array(Math.max(...jsonData1.map(obj => obj.outputs.length))).keys()];
+      const sampleIds2 = [...Array(Math.max(...jsonData2.map(obj => obj.outputs.length))).keys()];
+      const names = [...new Set([...jsonData1, ...jsonData2].map(obj => obj.name))];
+      const parallelismModels = [...new Set([...jsonData1, ...jsonData2].map(obj => obj.parallelism_model))];
+      
+      numThreadsDropdown.innerHTML = '<option value="">Select Number of Threads</option>' + numThreads.map(num => `<option>${num}</option>`).join('');
+      sampleId1Dropdown.innerHTML = '<option value="">Select Sample ID</option>' + sampleIds1.map(id => `<option>${id}</option>`).join('');
+      sampleId2Dropdown.innerHTML = '<option value="">Select Sample ID</option>' + sampleIds2.map(id => `<option>${id}</option>`).join('');
+      nameDropdown.innerHTML = '<option value="">Select Name</option>' + names.map(name => `<option>${name}</option>`).join('');
+      parallelismModelDropdown.innerHTML = '<option value="">Select Parallelism Model</option>' + parallelismModels.map(model => `<option>${model}</option>`).join('');
+    }
+    
+    function compareSelectedObjects() {
+      const selectedNumThreads = document.getElementById('numThreads').value;
+      const selectedSampleId1 = document.getElementById('sampleId1').value;
+      const selectedSampleId2 = document.getElementById('sampleId2').value;
+      const selectedName = document.getElementById('name').value;
+      const selectedParallelismModel = document.getElementById('parallelismModel').value;
+      
+      const obj1 = jsonData1.find(obj => obj.name === selectedName && obj.parallelism_model === selectedParallelismModel);
+      const obj2 = jsonData2.find(obj => obj.name === selectedName && obj.parallelism_model === selectedParallelismModel);
+      
+      if (obj1 && obj2 && selectedSampleId1 !== '' && selectedSampleId2 !== '' && selectedNumThreads !== '') {
+        const output1 = obj1.outputs[selectedSampleId1];
+        const output2 = obj2.outputs[selectedSampleId2];
+        
+        document.getElementById('output1').innerHTML = output1.generated_output.replace(/\\n/g, '<br>');
+        document.getElementById('runtime1').textContent = output1.runs && output1.runs.find(run => run.num_threads === Number(selectedNumThreads)) ? output1.runs.find(run => run.num_threads === Number(selectedNumThreads)).runtime : '';
+        
+        document.getElementById('output2').innerHTML = output2.generated_output.replace(/\\n/g, '<br>');
+        document.getElementById('runtime2').textContent = output2.runs && output2.runs.find(run => run.num_threads === Number(selectedNumThreads)) ? output2.runs.find(run => run.num_threads === Number(selectedNumThreads)).runtime : '';
+        
+        document.getElementById('prompt').textContent = obj1.prompt;
+      } else {
+        document.getElementById('output1').innerHTML = '';
+        document.getElementById('runtime1').textContent = '';
+        document.getElementById('output2').innerHTML = '';
+        document.getElementById('runtime2').textContent = '';
+        document.getElementById('prompt').textContent = '';
+      }
+    }
+    
+    // Function to handle image file selection
+    function handleImageFileSelect(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const imagePreview = document.getElementById('imagePreview');
+        imagePreview.src = e.target.result;
+      };
+      
+      reader.readAsDataURL(file);
+    }
+    
+    // Add event listener for image file selection
+    document.getElementById('imageFile').addEventListener('change', handleImageFileSelect);
+  </script>
+</body>
+</html>

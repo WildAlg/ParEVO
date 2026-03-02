@@ -1,0 +1,59 @@
+[
+    {
+        "problem_type": "new_bench",
+        "language": "cpp",
+        "name": "60_majority",
+        "parallelism_model": "serial",
+        "prompt": "using value = unsigned char;\n\n/* Finds the most frequent value in a sequence of unsigned chars. \n\n's' is the sequence of values. \n\n'm' is the number of possible distinct values (i.e., the size of the histogram).\n\nReturns the value that appears most often.*/\n\nint majority(std::vector<value> const& s, size_t m) {",
+        "outputs": [
+            {
+                "generated_output": "\n   if (s.empty()) return -1;\n   std::vector<long> counts(m, 0);\n   for (value x : s) {\n      counts[x]++;\n   }\n   return std::max_element(counts.begin(), counts.end()) - counts.begin();\n}\n\n",
+                "source_write_success": true,
+                "did_build": true,
+                "is_source_valid": true,
+                "did_any_run": true,
+                "did_all_run": true,
+                "are_any_valid": true,
+                "are_all_valid": true,
+                "best_sequential_runtime": 0.0003806524,
+                "runs": [
+                    {
+                        "did_run": true,
+                        "is_valid": true,
+                        "runtime": 0.0005401502
+                    }
+                ]
+            },
+            {
+                "generated_output": " return 0; }",
+                "source_write_success": true,
+                "did_build": true,
+                "is_source_valid": true,
+                "did_any_run": true,
+                "did_all_run": true,
+                "are_any_valid": false,
+                "are_all_valid": false,
+                "best_sequential_runtime": null,
+                "runs": [
+                    {
+                        "did_run": true,
+                        "is_valid": false,
+                        "runtime": null
+                    }
+                ]
+            },
+            {
+                "generated_output": " undefinedFunction(); }",
+                "source_write_success": true,
+                "did_build": false,
+                "is_source_valid": true,
+                "did_any_run": false,
+                "did_all_run": false,
+                "are_any_valid": false,
+                "are_all_valid": false,
+                "best_sequential_runtime": null,
+                "runs": null
+            }
+        ]
+    }
+]

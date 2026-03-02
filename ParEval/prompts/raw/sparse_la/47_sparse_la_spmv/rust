@@ -1,0 +1,16 @@
+pub struct COOElement {
+    pub row: usize,
+    pub column: usize,
+    pub value: f64,
+}
+
+/* Compute y = alpha*A*x + beta*y where alpha and beta are scalars, x and y are vectors,
+   and A is a sparse matrix stored in COO format.
+   A has dimensions MxN, x has N values, and y has M values.
+   Use Rust Rayon to parallelize.
+   Example:
+
+   input: alpha=0.5 beta=1.0 A=[{0,1,3}, {1,0,-1}] x=[-4, 2] y=[-1,1]
+   output: y=[2, 3]
+*/
+pub fn spmv(alpha: f64, A: &[COOElement], x: &[f64], beta: f64, y: &mut [f64], M: usize, N: usize) {

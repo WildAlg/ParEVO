@@ -1,0 +1,12 @@
+name: huggingface
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - accelerate
+  - datasets
+  - jupyter
+  - jupyterlab
+  - python=3.11
+  - tokenizers
+  - transformer

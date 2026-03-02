@@ -1,0 +1,8 @@
+/* Compute the fourier transform of x. Store the result in output.
+   Use Rust Rayon to compute in parallel.
+   Example:
+
+   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]
+*/
+pub fn fft(x: &[num_complex::Complex<f64>], output: &mut [num_complex::Complex<f64>]) {

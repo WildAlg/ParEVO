@@ -1,0 +1,60 @@
+num vertices = 1024
+num edges    = 17782
+max degree   = 141
+Time: BFS: 0.0741
+num vertices visited: 1008
+BFSCheck: passed!
+Time: BFS: 0.0250
+num vertices visited: 1008
+BFSCheck: passed!
+Time: BFS: 0.0009
+num vertices visited: 1008
+BFSCheck: passed!
+num vertices = 8192
+num edges    = 190460
+max degree   = 412
+Time: BFS: 0.1324
+num vertices visited: 8039
+BFSCheck: passed!
+Time: BFS: 0.1530
+num vertices visited: 8039
+BFSCheck: passed!
+Time: BFS: 0.1292
+num vertices visited: 8039
+BFSCheck: passed!
+num vertices = 131072
+num edges    = 1985217
+max degree   = 1066
+Time: BFS: 0.1915
+num vertices visited: 121263
+BFSCheck: passed!
+Time: BFS: 0.1685
+num vertices visited: 121263
+BFSCheck: passed!
+Time: BFS: 0.1589
+num vertices visited: 121263
+BFSCheck: passed!
+num vertices = 1048576
+num edges    = 19942869
+max degree   = 3128
+Time: BFS: 0.1874
+num vertices visited: 966812
+BFSCheck: passed!
+Time: BFS: 0.5151
+num vertices visited: 966812
+BFSCheck: passed!
+Time: BFS: 0.4898
+num vertices visited: 966812
+BFSCheck: passed!
+num vertices = 8388608
+num edges    = 199779343
+max degree   = 8854
+Time: BFS: 0.4419
+num vertices visited: 7711448
+BFSCheck: passed!
+Time: BFS: 5.0444
+num vertices visited: 7711448
+BFSCheck: passed!
+Time: BFS: 5.3080
+num vertices visited: 7711448
+BFSCheck: passed!

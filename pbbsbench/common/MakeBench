@@ -1,0 +1,37 @@
+# ********************
+# GENERIC MAKEFILE FOR MOST BENCHMARKS THAT #include <name>.h
+# USES FOLLOWING DEFINITIONS
+#    BENCH : the name of the benchmark
+#    REQUIRE : dependences
+#    CC : the compiler
+#    CFLAGS : compiler flags
+#    LFLAGS : compiler link flags
+# ********************
+
+TIME = ../bench/$(BENCH)Time.C
+CHECK = $(BENCH)Check
+INCLUDE = 
+
+
+ifdef MIX
+	BENCH_FILE = $(BENCH)Mix$(MIX)
+	OBJS = $(BENCH)Mix$(MIX).o
+else
+	BENCH_FILE = $(BENCH)
+	OBJS = $(BENCH).o
+endif
+
+all : $(BENCH_FILE) testInputs
+	cd ../bench; make -s $(CHECK)
+
+$(BENCH_FILE) : $(TIME) $(BENCH_FILE).h $(REQUIRE)
+	$(CC) $(CFLAGS) $(INCLUDE) -include $(BENCH_FILE).h -o $(BENCH_FILE) $(TIME) $(LFLAGS)
+
+testInputs : ../bench/testInputs ../bench/testInputs_small
+	cp ../bench/testInputs ../bench/testInputs_small .
+
+clean :
+	rm -f $(BENCH_FILE)
+
+cleanall : clean
+	rm -f testInputs*; cd ../bench; make -s clean

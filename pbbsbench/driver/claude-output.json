@@ -1,0 +1,460 @@
+[
+    {
+        "model": "unknown",
+        "mix_value": "baseline",
+        "algorithm": "claude-opus-4-1",
+        "scheduler": "backForwardBFS",
+        "server": "parlay",
+        "input_size": "XXXXXX",
+        "results_by_threads": {
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            }
+        }
+    },
+    {
+        "model": "unknown",
+        "mix_value": "baseline",
+        "algorithm": "gpt-5",
+        "scheduler": "backForwardBFS",
+        "server": "omp",
+        "input_size": "XXXXXX",
+        "results_by_threads": {
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 10.049,
+                    "rMatGraph_J_12_16000000": 32.481,
+                    "3Dgrid_J_64000000": 11.851
+                },
+                "overall_geomean": 15.698,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        10.052,
+                        10.057,
+                        10.048,
+                        10.046,
+                        10.045
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        32.352,
+                        32.676,
+                        32.349,
+                        32.678,
+                        32.351
+                    ],
+                    "3Dgrid_J_64000000": [
+                        11.846,
+                        11.845,
+                        11.846,
+                        11.868,
+                        11.852
+                    ]
+                },
+                "error": null
+            },
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {},
+                "overall_geomean": null,
+                "raw_runtimes": {},
+                "error": "Could not find overall geomean or an error message."
+            }
+        }
+    },
+    {
+        "model": "unknown",
+        "mix_value": "baseline",
+        "algorithm": "gpt-5",
+        "scheduler": "backForwardBFS",
+        "server": "parlay",
+        "input_size": "XXXXXX",
+        "results_by_threads": {
+            "1": {
+                "threads": 1,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 11.889,
+                    "rMatGraph_J_12_16000000": 33.694,
+                    "3Dgrid_J_64000000": 43.465
+                },
+                "overall_geomean": 25.919,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        11.892,
+                        11.886,
+                        11.893,
+                        11.886,
+                        11.888
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        33.679,
+                        33.714,
+                        33.685,
+                        33.713,
+                        33.678
+                    ],
+                    "3Dgrid_J_64000000": [
+                        43.463,
+                        43.465,
+                        43.463,
+                        43.462,
+                        43.472
+                    ]
+                },
+                "error": null
+            },
+            "16": {
+                "threads": 16,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.996,
+                    "rMatGraph_J_12_16000000": 3.362,
+                    "3Dgrid_J_64000000": 3.09
+                },
+                "overall_geomean": 2.179,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.991,
+                        1.0,
+                        0.994,
+                        1.002,
+                        0.994
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        3.359,
+                        3.368,
+                        3.377,
+                        3.353,
+                        3.354
+                    ],
+                    "3Dgrid_J_64000000": [
+                        3.102,
+                        3.092,
+                        3.089,
+                        3.084,
+                        3.083
+                    ]
+                },
+                "error": null
+            },
+            "2": {
+                "threads": 2,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 6.061,
+                    "rMatGraph_J_12_16000000": 17.632,
+                    "3Dgrid_J_64000000": 21.851
+                },
+                "overall_geomean": 13.267,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        6.063,
+                        6.06,
+                        6.06,
+                        6.062,
+                        6.061
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        17.646,
+                        17.611,
+                        17.643,
+                        17.61,
+                        17.648
+                    ],
+                    "3Dgrid_J_64000000": [
+                        21.857,
+                        21.843,
+                        21.855,
+                        21.86,
+                        21.842
+                    ]
+                },
+                "error": null
+            },
+            "32": {
+                "threads": 32,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.515,
+                    "rMatGraph_J_12_16000000": 1.721,
+                    "3Dgrid_J_64000000": 1.646
+                },
+                "overall_geomean": 1.134,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.5,
+                        0.508,
+                        0.512,
+                        0.525,
+                        0.528
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        1.554,
+                        1.693,
+                        1.781,
+                        1.791,
+                        1.796
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.62,
+                        1.644,
+                        1.658,
+                        1.655,
+                        1.655
+                    ]
+                },
+                "error": null
+            },
+            "36": {
+                "threads": 36,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.47,
+                    "rMatGraph_J_12_16000000": 1.59,
+                    "3Dgrid_J_64000000": 1.47
+                },
+                "overall_geomean": 1.032,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.465,
+                        0.466,
+                        0.473,
+                        0.471,
+                        0.476
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        1.532,
+                        1.593,
+                        1.611,
+                        1.603,
+                        1.611
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.458,
+                        1.466,
+                        1.477,
+                        1.473,
+                        1.479
+                    ]
+                },
+                "error": null
+            },
+            "4": {
+                "threads": 4,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 3.32,
+                    "rMatGraph_J_12_16000000": 11.138,
+                    "3Dgrid_J_64000000": 11.25
+                },
+                "overall_geomean": 7.465,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        3.249,
+                        3.253,
+                        3.352,
+                        3.347,
+                        3.403
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        11.156,
+                        11.152,
+                        11.173,
+                        11.081,
+                        11.128
+                    ],
+                    "3Dgrid_J_64000000": [
+                        11.252,
+                        11.247,
+                        11.254,
+                        11.25,
+                        11.247
+                    ]
+                },
+                "error": null
+            },
+            "48": {
+                "threads": 48,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.377,
+                    "rMatGraph_J_12_16000000": 1.232,
+                    "3Dgrid_J_64000000": 1.147
+                },
+                "overall_geomean": 0.81,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.377,
+                        0.375,
+                        0.376,
+                        0.377,
+                        0.377
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        1.222,
+                        1.232,
+                        1.233,
+                        1.234,
+                        1.237
+                    ],
+                    "3Dgrid_J_64000000": [
+                        1.147,
+                        1.148,
+                        1.146,
+                        1.145,
+                        1.147
+                    ]
+                },
+                "error": null
+            },
+            "64": {
+                "threads": 64,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 0.298,
+                    "rMatGraph_J_12_16000000": 0.942,
+                    "3Dgrid_J_64000000": 0.918
+                },
+                "overall_geomean": 0.636,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        0.297,
+                        0.302,
+                        0.296,
+                        0.298,
+                        0.296
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        0.941,
+                        0.941,
+                        0.943,
+                        0.945,
+                        0.941
+                    ],
+                    "3Dgrid_J_64000000": [
+                        0.919,
+                        0.917,
+                        0.917,
+                        0.92,
+                        0.916
+                    ]
+                },
+                "error": null
+            },
+            "8": {
+                "threads": 8,
+                "individual_geomeans": {
+                    "randLocalGraph_J_10_20000000": 1.868,
+                    "rMatGraph_J_12_16000000": 6.213,
+                    "3Dgrid_J_64000000": 5.904
+                },
+                "overall_geomean": 4.092,
+                "raw_runtimes": {
+                    "randLocalGraph_J_10_20000000": [
+                        1.862,
+                        1.865,
+                        1.861,
+                        1.869,
+                        1.882
+                    ],
+                    "rMatGraph_J_12_16000000": [
+                        6.226,
+                        6.184,
+                        6.222,
+                        6.251,
+                        6.185
+                    ],
+                    "3Dgrid_J_64000000": [
+                        5.912,
+                        5.905,
+                        5.905,
+                        5.903,
+                        5.897
+                    ]
+                },
+                "error": null
+            }
+        }
+    }
+]

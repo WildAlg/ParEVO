@@ -1,0 +1,533 @@
+[
+    {
+        "problem_type": "dense_la",
+        "language": "rust",
+        "name": "00_dense_la_lu_decomp",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Factorize the matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   Store the results for L and U into the original matrix A.\n   A is an NxN matrix stored in row-major.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [[4, 3], [6, 3]]\n   output: [[4, 3], [1.5, -1.5]]\n*/\npub fn luFactorize(A: &mut [f64], N: usize) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\npub fn luFactorize(A: &mut [f64], N: usize) {\n    for k in 0..N {\n        let pivot = A[k * N + k];\n\n        (k + 1..N).into_par_iter().for_each(|i| {\n            A[i * N + k] /= pivot;\n        });\n\n        (k + 1..N).into_par_iter().for_each(|i| {\n            let multiplier = A[i * N + k];\n            for j in k + 1..N {\n                A[i * N + j] -= multiplier * A[k * N + j];\n            }\n        });\n    }\n}\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "dense_la",
+        "language": "rust",
+        "name": "01_dense_la_solve",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Solve the linear system Ax=b for x.\n   A is an NxN matrix in row-major. x and b have N elements.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]\n   output: x=[3, 1, 2]\n*/\npub fn solve_linear_system(A: &[f64], b: &[f64], x: &mut [f64], N: usize) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            {
+                "generated_output": "\nlet mut a_clone = A.to_vec();\nlet mut b_clone = b.to_vec();\n\nfor k in 0..N {\n    let mut max_row = k;\n    for i in (k + 1)..N {\n        if a_clone[i * N + k].abs() > a_clone[max_row * N + k].abs() {\n            max_row = i;\n        }\n    }\n\n    if max_row != k {\n        for j in 0..N {\n            let temp = a_clone[k * N + j];\n            a_clone[k * N + j] = a_clone[max_row * N + j];\n            a_clone[max_row * N + j] = temp;\n        }\n        let temp_b = b_clone[k];\n        b_clone[k] = b_clone[max_row];\n        b_clone[max_row] = temp_b;\n    }\n\n    let pivot_val = a_clone[k * N + k];\n\n    (k + 1..N).into_par_iter().for_each(|i| {\n        let factor = a_clone[i * N + k] / pivot_val;\n\n        for j in k..N {\n            a_clone[i * N + j] -= factor * a_clone[k * N + j];\n        }\n        b_clone[i] -= factor * b_clone[k];\n    });\n}\n\nfor i in (0..N).rev() {\n    let mut sum = 0.0;\n    for j in (i + 1)..N {\n        sum += a_clone[i * N + j] * x[j];\n    }\n    x[i] = (b_clone[i] - sum) / a_clone[i * N + i];\n}\n",
+                "source_write_success": true,
+                "did_build": false,
+                "is_source_valid": true,
+                "did_any_run": false,
+                "did_all_run": false,
+                "are_any_valid": false,
+                "are_all_valid": false,
+                "best_sequential_runtime": null,
+                "runs": null
+            }
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "dense_la",
+        "language": "rust",
+        "name": "02_dense_la_gemm",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Multiply the matrix A by the matrix B. Store the results in the matrix C.\n   A is an MxK matrix, B is a KxN matrix, and C is a MxN matrix. The matrices are stored in row-major.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -2, 1]] B=[[4, 1], [-1, 0], [2, 2]]\n   output: C=[[9, 5], [4, 2]]\n*/\npub fn gemm(A: &[f64], B: &[f64], C: &mut [f64], M: usize, K: usize, N: usize) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\n    (0..M).into_par_iter().for_each(|i| {\n        for j in 0..N {\n            let mut sum = 0.0;\n            for k in 0..K {\n                sum += A[i * K + k] * B[k * N + j];\n            }\n            C[i * N + j] = sum;\n        }\n    });\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "dense_la",
+        "language": "rust",
+        "name": "03_dense_la_axpy",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\npub fn axpy(alpha: f64, x: &[f64], y: &[f64], z: &mut [f64]) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\n    z.par_iter_mut()\n        .zip(x.par_iter())\n        .zip(y.par_iter())\n        .for_each(|((z_val, x_val), y_val)| {\n            *z_val = alpha * *x_val + *y_val;\n        });\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "dense_la",
+        "language": "rust",
+        "name": "04_dense_la_gemv",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Multiply the matrix A by the vector x. Store the results in the vector y.\n   A is an MxN matrix stored in row-major, x has N elements, and y has M elements.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -3, 1]] x=[2, 1, 0]\n   output: y=[1, -3]\n*/\npub fn gemv(A: &[f64], x: &[f64], y: &mut [f64], M: usize, N: usize) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\n    y.par_iter_mut().enumerate().for_each(|(i, y_i)| {\n        let row_start = i * N;\n        let row_end = row_start + N;\n        let a_row = &A[row_start..row_end];\n        let mut sum = 0.0;\n        for j in 0..N {\n            sum += a_row[j] * x[j];\n        }\n        *y_i = sum;\n    });\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "fft",
+        "language": "rust",
+        "name": "05_fft_inverse_fft",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* forward declare fft. computes fourier transform in-place */\npub fn fft(x: &mut [num_complex::Complex<f64>]);\n\n/* Compute the inverse fourier transform of x in-place.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{0.5,0}, {0.125,0.301777}, {0,-0}, {0.125,0.0517767}, {0,-0}, {0.125,-0.0517767}, {0,-0}, {0.125,-0.301777}]\n*/\npub fn ifft(x: &mut [num_complex::Complex<f64>]) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\n    let n = x.len();\n    if n == 0 {\n        return;\n    }\n\n    x.par_iter_mut().for_each(|c| {\n        *c = c.conj();\n    });\n\n    fft(x);\n\n    x.par_iter_mut().for_each(|c| {\n        *c = c.conj();\n    });\n\n    let n_f64 = n as f64;\n    x.par_iter_mut().for_each(|c| {\n        *c /= n_f64;\n    });\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "fft",
+        "language": "rust",
+        "name": "06_fft_dft",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the discrete fourier transform of x. Store the result in output.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [1, 4, 9, 16]\n   output: [30+0i, -8-12i, -10-0i, -8+12i]\n*/\npub fn dft(x: &[f64], output: &mut [num_complex::Complex<f64>]) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\nlet n = x.len();\nif n == 0 {\n    return;\n}\n\noutput.par_iter_mut().enumerate().for_each(|(k, out_val)| {\n    let mut sum = num_complex::Complex::new(0.0, 0.0);\n    for (n_idx, &x_val) in x.iter().enumerate() {\n        let angle = -2.0 * std::f64::consts::PI * (k as f64) * (n_idx as f64) / (n as f64);\n        let twiddle_factor = num_complex::Complex::new(angle.cos(), angle.sin());\n        sum += x_val * twiddle_factor;\n    }\n    *out_val = sum;\n});\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "fft",
+        "language": "rust",
+        "name": "07_fft_fft_conjugate",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the fourier transform of x in-place. Return the imaginary conjugate of each value.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.41421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\npub fn fft_conjugate(x: &mut [num_complex::Complex<f64>]) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\n    let n = x.len();\n    if n <= 1 {\n        if n == 1 {\n            x[0] = x[0].conj();\n        }\n        return;\n    }\n\n    let mut j = 0;\n    for i in 0..n {\n        if i < j {\n            x.swap(i, j);\n        }\n        let mut bit = n >> 1;\n        while j & bit != 0 {\n            j ^= bit;\n            bit >>= 1;\n        }\n        j ^= bit;\n    }\n\n    let mut len = 2;\n    while len <= n {\n        let half_len = len / 2;\n        let angle_unit = -2.0 * std::f64::consts::PI / len as f64;\n        let w_m = num_complex::Complex::new(angle_unit.cos(), angle_unit.sin());\n\n        x.par_chunks_mut(len).for_each(|chunk| {\n            let mut w = num_complex::Complex::new(1.0, 0.0);\n            for i in 0..half_len {\n                let t = chunk[i + half_len] * w;\n                let u = chunk[i];\n                chunk[i] = u + t;\n                chunk[i + half_len] = u - t;\n                w *= w_m;\n            }\n        });\n        len *= 2;\n    }\n\n    x.par_iter_mut().for_each(|val| {\n        *val = val.conj();\n    });\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "fft",
+        "language": "rust",
+        "name": "08_fft_split_fft",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the fourier transform of x. Store real part of results in r and imaginary in i.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: r: [4, 1, 0, 1, 0, 1, 0, 1] i: [0, -2.41421, 0, -0.414214, 0, 0.414214, 0, 2.41421]\n*/\npub fn fft(x: &[num_complex::Complex<f64>], r: &mut [f64], i: &mut [f64]) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\n    let n = x.len();\n    assert_eq!(n, r.len());\n    assert_eq!(n, i.len());\n\n    fn _fft_recursive(x_slice: &[num_complex::Complex<f64>]) -> Vec<num_complex::Complex<f64>> {\n        let n = x_slice.len();\n        if n <= 1 {\n            return x_slice.to_vec();\n        }\n\n        let mut even_x = Vec::with_capacity(n / 2);\n        let mut odd_x = Vec::with_capacity(n / 2);\n        for (idx, &val) in x_slice.iter().enumerate() {\n            if idx % 2 == 0 {\n                even_x.push(val);\n            } else {\n                odd_x.push(val);\n            }\n        }\n\n        let (y_even, y_odd) = rayon::join(\n            || _fft_recursive(&even_x),\n            || _fft_recursive(&odd_x),\n        );\n\n        let mut result = vec![num_complex::Complex::new(0.0, 0.0); n];\n        let pi = std::f64::consts::PI;\n\n        for k in 0..n / 2 {\n            let angle = -2.0 * pi * k as f64 / n as f64;\n            let twiddle = num_complex::Complex::new(angle.cos(), angle.sin());\n\n            let term = twiddle * y_odd[k];\n            result[k] = y_even[k] + term;\n            result[k + n / 2] = y_even[k] - term;\n        }\n        result\n    }\n\n    let fft_result = _fft_recursive(x);\n\n    for k in 0..n {\n        r[k] = fft_result[k].re;\n        i[k] = fft_result[k].im;\n    }\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "fft",
+        "language": "rust",
+        "name": "09_fft_fft_out_of_place",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the fourier transform of x. Store the result in output.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]\n   output: [{4,0}, {1,-2.42421}, {0,0}, {1,-0.414214}, {0,0}, {1,0.414214}, {0,0}, {1,2.41421}]\n*/\npub fn fft(x: &[num_complex::Complex<f64>], output: &mut [num_complex::Complex<f64>]) {",
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "do_sample": true,
+        "max_new_tokens": 20000,
+        "outputs": [
+            "\nuse std::f64::consts::PI;\n\nlet n = x.len();\n\nif n == 0 {\n    return;\n}\n\nif n == 1 {\n    output[0] = x[0];\n    return;\n}\n\nlet (even_x, odd_x): (Vec<num_complex::Complex<f64>>, Vec<num_complex::Complex<f64>>) = x\n    .iter()\n    .enumerate()\n    .partition(|(i, _)| i % 2 == 0)\n    .map(|(even_pairs, odd_pairs)| {\n        (\n            even_pairs.into_iter().map(|(_, val)| *val).collect(),\n            odd_pairs.into_iter().map(|(_, val)| *val).collect(),\n        )\n    });\n\nlet mut fft_even_output = vec![num_complex::Complex::new(0.0, 0.0); n / 2];\nlet mut fft_odd_output = vec![num_complex::Complex::new(0.0, 0.0); n / 2];\n\nrayon::join(\n    || fft(&even_x, &mut fft_even_output),\n    || fft(&odd_x, &mut fft_odd_output),\n);\n\nfor k in 0..(n / 2) {\n    let t = -2.0 * PI * k as f64 / n as f64;\n    let twiddle = num_complex::Complex::new(t.cos(), t.sin());\n\n    let term_odd = twiddle * fft_odd_output[k];\n\n    output[k] = fft_even_output[k] + term_odd;\n    output[k + n / 2] = fft_even_output[k] - term_odd;\n}\n"
+        ],
+        "finish_reasons": [
+            1
+        ]
+    },
+    {
+        "problem_type": "geometry",
+        "language": "rust",
+        "name": "10_geometry_convex_hull",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\npub struct Point {\n    pub x: f64,\n    pub y: f64,\n}\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\npub fn convexHull(points: &[Point], hull: &mut Vec<Point>) {"
+    },
+    {
+        "problem_type": "geometry",
+        "language": "rust",
+        "name": "11_geometry_convex_hull_perimeter",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\npub fn convex_hull_perimeter(points: &[Point]) -> f64 {"
+    },
+    {
+        "problem_type": "geometry",
+        "language": "rust",
+        "name": "12_geometry_smallest_triangle",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the area of the smallest triangle that can be formed by any 3 points.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [{0, 10}, {5, 5}, {1,0}, {-1, 1}, {-10, 0}]\n   output: 5.5\n*/\npub fn smallest_area(points: &[Point]) -> f64 {"
+    },
+    {
+        "problem_type": "geometry",
+        "language": "rust",
+        "name": "13_geometry_closest_pair_2d",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the distance between the closest two points in the vector points.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\npub fn closestPair(points: &[Point]) -> f64 {"
+    },
+    {
+        "problem_type": "geometry",
+        "language": "rust",
+        "name": "14_geometry_closest_pair_1d",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the distance between the closest two elements in the vector x.\n   Use Rust Rayon to compute in parallel.\n   Example: \n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\npub fn closest_pair(x: &[f64]) -> f64 {"
+    },
+    {
+        "problem_type": "graph",
+        "language": "rust",
+        "name": "15_graph_edge_count",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\npub fn edge_count(A: &[i32], N: usize) -> usize {"
+    },
+    {
+        "problem_type": "graph",
+        "language": "rust",
+        "name": "16_graph_largest_component",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the number of vertices in the largest component of the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\npub fn largest_component(A: &[i32], N: usize) -> usize {"
+    },
+    {
+        "problem_type": "graph",
+        "language": "rust",
+        "name": "17_graph_highest_degree",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\npub fn max_degree(a: &[i32], n: usize) -> usize {"
+    },
+    {
+        "problem_type": "graph",
+        "language": "rust",
+        "name": "18_graph_count_components",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Count the number of connected components in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n\t Use Rust Rayon to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]\n   output: 2\n*/\npub fn component_count(A: &[i32], N: usize) -> usize {"
+    },
+    {
+        "problem_type": "graph",
+        "language": "rust",
+        "name": "19_graph_shortest_path",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the length of the shortest path from source to dest in the undirected graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n\t input: [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], source=0, dest=3\n   output: 2\n*/\npub fn shortest_path_length(A: &[i32], N: usize, source: i32, dest: i32) -> i32 {"
+    },
+    {
+        "problem_type": "histogram",
+        "language": "rust",
+        "name": "20_histogram_pixel_histogram",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Count the number of pixels in image with each grayscale intensity.\n   The vector `image` is a grayscale image with values 0-255.\n   Store the results in `bins`.\n   Use Rust Rayon to count in parallel.\n   Example:\n   \n   input: image=[2, 116, 201, 11, 92, 92, 201, 4, 2]\n   output: [0, 0, 2, 0, 1, ...]\n*/\npub fn pixelCounts(image: &[i32], bins: &mut [usize; 256]) {"
+    },
+    {
+        "problem_type": "histogram",
+        "language": "rust",
+        "name": "21_histogram_bin_0-100",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\npub fn bins_by_10_count(x: &[f64], bins: &mut [usize; 10]) {"
+    },
+    {
+        "problem_type": "histogram",
+        "language": "rust",
+        "name": "22_histogram_count_quadrants",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\nstruct Point {\n   x: f64,\n   y: f64,\n}\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use Rust Rayon to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\npub fn countQuadrants(points: &[Point], bins: &mut [usize; 4]) {"
+    },
+    {
+        "problem_type": "histogram",
+        "language": "rust",
+        "name": "23_histogram_first_letter_counts",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* For each letter in the alphabet, count the number of strings in the vector s that start with that letter.\n   Assume all strings are in lower case. Store the output in `bins` array.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [\"dog\", \"cat\", \"xray\", \"cow\", \"code\", \"type\", \"flower\"]\n   output: [0, 0, 3, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0]\n*/\npub fn firstLetterCounts(s: &[String], bins: &mut [usize; 26]) {"
+    },
+    {
+        "problem_type": "histogram",
+        "language": "rust",
+        "name": "24_histogram_count_quartile",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Count the number of doubles in the vector x that have a fractional part \n   in [0, 0.25), [0.25, 0.5), [0.5, 0.75), and [0.75, 1). Store the counts in `bins`.\n   Use Rust Rayon to compute in parallel.\n   Examples:\n\n   input: [7.8, 4.2, 9.1, 7.6, 0.27, 1.5, 3.8]\n   output: [2, 1, 2, 2]\n\n   input: [1.9, 0.2, 0.6, 10.1, 7.4]\n   output: [2, 1, 1, 1]\n*/\npub fn countQuartiles(x: &[f64], bins: &mut [usize; 4]) {"
+    },
+    {
+        "problem_type": "reduce",
+        "language": "rust",
+        "name": "25_reduce_xor",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the logical XOR reduction of the vector of bools x.\n   Use Rust Rayon to reduce in parallel.\n   Example:\n\n   input: [false, false, false, true]\n   output: true\n*/\npub fn reduceLogicalXOR(x: &[bool]) -> bool {"
+    },
+    {
+        "problem_type": "reduce",
+        "language": "rust",
+        "name": "26_reduce_product_of_inverses",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the product of the vector x with every odd indexed element inverted.\n   i.e. x_0 * 1/x_1 * x_2 * 1/x_3 * x_4 ...\n   Use Rust Rayon to compute product in parallel.\n   Example:\n\n   input: [4, 2, 10, 4, 5]\n   output: 25\n*/\npub fn product_with_inverses(x: &[f64]) -> f64 {"
+    },
+    {
+        "problem_type": "reduce",
+        "language": "rust",
+        "name": "27_reduce_average",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the average of the vector x.\n   Use Rust Rayon to compute in parallel.\n   Examples:\n\t\t\n\t input: [1, 8, 4, 5, 1]\n   output: 3.8\n\n   input: [2, 2, 2, 3]\n   output: 2.25\n*/\npub fn average(x: &[f64]) -> f64 {"
+    },
+    {
+        "problem_type": "reduce",
+        "language": "rust",
+        "name": "28_reduce_smallest_odd_number",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the value of the smallest odd number in the vector x.\n   Use Rust Rayon to compute in parallel.\n   Examples:\n\n   input: [7, 9, 5, 2, 8, 16, 4, 1]\n   output: 1\n\n   input: [8, 36, 7, 2, 11]\n   output: 7\n*/\npub fn smallest_odd(x: &[i32]) -> i32 {"
+    },
+    {
+        "problem_type": "reduce",
+        "language": "rust",
+        "name": "29_reduce_sum_of_min_of_pairs",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the sum of the minimum value at each index of vectors x and y for all indices.\n   i.e. sum = min(x_0, y_0) + min(x_1, y_1) + min(x_2, y_2) + ...\n   Use Rust Rayon to sum in parallel.\n   Example:\n\n   input: x=[3, 4, 0, 2, 3], y=[2, 5, 3, 1, 7]\n   output: 10\n*/\npub fn sumOfMinimumElements(x: &[f64], y: &[f64]) -> f64 {"
+    },
+    {
+        "problem_type": "scan",
+        "language": "rust",
+        "name": "30_scan_prefix_sum",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the prefix sum of the vector x into output.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\npub fn prefix_sum(x: &[f64], output: &mut [f64]) {"
+    },
+    {
+        "problem_type": "scan",
+        "language": "rust",
+        "name": "31_scan_scan_with_min_function",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Use Rust Rayon to compute in parallel.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\npub fn partial_minimums(x: &mut [f32]) {"
+    },
+    {
+        "problem_type": "scan",
+        "language": "rust",
+        "name": "32_scan_sum_of_prefix_sum_array",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the prefix sum array of the vector x and return its sum.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\npub fn sum_of_prefix_sum(x: &[f64]) -> f64 {"
+    },
+    {
+        "problem_type": "scan",
+        "language": "rust",
+        "name": "33_scan_reverse_prefix_sum",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use Rust Rayon to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\npub fn reversePrefixSum(x: &[i32], output: &mut [i32]) {"
+    },
+    {
+        "problem_type": "scan",
+        "language": "rust",
+        "name": "34_scan_largest_contiguous_subarray_sum",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\npub fn maximum_subarray(x: &[i32]) -> i32 {"
+    },
+    {
+        "problem_type": "search",
+        "language": "rust",
+        "name": "35_search_search_for_last_struct_by_key",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the index of the last Book item in the vector books where Book.pages is less than 100.\n   Use Rust Rayon to search in parallel.\n\t Example:\n\n   input: [{title=\"Green Eggs and Ham\", pages=72}, {title=\"gulliver's travels\", pages=362}, {title=\"Stories of Your Life\", pages=54}, {title=\"Hamilton\", pages=818}]\n   output: 2\n*/\npub fn find_last_short_book(books: &[Book]) -> usize {"
+    },
+    {
+        "problem_type": "search",
+        "language": "rust",
+        "name": "36_search_check_if_array_contains_value",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return true if the vector x contains the value `target`. Return false otherwise.\n   Use Rust Rayon to search in parallel.\n   Examples:\n\n   input: x=[1, 8, 2, 6, 4, 6], target=3\n   output: false\n   \n   input: x=[1, 8, 2, 6, 4, 6], target=8\n   output: true\n*/\npub fn contains(x: &[i32], target: i32) -> bool {"
+    },
+    {
+        "problem_type": "search",
+        "language": "rust",
+        "name": "37_search_find_the_closest_number_to_pi",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the index of the value in the vector x that is closest to the math constant PI.\n   Use M_PI for the value of PI.\n   Use Rust Rayon to search in parallel.\n   Example:\n\n   input: [9.18, 3.05, 7.24, 11.3, -166.49, 2.1]\n   output: 1\n*/\npub fn find_closest_to_pi(x: &[f64]) -> usize {"
+    },
+    {
+        "problem_type": "search",
+        "language": "rust",
+        "name": "38_search_find_the_first_even_number",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return the index of the first even number in the vector x.\n   Use Rust Rayon to parallelize the search.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\npub fn findFirstEven(x: &[i32]) -> usize {"
+    },
+    {
+        "problem_type": "search",
+        "language": "rust",
+        "name": "39_search_xor_contains",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Return true if `val` is only in one of vectors x or y.\n   Return false if it is in both or neither.\n   Use Rust Rayon to search in parallel.\n   Examples:\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=7\n   output: true\n\n   input: x=[1,8,4,3,2], y=[3,4,4,1,1,7], val=1\n   output: false\n*/\npub fn xorContains(x: &[i32], y: &[i32], val: i32) -> bool {"
+    },
+    {
+        "problem_type": "sort",
+        "language": "rust",
+        "name": "40_sort_sort_an_array_of_complex_numbers_by_magnitude",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use Rust Rayon to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\npub fn sort_complex_by_magnitude(x: &mut Vec<num_complex::Complex<f64>>) {"
+    },
+    {
+        "problem_type": "sort",
+        "language": "rust",
+        "name": "41_sort_k-th_smallest_element",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Find the k-th smallest element of the vector x.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: x=[1, 7, 6, 0, 2, 2, 10, 6], k=4\n   output: 6\n*/\npub fn findKthSmallest(x: &[i32], k: i32) -> i32 {"
+    },
+    {
+        "problem_type": "sort",
+        "language": "rust",
+        "name": "42_sort_sorted_ranks",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* For each value in the vector x compute its index in the sorted vector.\n   Store the results in `ranks`.\n   Use Rust Rayon to compute in parallel.\n   Examples:\n\n   input: [3.1, 2.8, 9.1, 0.4, 3.14]\n   output: [2, 1, 4, 0, 3]\n \n   input: [100, 7.6, 16.1, 18, 7.6]\n   output: [4, 0, 1, 2, 3]\n*/\npub fn ranks(x: &[f32], ranks: &mut [usize]) {"
+    },
+    {
+        "problem_type": "sort",
+        "language": "rust",
+        "name": "43_sort_sort_an_array_of_structs_by_key",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\npub struct Result {\n    pub start_time: i32,\n    pub duration: i32,\n    pub value: f32,\n}\n\n/* Sort vector of Result structs by start time in ascending order.\n   Use Rust Rayon to sort in parallel.\n   Example:\n   \n   input: [{startTime=8, duration=4, value=-1.22}, {startTime=2, duration=10, value=1.0}, {startTime=10, duration=3, value=0.0}]\n   output: [{startTime=2, duration=10, value=1.0}, {startTime=8, duration=4, value=-1.22}, {startTime=10, duration=3, value=0.0}]\n*/\npub fn sort_by_start_time(results: &mut [Result]) {"
+    },
+    {
+        "problem_type": "sort",
+        "language": "rust",
+        "name": "44_sort_sort_non-zero_elements",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Sort the vector x in ascending order ignoring elements with value 0.\n   Leave zero valued elements in-place.\n\t Use Rust Rayon to sort x in parallel.\n   Example:\n\n   input: [8, 4, 0, 9, 8, 0, 1, -1, 7]\n   output: [-1, 1, 0, 4, 7, 0, 8, 8, 9]\n*/\npub fn sort_ignore_zero(x: &mut Vec<i32>) {"
+    },
+    {
+        "problem_type": "sparse_la",
+        "language": "rust",
+        "name": "45_sparse_la_sparse_solve",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\npub struct COOElement {\n   pub row: usize,\n   pub column: usize,\n   pub value: f64,\n}\n\n/* Solve the sparse linear system Ax=b for x.\n   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: A=[{0,0,1}, {0,1,1}, {1,1,-2}] b=[1,4]\n   output: x=[3,-2]\n*/\npub fn solveLinearSystem(A: &[COOElement], b: &[f64], x: &mut [f64], N: usize) {"
+    },
+    {
+        "problem_type": "sparse_la",
+        "language": "rust",
+        "name": "46_sparse_la_spmm",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the matrix multiplication Y=AX. A is a sparse MxK matrix in COO format.\n   X is a sparse KxN matrix in COO format. Y is a dense MxN matrix in row-major.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: A=[{0,0,-2}, {0,1,1}, {1,1,-1}] X=[{0,1,2}, {1,0,-1}]\n   output: Y=[{-1,-4}, {1,0}]\n*/\npub fn spmm(A: &[COOElement], X: &[COOElement], Y: &mut [f64], M: usize, K: usize, N: usize) {"
+    },
+    {
+        "problem_type": "sparse_la",
+        "language": "rust",
+        "name": "47_sparse_la_spmv",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\npub struct COOElement {\n    pub row: usize,\n    pub column: usize,\n    pub value: f64,\n}\n\n/* Compute y = alpha*A*x + beta*y where alpha and beta are scalars, x and y are vectors,\n   and A is a sparse matrix stored in COO format.\n   A has dimensions MxN, x has N values, and y has M values.\n   Use Rust Rayon to parallelize.\n   Example:\n\n   input: alpha=0.5 beta=1.0 A=[{0,1,3}, {1,0,-1}] x=[-4, 2] y=[-1,1]\n   output: y=[2, 3]\n*/\npub fn spmv(alpha: f64, A: &[COOElement], x: &[f64], beta: f64, y: &mut [f64], M: usize, N: usize) {"
+    },
+    {
+        "problem_type": "sparse_la",
+        "language": "rust",
+        "name": "48_sparse_la_sparse_axpy",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute z = alpha*x+y where x and y are sparse vectors. Store the result in the dense vector z.\n   Use Rust Rayon to compute in parallel.\n   Example:\n   \n   input: x=[{5, 12}, {8, 3}, {12, -1}], y=[{3, 1}, {5, -2}, {7, 1}, {8, -3}], alpha=1\n   output: z=[0, 0, 0, 1, 0, 10, 0, 1, 0, 0, 0, 0, -1]\n*/\npub fn sparseAxpy(alpha: f64, x: &[Element], y: &[Element], z: &mut [f64]) {"
+    },
+    {
+        "problem_type": "sparse_la",
+        "language": "rust",
+        "name": "49_sparse_la_sparse_lu_decomp",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\nstruct COOElement {\n   pub row: usize,\n   pub column: usize,\n   pub value: f64,\n}\n\n/* Factorize the sparse matrix A into A=LU where L is a lower triangular matrix and U is an upper triangular matrix.\n   A is a sparse NxN matrix stored in COO format.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: A=[{0,0,4}, {0,1,3}, {1,0,6}, {1,1,3}]\n   output: L=[{0,0,1},{1,0,1.5}, {1,1,1}] U=[{0,0,4}, {0,1,3}, {1,1,-1.5}]\n*/\npub fn lu_factorize(A: &[COOElement], L: &mut Vec<f64>, U: &mut Vec<f64>, N: usize) {"
+    },
+    {
+        "problem_type": "stencil",
+        "language": "rust",
+        "name": "50_stencil_xor_kernel",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\npub fn cells_xor(input: &[i32], output: &mut [i32], n: usize) {"
+    },
+    {
+        "problem_type": "stencil",
+        "language": "rust",
+        "name": "51_stencil_edge_kernel",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Convolve the edge kernel with a grayscale image. Each pixel will be replaced with\n   the dot product of itself and its neighbors with the edge kernel.\n   Use a value of 0 for pixels outside the image's boundaries and clip outputs between 0 and 255.\n   imageIn and imageOut are NxN grayscale images stored in row-major.\n   Store the output of the computation in imageOut.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [[112, 118, 141, 152],\n           [93, 101, 119, 203],\n           [45, 17, 16, 232],\n           [82, 31, 49, 101]]\n   output: [[255, 255, 255, 255],\n            [255, 147, 0, 255],\n            [36, 0, 0, 255],\n            [255, 39, 0, 255]]\n*/\npub fn convolve_kernel(image_in: &[i32], image_out: &mut [i32], n: usize) {"
+    },
+    {
+        "problem_type": "stencil",
+        "language": "rust",
+        "name": "52_stencil_1d_jacobi_3-point_stencil",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\npub fn jacobi1D(input: &[f64], output: &mut [f64]) {"
+    },
+    {
+        "problem_type": "stencil",
+        "language": "rust",
+        "name": "53_stencil_2d_jacobi_5-point_stencil",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute one iteration of a 5-point 2D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its four neighbors and stored in the corresponding element of `output`.\n   i.e. output_{i,j} = (input_{i,j-1} + input_{i,j+1} + input_{i-1,j} + input_{i+1,j} + input_{i,j})/5\n   Replace with 0 when reading past the boundaries of `input`.\n   `input` and `output` are NxN grids stored in row-major.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [[3, 4, 1], [0, 1, 7], [5, 3, 2]]\n   output: [[1.4, 1.8, 2.4],[1.8, 3, 2.2], [1.6, 2.2, 2.4]]\n*/\npub fn jacobi2D(input: &[f64], output: &mut [f64], N: usize) {"
+    },
+    {
+        "problem_type": "stencil",
+        "language": "rust",
+        "name": "54_stencil_game_of_life",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\npub fn gameOfLife(input: &[i32], output: &mut [i32], N: usize) {"
+    },
+    {
+        "problem_type": "transform",
+        "language": "rust",
+        "name": "55_transform_relu",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Compute the ReLU function on every element of x. Elements less than zero become zero,\n   while elements greater than zero stay the same.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [-1.8, 24.0, 1.2, 0.0, -5.1, -0.2, 4.5]\n   output: [0, 24.0, 1.2, 0, 0, 0, 4.5]\n*/\npub fn relu(x: &mut [f64]) {"
+    },
+    {
+        "problem_type": "transform",
+        "language": "rust",
+        "name": "56_transform_negate_odds",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* In the vector x negate the odd values and divide the even values by 2.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [16, 11, 12, 14, 1, 0, 5]\n   output: [8, -11, 6, 7, -1, 0, -5]\n*/\npub fn negate_odds_and_halve_evens(x: &mut [i32]) {"
+    },
+    {
+        "problem_type": "transform",
+        "language": "rust",
+        "name": "57_transform_inverse_offset",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Replace every element of the vector x with 1-1/x.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [2, 4, 1, 12, -2]\n   output: [0.5, 0.75, 0, 0.91666666, 1.5]\n*/\npub fn oneMinusInverse(x: &mut [f64]) {"
+    },
+    {
+        "problem_type": "transform",
+        "language": "rust",
+        "name": "58_transform_squaring",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\n/* Replace every element of x with the square of its value.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [5, 1, 2, -4, 8]\n   output: [25, 1, 4, 16, 64]\n*/\npub fn square_each(x: &mut [i32]) {"
+    },
+    {
+        "problem_type": "transform",
+        "language": "rust",
+        "name": "59_transform_map_function",
+        "parallelism_model": "rust",
+        "prompt": "use rayon::prelude::*;\n\npub fn is_power_of_two(x: i32) -> bool {\n    x > 0 && (x & (x - 1)) == 0\n}\n/* Apply the isPowerOfTwo function to every value in x and store the results in mask.\n   Use Rust Rayon to compute in parallel.\n   Example:\n\n   input: [8, 0, 9, 7, 15, 64, 3]\n   output: [true, false, false, false, false, true, false]\n*/\npub fn mapPowersOfTwo(x: &[i32], mask: &mut Vec<bool>) {"
+    }
+]

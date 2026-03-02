@@ -1,0 +1,13 @@
+pub struct Point {
+    pub x: f64,
+    pub y: f64,
+}
+
+/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.
+   Use Rust Rayon to compute in parallel.
+   Example:
+
+   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]
+   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]
+*/
+pub fn convexHull(points: &[Point], hull: &mut Vec<Point>) {

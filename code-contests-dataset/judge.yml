@@ -1,0 +1,20 @@
+runtime:
+  # C/C++ Compilers
+  gcc: /usr/bin/gcc
+  g++: /usr/bin/g++
+  g++11: /usr/bin/g++
+  g++14: /usr/bin/g++
+  g++17: /usr/bin/g++
+  g++20: /usr/bin/g++
+  
+  # Clang
+  clang: /usr/bin/clang
+  clang++: /usr/bin/clang++
+  
+  # Python
+  python: /usr/bin/python3
+  python3: /usr/bin/python3
+
+
+skip_self_test:
+  true

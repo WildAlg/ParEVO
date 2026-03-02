@@ -1,0 +1,674 @@
+[
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "serial",
+    "prompt": "/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\nvoid gameOfLifeParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Use MPI to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\nvoid gameOfLifeParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\nvoid gameOfLifeParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Use MPI and OpenMP to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\nvoid gameOfLifeParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "cuda",
+    "prompt": "/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\n__global__ void gameOfLifeParallel(const int *input, int *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids.\n   Use Kokkos to compute in parallel. Assume Kokkos is already initialized.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\nvoid gameOfLifeParallel(Kokkos::View<const int**> &input, Kokkos::View<int**> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "hip",
+    "prompt": "/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\n__global__ void gameOfLifeParallel(const int *input, int *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "54_stencil_game_of_life",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Simulate one generation of Game of Life on `input`. Store the results in `output`.\n   A cell is 1 if it is alive and 0 if it is dead.\n   If a live cell has fewer than 2 live neighbors then it dies.\n   If a live cell has 2 or 3 live neighbors then it lives on.\n   If a live cell has more than 3 live neighbords then it dies.\n   If a cell is dead and has exactly 3 live neighbors then it becomes alive.\n   `input` and `output` are NxN grids stored in row-major.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input:  [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 0, 0, 0],\n            [0, 1, 1, 0, 0],\n            [0, 0, 1, 1, 0],\n            [0, 1, 0, 0, 0]]\n   output: [[0, 0, 0, 0, 0],\n\t\t\t\t\t  [0, 1, 1, 0, 0],\n            [0, 1, 0, 1, 0],\n            [0, 0, 0, 1, 0],\n            [0, 0, 1, 0, 0]]\n*/\nvoid gameOfLifeParallel(parlay::sequence<int> const& input, parlay::sequence<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "serial",
+    "prompt": "/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\nvoid cellsXORParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\nvoid cellsXORParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\nvoid cellsXORParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\nvoid cellsXORParallel(std::vector<int> const& input, std::vector<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "cuda",
+    "prompt": "/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Use CUDA to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\n__global__ void cellsXORParallel(const int *input, int *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\nvoid cellsXORParallel(Kokkos::View<const int**> &input, Kokkos::View<int**> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "hip",
+    "prompt": "/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Use AMD HIP to compute in parallel. The kernel is launched on an NxN grid of threads.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\n__global__ void cellsXORParallel(const int *input, int *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "50_stencil_xor_kernel",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Set every cell's value to 1 if it has exactly one neighbor that's a 1. Otherwise set it to 0.\n   Note that we only consider neighbors and not input_{i,j} when computing output_{i,j}.\n   input and output are NxN grids of ints in row-major.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [[0, 1, 1, 0],\n           [1, 0, 0, 0],\n           [0, 0, 0, 0],\n           [0, 1, 0, 0]\n   output: [[0, 0, 1, 1],\n            [1, 0, 0, 1],\n            [0, 0, 1, 0],\n            [1, 0, 1, 0]]\n*/\nvoid cellsXORParallel(parlay::sequence<int> const& input, parlay::sequence<int> &output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\nvoid jacobi1DParallel(std::vector<double> const& input, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\nvoid jacobi1DParallel(std::vector<double> const& input, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\nvoid jacobi1DParallel(std::vector<double> const& input, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of input. The result is stored in output on rank 0.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\nvoid jacobi1DParallel(std::vector<double> const& input, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\n__global__ void jacobi1DParallel(const double *input, double *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\nvoid jacobi1DParallel(Kokkos::View<const double*> &input, Kokkos::View<double*> &output) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\n__global__ void jacobi1DParallel(const double *input, double *output, size_t N) {"
+  },
+  {
+    "problem_type": "stencil",
+    "language": "cpp",
+    "name": "52_stencil_1d_jacobi_3-point_stencil",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute one iteration of a 3-point 1D jacobi stencil on `input`. Store the results in `output`.\n   Each element of `input` will be averaged with its two neighbors and stored in the corresponding element of `output`.\n   i.e. output[i] = (input[i-1]+input[i]+input[i+1])/3\n   Replace with 0 when reading past the boundaries of `input`.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [9, -6, -1, 2, 3]\n   output: [1, 2/3, -5/3, 4/3, 5/3]\n*/\nvoid jacobi1DParallel(parlay::sequence<double> const& input, parlay::sequence<double> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "serial",
+    "prompt": "/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\nvoid partialMinimumsParallel(std::vector<float> &x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Store the result in x on rank 0.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\nvoid partialMinimumsParallel(std::vector<float> &x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Use OpenMP to compute in parallel.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\nvoid partialMinimumsParallel(std::vector<float> &x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Store the result in x on rank 0.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\nvoid partialMinimumsParallel(std::vector<float> &x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "cuda",
+    "prompt": "/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\n__global__ void partialMinimumsParallel(float *x, size_t N) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Replace the i-th element of the array x with the minimum value from indices 0 through i.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\nvoid partialMinimumsParallel(Kokkos::View<float*> &x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "hip",
+    "prompt": "/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\n__global__ void partialMinimumsParallel(float *x, size_t N) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "31_scan_scan_with_min_function",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Replace the i-th element of the vector x with the minimum value from indices 0 through i.\n   Use ParlayLib to compute in parallel.\n   Examples:\n\n   input: [8, 6, -1, 7, 3, 4, 4]\n   output: [8, 6, -1, -1, -1, -1, -1]\n\n   input: [5, 4, 6, 4, 3, 6, 1, 1]\n   output: [5, 4, 4, 4, 3, 3, 1, 1]\n*/\nvoid partialMinimumsParallel(parlay::sequence<float> &x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "serial",
+    "prompt": "/* Return the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\nint maximumSubarrayParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Return the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\nint maximumSubarrayParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Return the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\nint maximumSubarrayParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Return the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\nint maximumSubarrayParallel(std::vector<int> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Store the result in sum.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\n__global__ void maximumSubarrayParallel(const int *x, size_t N, int *sum) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Return the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\nint maximumSubarrayParallel(Kokkos::View<int*> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Store the result in sum.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\n__global__ void maximumSubarrayParallel(const int *x, size_t N, int *sum) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "34_scan_largest_contiguous_subarray_sum",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Return the largest sum of any contiguous subarray in the vector x.\n   i.e. if x=[\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4] then [4, \u22121, 2, 1] is the contiguous\n   subarray with the largest sum of 6.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [\u22122, 1, \u22123, 4, \u22121, 2, 1, \u22125, 4]\n   output: 6\n*/\nint maximumSubarrayParallel(parlay::sequence<int> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the reverse prefix sum of the vector x into output.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSumParallel(std::vector<int> const& x, std::vector<int> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Store the result in output on rank 0.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSumParallel(std::vector<int> const& x, std::vector<int> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSumParallel(std::vector<int> const& x, std::vector<int> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of x. Store the result in output on rank 0.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSumParallel(std::vector<int> const& x, std::vector<int> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the reverse prefix sum of the vector x into output.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\n__global__ void reversePrefixSumParallel(const int *x, int *output, size_t N) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the reverse prefix sum of the array x into output.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSumParallel(Kokkos::View<const int*> const& x, Kokkos::View<int*> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the reverse prefix sum of the vector x into output.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\n__global__ void reversePrefixSumParallel(const int *x, int *output, size_t N) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "33_scan_reverse_prefix_sum",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use ParlayLib to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSumParallel(parlay::sequence<int> const& x, parlay::sequence<int> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the prefix sum array of the vector x and return its sum.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\ndouble sumOfPrefixSumParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the prefix sum array of the vector x and return its sum.\n   Use MPI to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\ndouble sumOfPrefixSumParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the prefix sum array of the vector x and return its sum.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\ndouble sumOfPrefixSumParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the prefix sum array of the vector x and return its sum.\n   Use MPI and OpenMP to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of x. Return the result on rank 0.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\ndouble sumOfPrefixSumParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the prefix sum array of the vector x and compute its sum. Store the result in sum.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\n__global__ void sumOfPrefixSumParallel(const double *x, size_t N, double *sum) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the prefix sum array of the vector x and return its sum.\n   Use Kokkos to compute in parallel. Assume Kokkos is already initialized.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\ndouble sumOfPrefixSumParallel(Kokkos::View<const double*> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the prefix sum array of the vector x and compute its sum. Store the result in sum.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as values in x.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\n__global__ void sumOfPrefixSumParallel(const double *x, size_t N, double *sum) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "32_scan_sum_of_prefix_sum_array",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the prefix sum array of the vector x and return its sum.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [-7, 2, 1, 9, 4, 8]\n   output: 15\n*/\ndouble sumOfPrefixSumParallel(parlay::sequence<double> const& x) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "serial",
+    "prompt": "/* Compute the prefix sum of the vector x into output.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\nvoid prefixSumParallel(std::vector<double> const& x, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\n/* Compute the prefix sum of the vector x into output.\n   Use MPI to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of x. Store the result in output on rank 0.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\nvoid prefixSumParallel(std::vector<double> const& x, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\n/* Compute the prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\nvoid prefixSumParallel(std::vector<double> const& x, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\n/* Compute the prefix sum of the vector x into output.\n   Use MPI and OpenMP to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of x. Store the result in output on rank 0.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\nvoid prefixSumParallel(std::vector<double> const& x, std::vector<double> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "cuda",
+    "prompt": "/* Compute the prefix sum of the vector x into output.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as elements in x.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\n__global__ void prefixSumParallel(const double *x, double *output, size_t N) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\n/* Compute the prefix sum of the vector x into output.\n   Use Kokkos to compute in parallel. Assume Kokkos is already initialized.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\nvoid prefixSumParallel(Kokkos::View<const double*> const& x, Kokkos::View<double*> &output) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "hip",
+    "prompt": "/* Compute the prefix sum of the vector x into output.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as elements in x.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\n__global__ void prefixSumParallel(const double* x, double *output, size_t N) {"
+  },
+  {
+    "problem_type": "scan",
+    "language": "cpp",
+    "name": "30_scan_prefix_sum",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Compute the prefix sum of the vector x into output.\n   Use ParlayLib to compute in parallel.\n   Example:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [1, 8, 12, 18, 24, 26]\n*/\nvoid prefixSumParallel(parlay::sequence<double> const& x, parlay::sequence<double> &output) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "serial",
+    "prompt": "struct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the distance between the closest two points in the vector points.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\ndouble closestPairParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the distance between the closest two points in the vector points.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of points. The final result is returned on rank 0.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\ndouble closestPairParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the distance between the closest two points in the vector points.\n   Use OpenMP to compute in parallel.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\ndouble closestPairParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the distance between the closest two points in the vector points.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of points. The final result is returned on rank 0.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\ndouble closestPairParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "cuda",
+    "prompt": "struct Point {\n\tdouble x, y;\n};\n\n__device__ double distanceBetweenPoints(Point const& p1, Point const& p2) {\n\treturn sqrt(pow(p2.x-p1.x, 2) + pow(p2.y-p1.y, 2));\n}\n\n/* Compute the distance between the closest two points in the vector points.\n   Store the result in distance.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as points.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\n__global__ void closestPairParallel(const Point *points, size_t numPoints, double *distance) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the distance between the closest two points in the vector points.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\ndouble closestPairParallel(Kokkos::View<const Point*> &points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "hip",
+    "prompt": "struct Point {\n\tdouble x, y;\n};\n\n__device__ double distanceBetweenPoints(Point const& p1, Point const& p2) {\n\treturn sqrt(pow(p2.x-p1.x, 2) + pow(p2.y-p1.y, 2));\n}\n\n/* Compute the distance between the closest two points in the vector points.\n   Store the result in distance.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as points.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\n__global__ void closestPairParallel(const Point *points, size_t numPoints, double *distance) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "13_geometry_closest_pair_2d",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the distance between the closest two points in the vector points.\n   Use ParlayLib to compute in parallel.\n   Example: \n\n   input: [{2, 3}, {12, 30}, {40, 50}, {5, 1}, {12, 10}, {3, 4}]\n   output: 1.41421\n*/\ndouble closestPairParallel(parlay::sequence<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "serial",
+    "prompt": "struct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\ndouble convexHullPerimeterParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Use MPI to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of points. The final result is returned on rank 0.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\ndouble convexHullPerimeterParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\ndouble convexHullPerimeterParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Use MPI and OpenMP to compute in parallel. Assume MPI has already been initialized.\n   Every rank has a complete copy of points. The final result is returned on rank 0.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\ndouble convexHullPerimeterParallel(std::vector<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "cuda",
+    "prompt": "struct Point {\n\tdouble x, y;\n};\n\n__device__ double distance(Point const& p1, Point const& p2) {\n\treturn sqrt(pow(p2.x-p1.x, 2) + pow(p2.y-p1.y, 2));\n}\n\n/* Compute the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Store the result in perimeter.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as points.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\n__global__ void convexHullPerimeterParallel(const Point *points, size_t numPoints, double *perimeter) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Use Kokkos to compute in parallel. Assume Kokkos has already been initialized.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\ndouble convexHullPerimeterParallel(Kokkos::View<const Point*> &points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "hip",
+    "prompt": "struct Point {\n\tdouble x, y;\n};\n\n__device__ double distance(Point const& p1, Point const& p2) {\n\treturn sqrt(pow(p2.x-p1.x, 2) + pow(p2.y-p1.y, 2));\n}\n\n/* Compute the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Store the result in perimeter.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as points.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\n__global__ void convexHullPerimeterParallel(const Point *points, size_t numPoints, double *perimeter) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "11_geometry_convex_hull_perimeter",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\nstruct Point {\n\tdouble x, y;\n};\n\ndouble distance(Point const& p1, Point const& p2) {\n\treturn std::sqrt(std::pow(p2.x-p1.x, 2) + std::pow(p2.y-p1.y, 2));\n}\n\n/* Return the perimeter of the smallest convex polygon that contains all the points in the vector points.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: 13.4477\n*/\ndouble convexHullPerimeterParallel(parlay::sequence<Point> const& points) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "serial",
+    "prompt": "double distance(double x1, double x2) {\n\treturn std::abs(x1 - x2);\n}\n\n/* Return the distance between the closest two elements in the vector x.\n   Example: \n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\ndouble closestPairParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\ndouble distance(double x1, double x2) {\n\treturn std::abs(x1 - x2);\n}\n\n/* Return the distance between the closest two elements in the vector x.\n   Use MPI to compute in parallel. Assume MPI is already initialized.\n   Example: \n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\ndouble closestPairParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\ndouble distance(double x1, double x2) {\n\treturn std::abs(x1 - x2);\n}\n\n/* Return the distance between the closest two elements in the vector x.\n   Use OpenMP to compute in parallel.\n   Example: \n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\ndouble closestPairParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\ndouble distance(double x1, double x2) {\n\treturn std::abs(x1 - x2);\n}\n\n/* Return the distance between the closest two elements in the vector x.\n   Use MPI and OpenMP to compute in parallel. Assume MPI is already initialized.\n   Example: \n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\ndouble closestPairParallel(std::vector<double> const& x) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "cuda",
+    "prompt": "__device__ double distanceBetweenPoints(double x1, double x2) {\n\treturn fabs(x1 - x2);\n}\n\n/* Compute the distance between the closest two elements in the vector x.\n   Store the result in distance.\n   Use CUDA to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\n__global__ void closestPairParallel(const double *x, size_t N, double *distance) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\ndouble distance(double x1, double x2) {\n\treturn std::abs(x1 - x2);\n}\n\n/* Return the distance between the closest two elements in the vector x.\n   Use Kokkos to compute in parallel. Assume Kokkos is already initialized.\n   Example: \n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\ndouble closestPairParallel(Kokkos::View<const double*> &x) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "hip",
+    "prompt": "__device__ double distanceBetweenPoints(double x1, double x2) {\n\treturn fabs(x1 - x2);\n}\n\n/* Compute the distance between the closest two elements in the vector x.\n   Store the result in distance.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least N threads.\n   Example:\n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\n__global__ void closestPairParallel(const double *x, size_t N, double *distance) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "14_geometry_closest_pair_1d",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\n/* Return the distance between the closest two elements in the vector x.\n   Use ParlayLib to compute in parallel.\n   Example: \n\n   input: [7, 3, 9, 12, 31, 1]\n   output: 2\n*/\ndouble closestPairParallel(parlay::sequence<double> const& x) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "serial",
+    "prompt": "struct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\nvoid convexHullParallel(std::vector<Point> const& points, std::vector<Point> &hull) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "mpi",
+    "prompt": "#include <mpi.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use MPI to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of points. The final hull is returned on rank 0.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\nvoid convexHullParallel(std::vector<Point> const& points, std::vector<Point> &hull) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "omp",
+    "prompt": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\nvoid convexHullParallel(std::vector<Point> const& points, std::vector<Point> &hull) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "mpi+omp",
+    "prompt": "#include <mpi.h>\n#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use MPI and OpenMP to compute in parallel. Assume MPI is already initialized.\n   Every rank has a complete copy of points. The final hull is returned on rank 0.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\nvoid convexHullParallel(std::vector<Point> const& points, std::vector<Point> &hull) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "cuda",
+    "prompt": "struct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use CUDA to compute in parallel. The kernel is launched with at least as many threads as points.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\n__global__ void convexHullParallel(const Point *points, size_t numPoints, Point *hull, size_t hullSize) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "kokkos",
+    "prompt": "#include <Kokkos_Core.hpp>\n\nstruct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use Kokkos to compute in parallel. Assume Kokkos is already initialized.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\nvoid convexHullParallel(Kokkos::View<const Point*> &points, Kokkos::View<Point*> &hull) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "hip",
+    "prompt": "struct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use AMD HIP to compute in parallel. The kernel is launched with at least as many threads as points.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\n__global__ void convexHullParallel(const Point *points, size_t numPoints, Point *hull, size_t hullSize) {"
+  },
+  {
+    "problem_type": "geometry",
+    "language": "cpp",
+    "name": "10_geometry_convex_hull",
+    "parallelism_model": "parlay",
+    "prompt": "#include <parlay/primitives.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Find the set of points that defined the smallest convex polygon that contains all the points in the vector points. Store the result in `hull`.\n   Use ParlayLib to compute in parallel.\n   Example:\n\n   input: [{0, 3}, {1, 1}, {2, 2}, {4, 4}, {0, 0}, {1, 2}, {3, 1}, {3, 3}]\n   output: [{0, 3}, {4, 4}, {3, 1}, {0, 0}]\n*/\nvoid convexHullParallel(parlay::sequence<Point> const& points, parlay::sequence<Point> &hull) {"
+  }
+]

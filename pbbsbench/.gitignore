@@ -1,0 +1,14 @@
+*.o
+*testInputs
+*testInputs_small
+*Check
+*.pyc
+testData/graphData/data/3Dgrid_J_*
+testData/graphData/data/randLocalGraph_J_*
+testData/graphData/data/rMatGraph_J_*
+
+testData
+driver/slurm-*.out
+benchmarks/breadthFirstSearch/backForwardBFS/slurm-*.out
+benchmarks/breadthFirstSearch/backForwardBFS/BFSMix*.C
+

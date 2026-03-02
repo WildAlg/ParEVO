@@ -1,0 +1,9 @@
+/* Solve the linear system Ax=b for x.
+   A is an NxN matrix in row-major. x and b have N elements.
+   Use Rust Rayon to compute in parallel.
+   Example:
+   
+   input: A=[[1,4,2], [1,2,3], [2,1,3]] b=[11, 11, 13]
+   output: x=[3, 1, 2]
+*/
+pub fn solve_linear_system(A: &[f64], b: &[f64], x: &mut [f64], N: usize) {
