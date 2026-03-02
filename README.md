@@ -4,7 +4,7 @@ A system that integrates human expert context with an evolutionary LLM agent.
 
 ## Paper and Website
 
-- **Project Website**: [https://quanquancliu.com/ParEVO/](https://quanquancliu.com/ParEVO/)
+- **Project Website**: [https://quanquancliu.com/ParEVO/index.html](https://quanquancliu.com/ParEVO/index.html)
 - **Paper**: [ParEVO: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution](https://quanquancliu.com/ParEVO/main.pdf)
 
 ## Citation
