@@ -23,6 +23,7 @@ bazel-*
 
 evaluation/graph_data/
 __pycache__/
+.DS_Store
 
 babeltower_test.csv
 cpp.cuda.train.synthetic.jsonl
