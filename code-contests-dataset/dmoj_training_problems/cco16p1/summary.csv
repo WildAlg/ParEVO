@@ -1,0 +1,10 @@
+metric,value
+problem_id,cco16p1
+best_score,204.89997807570637
+has_solution,True
+metric_combined_score,204.89997807570637
+metric_passed,True
+metric_tests_passed,20
+metric_tests_total,20
+metric_avg_time,0.004880429999999904
+metric_artifacts,

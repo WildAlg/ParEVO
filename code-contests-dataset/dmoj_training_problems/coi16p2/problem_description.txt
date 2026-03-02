@@ -1,0 +1,97 @@
+A nearby meadow consists of quadratic *fields* organized in ~n~ rows and ~m~ columns. The rows are denoted
+with numbers from ~1~ to ~n~ from top to bottom, and the columns with numbers from ~1~ to ~m~ from left to
+right. Some fields are grass fields (denoted with `1`), whereas some are underwater because of the heavy
+spring rainfall (denoted with `0`). Two grass fields are *connected* if it is possible to get from one field to
+another using a series of moves where, in each step, we move to the adjacent grass field located up, down,
+left or right. A *component* is a set of mutually connected grass fields that is *maximal* in the sense that, if
+~A~ is a field in the component ~K~, then all the adjacent grass fields of ~A~ are also in the component ~K~.
+
+For a given meadow ~P~ and indices ~a~ and ~b~ ~(1 \le a \le b \le n)~, ~P^a_b~
+is a meadow consisting of rows between the ~a^\text{th}~ and the ~b^\text{th}~ row of the original meadow ~P~ (including both ~a^\text{th}~ and ~b^\text{th}~ row). The *complexity* of meadow ~P^a_b~
+is the number of components of the grass fields located on the meadow. Determine the sum of the complexities of all possible meadows ~P^a_b~.
+
+## Input Specification
+The first line of input contains the positive integers ~n~ and ~m~ — dimensions of the meadow. Each of the
+following ~n~ lines contains a string of exactly ~m~ characters that denotes one row of the meadow. Each
+character of the string is either the digit `0` or the digit `1`.
+
+## Output Specification
+You must output the required sum of all complexities.
+
+## Constraints
+
+<table class="table" style="width:auto;">
+    <tr>
+        <th>Subtask</th>
+        <th>Score</th>
+        <th>Constraints</th>
+    </tr>
+    <tr>
+        <td>~1~</td>
+        <td>~9~</td>
+        <td>~n \le 100, m \le 50~</td>
+    </tr>
+    <tr>
+        <td>~2~</td>
+        <td>~17~</td>
+        <td>~n \le 1\,000, m \le 50~</td>
+    </tr>
+    <tr>
+        <td>~3~</td>
+        <td>~35~</td>
+        <td>~n \le 100\,000, m \le 15~</td>
+    </tr>
+    <tr>
+        <td>~4~</td>
+        <td>~39~</td>
+        <td>~n \le 100\,000, m \le 50~</td>
+    </tr>
+</table>
+
+## Sample Input 1
+```
+4 4
+1101
+1111
+1010
+1011
+```
+
+## Sample Output 1
+```
+14
+```
+
+## Explanation for Sample Output 1
+If we denote the complexity of meadow ~P^a_b~ with ~|P^a_b|~ then it holds
+that ~|P^1_1| = 2, |P^1_2| = 1, |P^1_3| = 1, |P^1_4| = 1, |P^2_2| = 1, |P^2_3| = 1, |P^2_4| = 1, |P^3_3| = 2, |P^3_4| = 2, |P^4_4| = 2~, and
+the sum of these numbers is ~14~.
+
+## Sample Input 2
+```
+5 7
+0100010
+0111110
+0101001
+1111011
+0100100
+```
+
+## Sample Output 2
+```
+33
+```
+
+## Sample Input 3
+```
+4 12
+011111010111
+110000101001
+110111101111
+111101111111
+```
+
+## Sample Output 3
+```
+28
+```

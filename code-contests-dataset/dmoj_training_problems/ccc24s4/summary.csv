@@ -1,0 +1,10 @@
+metric,value
+problem_id,ccc24s4
+best_score,40.646034322761956
+has_solution,True
+metric_combined_score,40.646034322761956
+metric_passed,True
+metric_tests_passed,52
+metric_tests_total,52
+metric_avg_time,0.0246026461538462
+metric_artifacts,

@@ -1,0 +1,79 @@
+Little Alan was bored so he asked Goran to give him an interesting problem. Since he's busy with
+preparing for exams, Goran could only recall one huge bipartite graph from his old days as a
+programming competitor. He gave the graph to Alan and said: *You have to colour the edges of this
+bipartite graph using as few colours as possible in such a way that there are no two edges of the
+same colour sharing a node.*
+
+Alan excitedly ran to his room, took out his movable read/write device for its tape and start to work on
+the problem. However, he soon realized that he's missing something so he got back to Goran and
+said: *Give me an infinite tape and I will solve your problem!* Goran gave him a significant look: *Infinite
+tape? If you continue to theorize about everything, there won't be a single thing named after you.*
+
+After seeing Alan starting to tear up, Goran decided to show mercy: *I will make it a bit easier for you.
+Let ~C~ be the smallest number of colours needed to paint the graph in the described way. I will let you
+use at most ~X~ colours, where ~X~ is the lowest power of ~2~ not less than ~C~.*
+
+Help Alan solve the problem.
+
+**Note:** A bipartite graph is a graph whose nodes can be divided in two sets (or sides) in such a way
+that each edge of graph connects one node from the first set with one node from the second set.
+
+## Input Specification
+The first line contains three positive integers: ~L~, ~R~ and ~M~ ~(1 \le L, R \le 100\,000, 1 \le M \le 500\,000)~,
+representing the number of nodes in one side of the bipartite graph, number of nodes in the other
+side of the bipartite graph and the number of edges, in that order.
+
+~M~ lines follow, each containing two positive integers ~a_i~ ~(1 \le a_i \le L)~ and ~b_i~ ~(1 \le b_i \le R)~ which represent
+an edge between ~a_i~-th node from the first side and ~b_i~-th node from the second side of the bipartite
+graph. All pairs ~(a_i, b_i)~ will be unique.
+
+## Output Specification
+In the first line output a single positive integer ~K~, the number of colours used.
+
+In the next ~M~ lines output a single positive integer ~c_i~ ~(1 \le c_i \le K)~, label of the colour of the ~i~-th edge.
+
+## Scoring
+In test cases worth ~20\%~ of total points, it will hold that ~L, R \le 100~.
+
+In test cases worth additional ~20\%~ of total points, it will hold that ~L, R \le 5\,000~.
+
+## Sample Input 1
+```
+3 3 5
+1 1
+1 2
+2 2
+2 3
+3 3
+```
+
+## Sample Output 1
+```
+2
+1
+2
+1
+2
+1
+```
+
+## Sample Input 2
+```
+2 4 4
+1 1
+1 2
+1 3
+2 4
+```
+
+## Sample Output 2
+```
+4
+1
+2
+3
+4
+```
+## Explanation for Sample Output 2
+Minimal number of colours is equal to ~3~. However, using ~4~ colours is also acceptable because that's the lowest
+power of ~2~ which is not less than ~3~.

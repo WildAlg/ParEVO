@@ -1,0 +1,4956 @@
+"timestamp","iteration","combined_score","passed","tests_passed","tests_total","avg_time","variance_time","max_time","total_time","compile_error","code"
+"2025-12-31T17:36:37.606746","1","0.0","False","0","1","0.0","0.0","0.0","0.0","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+using namespace std;
+
+int main() {
+    // TODO: Implement solution to the problem
+    // Read input, process it, and output the result
+    return 0;
+}
+//EVOLVE-BLOCK-END
+"
+"2025-12-31T17:39:04.498096","1","52.201711589719615","True","20","20","0.019156459999999997","0.0002964520021600099","0.07714100000000057","0.38312919999999995","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Iterative DSU with path compression and union by size
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        // iota is in <numeric>
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    int find(int i) {
+        int root = i;
+        while (parent[root] != root) {
+            root = parent[root];
+        }
+        // Path compression
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j])
+                swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    // Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    long long K;
+    if (!(cin >> N >> M >> K)) return 0;
+
+    DSU dsu(N);
+
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        dsu.unite(u, v);
+    }
+
+    // Identify roots.
+    // We create a sequence of indices and filter for roots.
+    // parlay::tabulate creates a sequence 1..N
+    auto nodes = parlay::tabulate(N, [](size_t i) { return (int)(i + 1); });
+    
+    // Filter to get only roots
+    auto roots = parlay::filter(nodes, [&](int i) {
+        return dsu.parent[i] == i;
+    });
+
+    // Map each root to a Result (students, cuts) and Reduce to sum them up
+    // We use a custom monoid to sum the results
+    auto result_monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    Result total = parlay::reduce(
+        parlay::map(roots, [&](int r) -> Result {
+            long long L = dsu.sz[r];
+            long long E = dsu.edges[r];
+            
+            // A component is a cycle if Edges == Vertices
+            // It is a path if Edges == Vertices - 1
+            // Max degree 2 ensures these are the only possibilities for connected components
+            bool is_cycle = (E == L);
+            
+            long long s = 0;
+            long long c = 0;
+
+            if (L >= K) {
+                // We can form L/K groups of size K
+                s = (L / K) * K;
+                
+                if (is_cycle) {
+                    if (L == K) {
+                        // Perfect cycle, take all, 0 cuts
+                        c = 0;
+                    } else {
+                        // Cycle > K
+                        // Must cut at least 1 edge to break cycle
+                        // If L % K == 0, we can cut into exact pieces
+                        // e.g. L=4, K=2 -> cut 2 edges -> 2 pieces. C = L/K
+                        // e.g. L=6, K=2 -> cut 3 edges -> 3 pieces. C = L/K
+                        // If L % K != 0, we have remainder
+                        // e.g. L=5, K=2 -> cut 3 edges -> 2 pieces + remainder. C = L/K + 1
+                        if (L % K == 0) {
+                            c = L / K;
+                        } else {
+                            c = L / K + 1;
+                        }
+                    }
+                } else {
+                    // Path
+                    // If L % K == 0, we cut L/K - 1 edges
+                    // e.g. L=4, K=2 -> cut 1 edge.
+                    // If L % K != 0, we cut L/K edges (last piece is remainder)
+                    // e.g. L=5, K=2 -> cut 2 edges.
+                    if (L % K == 0) {
+                        c = L / K - 1;
+                    } else {
+                        c = L / K;
+                    }
+                }
+            }
+            return {s, c};
+        }),
+        result_monoid
+    );
+
+    cout << total.students << "" "" << total.cuts << endl;
+
+    return 0;
+}
+//EVOLVE-BLOCK-END"
+"2025-12-31T17:41:20.312602","2","0.0","False","0","0","0.0","0.0","0.0","0.0","[01m[Kcco16p1cpp.cpp:[m[K In function ‘[01m[Kint[01;32m[K main[m[K()[m[K’:
+[01m[Kcco16p1cpp.cpp:101:53:[m[K [01;31m[Kerror: [m[Kconversion from ‘[01m[Kparlay::delayed_sequence<int, int, parlay::iota<int>(int)::<lambda(size_t)> >[m[K’ to non-scalar type ‘[01m[Kparlay::sequence<int>[m[K’ requested
+  101 |     parlay::sequence<int> all_indices = [01;31m[Kparlay::iota(N + 1)[m[K;
+      |                                         [01;31m[K~~~~~~~~~~~~^~~~~~~[m[K
+[01m[Kcco16p1cpp.cpp:156:32:[m[K [01;31m[Kerror: [m[Kno matching function for call to ‘[01m[Kreduce(parlay::sequence<std::pair<long long int, long long int>, parlay::allocator<std::pair<long long int, long long int> >, false>&, std::pair<long long int, long long int>, main()::<lambda(std::pair<long long int, long long int>, std::pair<long long int, long long int>)>)[m[K’
+  156 |     auto total = [01;31m[Kparlay::reduce(results, make_pair(0LL, 0LL), [](pair<long long, long long> a, pair<long long, long long> b) {[m[K
+      |                  [01;31m[K~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  157 | [01;31m[K        return make_pair(a.first + b.first, a.second + b.second);[m[K
+      |         [01;31m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  158 | [01;31m[K    })[m[K;
+      |     [01;31m[K~~[m[K                          
+In file included from [01m[Kcco16p1cpp.cpp:30[m[K:
+[01m[K/home/vitalemontea/work/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:95:6:[m[K [01;36m[Knote: [m[Kcandidate: ‘[01m[Ktemplate<class R, class Monoid, typename std::enable_if<is_monoid_v<Monoid>, int>::type <anonymous> > auto parlay::[01;32m[Kreduce[m[K(R&&, Monoid&&)[m[K’
+   95 | auto [01;36m[Kreduce[m[K(R&& r, Monoid&& m) {
+      |      [01;36m[K^~~~~~[m[K
+[01m[K/home/vitalemontea/work/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:95:6:[m[K [01;36m[Knote: [m[K  template argument deduction/substitution failed:
+[01m[Kcco16p1cpp.cpp:156:32:[m[K [01;36m[Knote: [m[K  candidate expects 2 arguments, 3 provided
+  156 |     auto total = [01;36m[Kparlay::reduce(results, make_pair(0LL, 0LL), [](pair<long long, long long> a, pair<long long, long long> b) {[m[K
+      |                  [01;36m[K~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  157 | [01;36m[K        return make_pair(a.first + b.first, a.second + b.second);[m[K
+      |         [01;36m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  158 | [01;36m[K    })[m[K;
+      |     [01;36m[K~~[m[K                          
+[01m[K/home/vitalemontea/work/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:103:6:[m[K [01;36m[Knote: [m[Kcandidate: ‘[01m[Ktemplate<class R, class LegacyMonoid, typename std::enable_if<((! is_monoid_v<LegacyMonoid>) && is_legacy_monoid_v<LegacyMonoid>), int>::type <anonymous> > auto parlay::[01;32m[Kreduce[m[K(R&&, LegacyMonoid)[m[K’
+  103 | auto [01;36m[Kreduce[m[K(R&& r, LegacyMonoid m) {
+      |      [01;36m[K^~~~~~[m[K
+[01m[K/home/vitalemontea/work/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:103:6:[m[K [01;36m[Knote: [m[K  template argument deduction/substitution failed:
+[01m[Kcco16p1cpp.cpp:156:32:[m[K [01;36m[Knote: [m[K  candidate expects 2 arguments, 3 provided
+  156 |     auto total = [01;36m[Kparlay::reduce(results, make_pair(0LL, 0LL), [](pair<long long, long long> a, pair<long long, long long> b) {[m[K
+      |                  [01;36m[K~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  157 | [01;36m[K        return make_pair(a.first + b.first, a.second + b.second);[m[K
+      |         [01;36m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  158 | [01;36m[K    })[m[K;
+      |     [01;36m[K~~[m[K                          
+[01m[K/home/vitalemontea/work/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:110:6:[m[K [01;36m[Knote: [m[Kcandidate: ‘[01m[Ktemplate<class R> auto parlay::[01;32m[Kreduce[m[K(R&&)[m[K’
+  110 | auto [01;36m[Kreduce[m[K(R&& r) {
+      |      [01;36m[K^~~~~~[m[K
+[01m[K/home/vitalemontea/work/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:110:6:[m[K [01;36m[Knote: [m[K  template argument deduction/substitution failed:
+[01m[Kcco16p1cpp.cpp:156:32:[m[K [01;36m[Knote: [m[K  candidate expects 1 argument, 3 provided
+  156 |     auto total = [01;36m[Kparlay::reduce(results, make_pair(0LL, 0LL), [](pair<long long, long long> a, pair<long long, long long> b) {[m[K
+      |                  [01;36m[K~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  157 | [01;36m[K        return make_pair(a.first + b.first, a.second + b.second);[m[K
+      |         [01;36m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+  158 | [01;36m[K    })[m[K;
+      |     [01;36m[K~~[m[K                          
+","/**
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * 
+ * Solution Approach:
+ * 1. The problem asks us to select maximum students and minimum cuts to form valid buses of size K.
+ * 2. A valid bus requires that all students on it form a connected component of size K, isolated from others.
+ * 3. The graph has max degree 2, meaning it consists of disjoint Paths and Cycles.
+ * 4. We can solve the problem for each connected component independently and sum the results.
+ * 5. For a component of size L, we want to extract p = floor(L/K) segments of size K.
+ *    - For a Path:
+ *      - If L is a multiple of K, we need p-1 internal cuts to separate the p segments.
+ *      - If L is not a multiple, we need p cuts (p-1 internal + 1 to separate from remainder).
+ *    - For a Cycle:
+ *      - If L == K, we take the whole cycle, 0 cuts.
+ *      - If L is a multiple of K (>K), we need p cuts to split into p segments.
+ *      - If L is not a multiple, we need p+1 cuts (isolate p segments from the gap).
+ * 
+ * Implementation:
+ * - Use Disjoint Set Union (DSU) to identify connected components and their properties (size, edge count).
+ * - Use the `parlay` library to process these components in parallel, map them to {students, cuts}, and reduce to the final answer.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <utility>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) structure to manage connected components
+struct DSU {
+    vector<int> parent;
+    vector<int> size;
+    vector<long long> degree_sum;
+    
+    DSU(int n) {
+        parent.resize(n + 1);
+        // Initialize parent of i to i
+        iota(parent.begin(), parent.end(), 0);
+        size.assign(n + 1, 1);
+        degree_sum.assign(n + 1, 0);
+    }
+    
+    // Find with path compression
+    int find(int i) {
+        if (parent[i] == i)
+            return i;
+        return parent[i] = find(parent[i]);
+    }
+    
+    // Unite two sets
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            // Union by size to keep tree flat
+            if (size[root_i] < size[root_j])
+                swap(root_i, root_j);
+            parent[root_j] = root_i;
+            size[root_i] += size[root_j];
+            degree_sum[root_i] += degree_sum[root_j];
+        }
+    }
+};
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int N, M, K;
+    if (!(cin >> N >> M >> K)) return 0;
+    
+    DSU dsu(N);
+    vector<int> degree(N + 1, 0);
+    vector<pair<int, int>> edges(M);
+    
+    // Read edges and compute degrees
+    for (int i = 0; i < M; ++i) {
+        cin >> edges[i].first >> edges[i].second;
+        degree[edges[i].first]++;
+        degree[edges[i].second]++;
+    }
+    
+    // Initialize degree sums in DSU
+    for (int i = 1; i <= N; ++i) {
+        dsu.degree_sum[i] = degree[i];
+    }
+    
+    // Build the components
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(edges[i].first, edges[i].second);
+    }
+    
+    // Use parlay to process components in parallel
+    // Create a sequence of indices 0..N
+    parlay::sequence<int> all_indices = parlay::iota(N + 1);
+    
+    // Filter to get only the roots of the components
+    // We skip index 0 and check if parent[i] == i
+    auto roots = parlay::filter(all_indices, [&](int i) {
+        return i > 0 && dsu.parent[i] == i;
+    });
+    
+    // Map each component (root) to its contribution {students, cuts}
+    auto results = parlay::map(roots, [&](int root) {
+        long long L = dsu.size[root];
+        // Sum of degrees in a component is 2 * |E|
+        long long E = dsu.degree_sum[root] / 2;
+        
+        long long students = 0;
+        long long cuts = 0;
+        
+        long long p = L / K;
+        
+        // If we can't form even one bus, contribution is 0
+        if (p == 0) {
+            return make_pair(0LL, 0LL);
+        }
+        
+        students = p * K;
+        
+        // Check if component is a Cycle or a Path
+        // Since max degree is 2, connected components are either Cycles (E == L) or Paths (E == L - 1)
+        bool is_cycle = (E == L);
+        
+        if (is_cycle) {
+            if (L == K) {
+                // Cycle of size K: take all, 0 cuts needed (already isolated and correct size)
+                cuts = 0;
+            } else if (L % K == 0) {
+                // Cycle size is multiple of K: cut p edges to get p segments
+                cuts = p;
+            } else {
+                // Cycle size not multiple: need p segments, need p+1 cuts to isolate them from the gap
+                cuts = p + 1;
+            }
+        } else { // Path
+            if (L == p * K) {
+                // Path size is multiple of K: need p-1 internal cuts
+                cuts = p - 1;
+            } else {
+                // Path with remainder: need p-1 internal cuts + 1 boundary cut (or just p cuts)
+                cuts = p;
+            }
+        }
+        
+        return make_pair(students, cuts);
+    });
+    
+    // Reduce (sum) the results to get totals
+    auto total = parlay::reduce(results, make_pair(0LL, 0LL), [](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    });
+    
+    cout << total.first << "" "" << total.second << endl;
+    
+    return 0;
+}"
+"2025-12-31T17:43:11.868631","3","76.34077299613114","True","20","20","0.013099159999999985","2.354050159999592e-06","0.05506200000000039","0.2619831999999997","","#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast IO setup
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Disjoint Set Union (DSU) structure to manage connected components
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;    // Size of the component
+    vector<int> edges; // Number of edges in the component
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Find with path compression
+    int find(int i) {
+        if (parent[i] == i)
+            return i;
+        int root = i;
+        while (parent[root] != root) 
+            root = parent[root];
+        
+        // Path compression
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Unite two sets
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            // Union by size
+            if (sz[root_i] < sz[root_j])
+                swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    fast_io();
+
+    int N, M;
+    long long K;
+    if (!(cin >> N >> M >> K)) return 0;
+
+    DSU dsu(N);
+
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        dsu.unite(u, v);
+    }
+
+    // Processing logic for each component
+    // We only process if 'i' is the root of its component
+    auto get_component_result = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Only process roots. If parent[r] != r, it's not a root.
+        // We also skip index 0 as it's unused.
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        long long L = dsu.sz[r];
+        
+        // Optimization: if component size < K, we can't take anyone
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[r];
+        bool is_cycle = (E == L);
+        
+        long long s = (L / K) * K;
+        long long c = 0;
+
+        if (is_cycle) {
+            if (L == K) {
+                c = 0; // Perfect cycle, take all
+            } else if (L % K == 0) {
+                c = L / K; // Break cycle and divide into exact pieces
+            } else {
+                c = L / K + 1; // Break cycle, divide, and separate remainder
+            }
+        } else {
+            // Path
+            if (L % K == 0) {
+                c = L / K - 1; // Just internal cuts to separate pieces
+            } else {
+                c = L / K; // Internal cuts + cut off remainder
+            }
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence of results for all nodes 1..N
+    // This avoids allocating a vector of Results and allows parallel processing
+    auto results = parlay::delayed_seq<Result>(N + 1, get_component_result);
+
+    // Monoid to sum Results
+    auto result_monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Reduce the delayed sequence to get total students and cuts
+    Result total = parlay::reduce(results, result_monoid);
+
+    cout << total.students << "" "" << total.cuts << endl;
+
+    return 0;
+}"
+"2025-12-31T17:45:16.964038","4","58.61520408055605","True","20","20","0.01706042","4.519547583999559e-05","0.0627109999999984","0.3412084","","/**
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <utility>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O helper
+struct FastIO {
+    FastIO() {
+        ios_base::sync_with_stdio(false);
+        cin.tie(NULL);
+    }
+    
+    inline void read(int &x) {
+        x = 0;
+        int c = cin.get();
+        while (c <= ' ') {
+            if (c == EOF) return;
+            c = cin.get();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = cin.get();
+        }
+    }
+    
+    inline void read(long long &x) {
+        x = 0;
+        int c = cin.get();
+        while (c <= ' ') {
+            if (c == EOF) return;
+            c = cin.get();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = cin.get();
+        }
+    }
+} io;
+
+// Disjoint Set Union with path compression and union by size
+// Also tracks edge counts in each component
+struct DSU {
+    vector<int> parent;
+    vector<int> size;
+    vector<int> edge_count;
+    
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        size.assign(n + 1, 1);
+        edge_count.assign(n + 1, 0);
+    }
+    
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (parent[root] != root) {
+            root = parent[root];
+        }
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+    
+    void add_edge(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (size[root_i] < size[root_j])
+                swap(root_i, root_j);
+            parent[root_j] = root_i;
+            size[root_i] += size[root_j];
+            edge_count[root_i] += edge_count[root_j] + 1;
+        } else {
+            edge_count[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    int N, M;
+    long long K;
+    
+    io.read(N);
+    io.read(M);
+    io.read(K);
+    
+    DSU dsu(N);
+    
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        io.read(u);
+        io.read(v);
+        dsu.add_edge(u, v);
+    }
+    
+    // Compute results for each component in parallel
+    // We iterate over all nodes 1..N. If a node is a root, we compute its contribution.
+    // Otherwise, it contributes {0, 0}.
+    auto results = parlay::tabulate(N + 1, [&](size_t i) -> Result {
+        // Skip index 0 and non-root nodes
+        if (i == 0 || dsu.parent[i] != (int)i) return {0, 0};
+        
+        long long L = dsu.size[i];
+        long long E = dsu.edge_count[i];
+        
+        long long p = L / K;
+        if (p == 0) return {0, 0};
+        
+        long long s = p * K;
+        long long c = 0;
+        
+        // Max degree is 2, so components are Paths or Cycles.
+        // Cycle: Edges == Vertices
+        // Path: Edges == Vertices - 1
+        bool is_cycle = (E == L);
+        
+        if (is_cycle) {
+            if (L == K) {
+                // Perfect cycle, take it all, no cuts needed
+                c = 0;
+            } else if (L % K == 0) {
+                // Cycle multiple of K, need p cuts to get p segments
+                c = p;
+            } else {
+                // Cycle with remainder, need p+1 cuts (isolate segments + gap)
+                c = p + 1;
+            }
+        } else { // Path
+            if (L % K == 0) {
+                // Path multiple of K, need p-1 internal cuts
+                c = p - 1;
+            } else {
+                // Path with remainder, need p cuts (last cut separates from remainder)
+                c = p;
+            }
+        }
+        
+        return {s, c};
+    });
+    
+    // Reduce results to get total students and cuts
+    auto result_monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+    
+    Result total = parlay::reduce(results, result_monoid);
+    
+    cout << total.students << "" "" << total.cuts << endl;
+    
+    return 0;
+}"
+"2025-12-31T17:47:34.680888","5","171.71125721831186","True","20","20","0.005823730000000004","1.1547070399979598e-06","0.021475000000000577","0.1164746000000001","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction
+ */
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner to handle large input efficiently
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        bool neg = (c == '-');
+        if (neg) c = next_char();
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        if (neg) x = -x;
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) with path compression and union by size
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            // Union by size
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    // FastScanner handles IO buffering
+    FastScanner sc;
+    
+    int N, M;
+    long long K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Process each component to calculate max students and min cuts
+    // This lambda is called in parallel via parlay::reduce
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip non-roots and index 0
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        long long L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[r];
+        long long p = L / K;
+        long long s = p * K;
+        long long c = 0;
+
+        // Determine cuts based on component type (Cycle or Path)
+        // Max degree 2 implies components are simple paths or cycles
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle
+            } else if (L % K == 0) {
+                c = p; // Cut p edges to get p segments
+            } else {
+                c = p + 1; // Isolate p segments from remainder
+            }
+        } else { // Path
+            if (L % K == 0) {
+                c = p - 1; // p-1 internal cuts
+            } else {
+                c = p; // p cuts (internal + boundary)
+            }
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence that applies 'process' on demand
+    // Range is 0 to N inclusive
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for summing results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T17:49:40.118201","6","60.15533310113377","True","20","20","0.016623629999999993","1.6316054639998734e-05","0.06014899999999912","0.33247259999999984","","/**
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * 
+ * Problem Analysis:
+ * We need to select the maximum number of students such that they can be packed into buses of size K.
+ * Students on a bus must form a connected component in the friendship graph (acquaintances).
+ * A student will only go if their entire component goes on the same bus.
+ * Since bus capacity is exactly K, we must partition the graph into connected components of size exactly K.
+ * We can sever friendships (edges) to achieve this.
+ * The graph has max degree 2, so it consists of disjoint Paths and Cycles.
+ * 
+ * Algorithm:
+ * 1. Use DSU to find connected components, their sizes (L), and edge counts (E).
+ * 2. For each component, calculate the maximum number of K-sized segments we can extract (p = L/K).
+ * 3. Calculate the minimum cuts required to get these p segments.
+ *    - Path:
+ *      - If L % K == 0: cuts = p - 1 (just internal cuts).
+ *      - If L % K != 0: cuts = p (internal cuts + 1 cut to separate remainder).
+ *    - Cycle:
+ *      - If L == K: cuts = 0 (perfect fit).
+ *      - If L > K and L % K == 0: cuts = p (break cycle + internal cuts).
+ *      - If L % K != 0: cuts = p + 1 (break cycle + internal cuts + separate remainder).
+ * 4. Sum the results using the Parlay library for parallel processing.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O helper for reading large input efficiently
+struct FastIO {
+    FastIO() {
+        ios_base::sync_with_stdio(false);
+        cin.tie(NULL);
+    }
+    
+    inline void read(int &x) {
+        x = 0;
+        int c = cin.get();
+        while (c <= ' ') {
+            if (c == EOF) return;
+            c = cin.get();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = cin.get();
+        }
+    }
+    
+    inline void read(long long &x) {
+        x = 0;
+        int c = cin.get();
+        while (c <= ' ') {
+            if (c == EOF) return;
+            c = cin.get();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = cin.get();
+        }
+    }
+} io;
+
+// Disjoint Set Union (DSU) to manage connected components
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;    // Size of the component
+    vector<int> edges; // Number of edges in the component
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (parent[root] != root)
+            root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Unite two sets
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            // Union by size
+            if (sz[root_i] < sz[root_j])
+                swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    int N, M;
+    long long K;
+    
+    io.read(N);
+    io.read(M);
+    io.read(K);
+
+    DSU dsu(N);
+
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        io.read(u);
+        io.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Use Parlay to process components in parallel
+    // We iterate over all nodes. Only roots of components contribute to the result.
+    auto results = parlay::tabulate(N + 1, [&](size_t i) -> Result {
+        // Skip index 0 and non-root nodes
+        if (i == 0 || dsu.parent[i] != (int)i) return {0, 0};
+
+        long long L = dsu.sz[i];
+        
+        // If component size is less than K, we can't take anyone
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[i];
+        
+        // Check if component is a cycle (Edges == Vertices) or path (Edges == Vertices - 1)
+        bool is_cycle = (E == L);
+        
+        long long p = L / K; // Number of K-groups
+        long long s = p * K; // Total students
+        long long c = 0;     // Cuts required
+
+        if (is_cycle) {
+            if (L == K) {
+                // Perfect cycle, take all, 0 cuts
+                c = 0;
+            } else if (L % K == 0) {
+                // Cycle divisible by K. Need p cuts to get p segments.
+                c = p;
+            } else {
+                // Cycle with remainder. Need p+1 cuts (separate segments + remainder).
+                c = p + 1;
+            }
+        } else {
+            // Path
+            if (L % K == 0) {
+                // Path divisible by K. Need p-1 cuts (just between segments).
+                c = p - 1;
+            } else {
+                // Path with remainder. Need p cuts (last cut separates from remainder).
+                c = p;
+            }
+        }
+
+        return {s, c};
+    });
+
+    // Reduce the results to get total students and cuts
+    auto result_monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    Result total = parlay::reduce(results, result_monoid);
+
+    cout << total.students << "" "" << total.cuts << endl;
+
+    return 0;
+}"
+"2025-12-31T17:51:43.238325","7","166.9075699259266","True","20","20","0.0059913399999999934","4.331638616000576e-05","0.02399300000000082","0.11982679999999987","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ */
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) to manage connected components
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            // Union by size
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    FastScanner sc;
+    
+    int N, M;
+    long long K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Process each component to calculate max students and min cuts
+    // Using parlay::delayed_seq allows parallel processing without intermediate storage
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip non-roots and index 0
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        long long L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[r];
+        long long p = L / K;
+        long long s = p * K;
+        long long c = 0;
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle, take all, no cuts needed
+            } else if (L % K == 0) {
+                c = p; // Cut p edges to get p segments of size K
+            } else {
+                c = p + 1; // Cut p+1 edges to get p segments and isolate remainder
+            }
+        } else { // Path
+            if (L % K == 0) {
+                c = p - 1; // p-1 internal cuts to separate p segments
+            } else {
+                c = p; // p cuts: internal cuts + cut off remainder
+            }
+        }
+        return {s, c};
+    };
+
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T17:53:35.623530","8","165.41639441885127","True","20","20","0.006045349999999985","7.0065848000053625e-06","0.026254000000001554","0.1209069999999997","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction with Parlay
+ */
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// FastScanner class for efficient input reading
+class FastScanner {
+private:
+    static const int BUFFER_SIZE = 1 << 18;
+    char buffer[BUFFER_SIZE];
+    int ptr, bytes_read;
+    FILE* file;
+
+    // Helper to get next character from buffer
+    char next_char() {
+        if (ptr == bytes_read) {
+            ptr = 0;
+            bytes_read = fread(buffer, 1, BUFFER_SIZE, file);
+            if (bytes_read == 0) return EOF;
+        }
+        return buffer[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), bytes_read(0), file(stdin) {}
+
+    // Generic read function for integers
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char(); // Skip whitespace
+        if (c == EOF) return false;
+        
+        bool negative = false;
+        if (c == '-') {
+            negative = true;
+            c = next_char();
+        }
+        
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        
+        if (negative) x = -x;
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) structure
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;         // Size of each component
+    vector<int> edge_count; // Number of edges in each component
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edge_count.assign(n + 1, 0);
+    }
+
+    // Find root with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        // Path compression
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Unite two sets
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        
+        if (root_i != root_j) {
+            // Union by size heuristic
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edge_count[root_i] += edge_count[root_j] + 1;
+        } else {
+            // Adding an edge within the same component (cycle formation)
+            edge_count[root_i]++;
+        }
+    }
+};
+
+// Struct to hold the result of reduction
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    // Initialize FastScanner
+    FastScanner sc;
+    
+    int N, M;
+    long long K;
+    
+    // Read N, M, K. Return if input fails.
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+    
+    // Initialize DSU
+    DSU dsu(N);
+    
+    // Read edges and build components
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+    
+    // Define the processing logic for each component
+    // We use a lambda that takes an index and returns a Result
+    auto process_component = [&](size_t i) -> Result {
+        int idx = (int)i;
+        
+        // Skip index 0 and non-root nodes
+        // Only roots store the aggregated size and edge count
+        if (idx == 0 || dsu.parent[idx] != idx) return {0, 0};
+        
+        long long L = dsu.sz[idx];
+        
+        // If component is smaller than K, no students can be taken
+        if (L < K) return {0, 0};
+        
+        long long E = dsu.edge_count[idx];
+        
+        // Calculate max groups of K
+        long long groups = L / K;
+        long long s = groups * K;
+        long long c = 0;
+        
+        // Check if component is a Cycle (Edges == Vertices)
+        // Since max degree is 2, components are paths or cycles.
+        bool is_cycle = (E == L);
+        
+        if (is_cycle) {
+            if (L == K) {
+                c = 0; // Perfect cycle, already isolated
+            } else if (L % K == 0) {
+                c = groups; // Need 'groups' cuts to break cycle and split
+            } else {
+                c = groups + 1; // Break cycle + split + isolate remainder
+            }
+        } else {
+            // Component is a Path (Edges == Vertices - 1)
+            if (L % K == 0) {
+                c = groups - 1; // Just internal cuts
+            } else {
+                c = groups; // Internal cuts + cut to separate remainder
+            }
+        }
+        
+        return {s, c};
+    };
+    
+    // Create a delayed sequence. This does not allocate a vector of Results.
+    // Instead, it acts as a virtual sequence where values are computed on demand.
+    auto results = parlay::delayed_seq<Result>(N + 1, process_component);
+    
+    // Define a monoid for summing Results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+    
+    // Perform parallel reduction to get the final answer
+    Result total = parlay::reduce(results, monoid);
+    
+    // Output the result
+    cout << total.students << "" "" << total.cuts << ""\n"";
+    
+    return 0;
+}"
+"2025-12-31T17:55:14.526179","9","178.34531219346894","True","20","20","0.005607100000000002","2.3603276000027116e-06","0.01979299999999995","0.11214200000000005","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for reading large input.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) to group students into connected components.
+ *    Tracks component size and edge count to distinguish between Paths and Cycles.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to calculate the optimal students/cuts
+ *    for each component in parallel and aggregate the results.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO with large datasets
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        // Input integers are non-negative
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) structure to manage connected components
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    FastScanner sc;
+    
+    int N, M;
+    long long K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Define the processing logic for each student index
+    // This lambda will be executed in parallel
+    auto process = [&](size_t idx) -> Result {
+        int r = (int)idx + 1;
+        
+        // We only process the root of each component to avoid double counting
+        // If parent[r] != r, it's not a root
+        if (dsu.parent[r] != r) return {0, 0};
+
+        long long L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[r];
+        long long p = L / K;
+        long long s = p * K;
+        long long c = 0;
+        long long rem = L % K;
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle, take all, no cuts needed
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments of size K
+            } else {
+                c = p + 1; // Cut p+1 edges to isolate p segments
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts to separate p segments
+            } else {
+                c = p; // p cuts: internal cuts + cut off remainder
+            }
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence representing the results for students 1..N
+    // Delayed sequence avoids storing the intermediate Result objects
+    auto results = parlay::delayed_seq<Result>(N, process);
+
+    // Monoid for summing results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total students and cuts
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T17:57:10.203232","10","162.94340975379316","True","20","20","0.006137099999999975","1.530619599996288e-06","0.02267800000000264","0.1227419999999995","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ */
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) to manage connected components
+// Uses SoA (Structure of Arrays) layout for better cache locality during traversal and scan
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            // Union by size
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    int students;
+    int cuts;
+};
+
+int main() {
+    FastScanner sc;
+    
+    int N, M;
+    int K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Process each component to calculate max students and min cuts
+    // Using parlay::delayed_seq allows parallel processing without intermediate storage
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip non-roots and index 0
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        int L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        int E = dsu.edges[r];
+        int p = L / K;
+        int s = p * K;
+        int c = 0;
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle, take all, no cuts needed
+            } else if (L % K == 0) {
+                c = p; // Cut p edges to get p segments of size K
+            } else {
+                c = p + 1; // Cut p+1 edges to get p segments and isolate remainder
+            }
+        } else { // Path
+            if (L % K == 0) {
+                c = p - 1; // p-1 internal cuts to separate p segments
+            } else {
+                c = p; // p cuts: internal cuts + cut off remainder
+            }
+        }
+        return {s, c};
+    };
+
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T17:58:52.776058","11","168.1652997630548","True","20","20","0.00594653000000001","3.5938450399877275e-06","0.02287199999999956","0.11893060000000019","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) to group students.
+ *    Tracks component size and edge count to distinguish between Paths and Cycles.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to calculate optimal results.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO with large datasets
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        bool neg = false;
+        if (c == '-') { neg = true; c = next_char(); }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        if (neg) x = -x;
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) structure to manage connected components
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    FastScanner sc;
+    
+    int N, M;
+    long long K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each component in parallel
+    // Calculates max students and min cuts for a component rooted at i
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip index 0 and non-root nodes to process each component exactly once
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        long long L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[r];
+        long long p = L / K;      // Number of groups of size K
+        long long rem = L % K;    // Remainder students
+        long long s = p * K;      // Total students we can take
+        long long c = 0;          // Cuts needed
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle, take all
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments
+            } else {
+                c = p + 1; // Isolate p segments from remainder
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts
+            } else {
+                c = p; // p cuts (internal + boundary)
+            }
+        }
+        return {s, c};
+    };
+
+    // Use parlay::delayed_seq to create a lazy sequence of results
+    // This avoids creating a large vector of Results
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for summing results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total students and cuts
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T18:00:28.290771","12","152.28812914033372","True","20","20","0.006566499999999991","4.622454800000463e-06","0.02525800000000089","0.1313299999999998","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU (AoS layout) and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for reading large input.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) to group students into connected components.
+ *    Uses Array of Structures (AoS) for DSU nodes to improve cache locality during traversal.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to calculate the optimal students/cuts
+ *    for each component in parallel and aggregate the results.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// FastScanner for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+    char next_char() {
+        if (ptr == len) fill_buf();
+        if (len == 0) return EOF;
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Node structure for DSU - Array of Structures (AoS) layout
+// This improves cache locality when accessing node properties compared to SoA
+struct Node {
+    int parent;
+    int sz;
+    int edges;
+};
+
+// Disjoint Set Union with path compression and union by size
+struct DSU {
+    vector<Node> nodes;
+
+    DSU(int n) {
+        nodes.resize(n + 1);
+        for (int i = 1; i <= n; ++i) {
+            nodes[i] = {i, 1, 0};
+        }
+    }
+
+    int find(int i) {
+        int root = i;
+        while (root != nodes[root].parent) root = nodes[root].parent;
+        
+        int curr = i;
+        while (curr != root) {
+            int next = nodes[curr].parent;
+            nodes[curr].parent = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (nodes[root_i].sz < nodes[root_j].sz) swap(root_i, root_j);
+            nodes[root_j].parent = root_i;
+            nodes[root_i].sz += nodes[root_j].sz;
+            nodes[root_i].edges += nodes[root_j].edges + 1;
+        } else {
+            nodes[root_i].edges++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    FastScanner sc;
+    
+    int N, M;
+    int K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each node. 
+    // Only roots of components contribute to the result.
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip index 0 and non-roots
+        // Accessing nodes[r] pulls in parent, sz, and edges in one cache line
+        if (r == 0 || dsu.nodes[r].parent != r) return {0, 0};
+
+        long long L = dsu.nodes[r].sz;
+        if (L < K) return {0, 0};
+
+        long long E = dsu.nodes[r].edges;
+        long long p = L / K;
+        long long s = p * K;
+        long long c = 0;
+        long long rem = L % K;
+
+        // Determine if component is a Cycle or Path
+        // Given max degree 2:
+        // Cycle: Edges == Vertices
+        // Path: Edges == Vertices - 1
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments
+            } else {
+                c = p + 1; // Cut p+1 edges to isolate p segments from remainder
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts
+            } else {
+                c = p; // p cuts: internal + boundary
+            }
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence for parallel reduction
+    // The sequence generates values on demand using 'process'
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for summing results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T18:02:13.229344","13","167.2898212508253","True","20","20","0.005977650000000025","1.3893347199988697e-05","0.022209000000003698","0.1195530000000005","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for high-performance IO.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) with a ""Struct of Arrays"" 
+ *    style internal node structure to improve cache locality. Groups students into 
+ *    connected components and tracks size and edge counts.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to efficiently 
+ *    calculate the optimal number of students and cuts for each component in parallel.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Optimized Fast Input Scanner for large datasets
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next();
+        while (c != EOF && c <= 32) c = next();
+        if (c == EOF) return false;
+        // Assume non-negative input as per problem spec
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next();
+        }
+        return true;
+    }
+};
+
+// Optimized DSU with compact node structure
+struct DSU {
+    struct Node {
+        int parent;
+        int sz;
+        int edges;
+    };
+    
+    vector<Node> nodes;
+
+    DSU(int n) {
+        nodes.resize(n + 1);
+        // Initialize nodes: parent=self, size=1, edges=0
+        for(int i = 1; i <= n; ++i) {
+            nodes[i] = {i, 1, 0};
+        }
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != nodes[root].parent) root = nodes[root].parent;
+        
+        int curr = i;
+        while (curr != root) {
+            int next = nodes[curr].parent;
+            nodes[curr].parent = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (nodes[root_i].sz < nodes[root_j].sz) swap(root_i, root_j);
+            nodes[root_j].parent = root_i;
+            nodes[root_i].sz += nodes[root_j].sz;
+            nodes[root_i].edges += nodes[root_j].edges + 1;
+        } else {
+            nodes[root_i].edges++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    FastScanner sc;
+    int N, M;
+    long long K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    // Build the graph components
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each component in parallel.
+    // Calculates max students and min cuts for a component rooted at i.
+    auto process = [&](size_t i) -> Result {
+        // Skip index 0
+        if (i == 0) return {0, 0};
+        
+        // We only process the root of each component.
+        // dsu.nodes[i].parent == i checks if i is a root.
+        // This is safe to read in parallel after DSU construction.
+        if (dsu.nodes[i].parent != (int)i) return {0, 0};
+
+        long long L = dsu.nodes[i].sz;
+        if (L < K) return {0, 0};
+
+        long long E = dsu.nodes[i].edges;
+        long long p = L / K;      // Number of full buses
+        long long rem = L % K;    // Remainder students
+        long long s = p * K;      // Total students taken
+        long long c = 0;          // Cuts required
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle, take all
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments of size K
+            } else {
+                c = p + 1; // Isolate p segments from remainder
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts to separate p segments
+            } else {
+                c = p; // p cuts: internal cuts + cut off remainder
+            }
+        }
+        return {s, c};
+    };
+
+    // Use parlay::delayed_seq to create a lazy sequence of results.
+    // This avoids materializing the vector of Results.
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for summing results (vector addition)
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total students and cuts
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T18:04:01.451384","14","154.46854325350844","True","20","20","0.006473810000000029","1.560499255998628e-05","0.025148999999998978","0.12947620000000057","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for reading large input.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) to group students into connected components.
+ *    Tracks component size and edge count to distinguish between Paths and Cycles.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to calculate the optimal students/cuts
+ *    for each component in parallel and aggregate the results.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO with large datasets
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+    char next_char() {
+        if (ptr == len) fill_buf();
+        if (len == 0) return EOF;
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        // Input integers are non-negative
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) structure to manage connected components
+// Uses SoA (Structure of Arrays) layout which is generally more efficient for the reduction phase
+// because we iterate over 'parent' to check for roots, skipping 'sz' and 'edges' for non-roots.
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    int students;
+    int cuts;
+};
+
+int main() {
+    // Disable sync with stdio for performance
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastScanner sc;
+    
+    int N, M, K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Define the processing logic for each student index
+    // This lambda will be executed in parallel via parlay::reduce
+    auto process = [&](size_t idx) -> Result {
+        int r = (int)idx;
+        
+        // We only process the root of each component to avoid double counting
+        // If parent[r] != r, it's not a root. Also skip index 0.
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        int L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        int E = dsu.edges[r];
+        int p = L / K;
+        int s = p * K;
+        int c = 0;
+        
+        // Calculate cuts based on component topology
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle, take all, no cuts needed
+            } else if (L % K == 0) {
+                c = p; // Cut p edges to get p segments of size K
+            } else {
+                c = p + 1; // Cut p+1 edges to isolate p segments
+            }
+        } else { // Path
+            if (L % K == 0) {
+                c = p - 1; // p-1 internal cuts to separate p segments
+            } else {
+                c = p; // p cuts: internal cuts + cut off remainder
+            }
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence representing the results for students 1..N
+    // Delayed sequence avoids storing the intermediate Result objects
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for summing results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total students and cuts
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T18:05:52.229437","15","165.54729106690138","True","20","20","0.006040570000000045","8.161552239995075e-06","0.02145699999999806","0.1208114000000009","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) with SoA layout.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to calculate optimal results.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO with large datasets
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    inline char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    inline bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c <= 32) {
+            if (c == EOF) return false;
+            c = next_char();
+        }
+        // Input integers are non-negative
+        while (c >= '0') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) structure to manage connected components
+// Uses Structure of Arrays (SoA) for better cache locality
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    int students;
+    int cuts;
+};
+
+int main() {
+    FastScanner sc;
+    
+    int N, M, K;
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each component in parallel
+    // Calculates max students and min cuts for a component rooted at i
+    auto process = [&](size_t i) -> Result {
+        int idx = (int)i;
+        // Skip index 0 and non-root nodes
+        if (idx == 0 || dsu.parent[idx] != idx) return {0, 0};
+
+        int L = dsu.sz[idx];
+        if (L < K) return {0, 0};
+
+        int p = L / K;
+        int rem = L % K;
+        int s = p * K;
+        int c = 0;
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (dsu.edges[idx] == L) { // Cycle
+            if (L == K) c = 0; // Perfect cycle
+            else c = p + (rem > 0); // Cuts needed
+        } else { // Path
+            c = p - (rem == 0); // Cuts needed
+        }
+        return {s, c};
+    };
+
+    // Use parlay::delayed_seq to create a lazy sequence of results
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for summing results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total students and cuts
+    Result total = parlay::reduce(results, monoid);
+
+    printf(""%d %d\n"", total.students, total.cuts);
+
+    return 0;
+}"
+"2025-12-31T18:07:29.548465","16","174.77750823202075","True","20","20","0.005721559999999996","1.4810405599996405e-06","0.02002600000000143","0.11443119999999993","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using SoA DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for high-speed IO.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) with Structure of Arrays (SoA).
+ *    SoA layout improves cache locality for the 'find' operation by keeping the parent array dense.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to efficiently 
+ *    calculate the optimal number of students and cuts for each component in parallel.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c <= 32) {
+            if (c == EOF) return false;
+            c = next_char();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// DSU with Structure of Arrays for better cache locality
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        iota(parent.begin(), parent.end(), 0);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        while (i != root) {
+            int next = parent[i];
+            parent[i] = root;
+            i = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    FastScanner sc;
+    int N, M;
+    long long K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    // Build components
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each component in parallel
+    // Returns Result for component rooted at i, or {0,0} otherwise
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip index 0 and non-root nodes
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        long long L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[r];
+        long long p = L / K;      // Number of buses
+        long long rem = L % K;    // Remaining students
+        long long s = p * K;      // Total students
+        long long c = 0;          // Cuts needed
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments
+            } else {
+                c = p + 1; // Isolate p segments from remainder
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts
+            } else {
+                c = p; // p cuts (internal + boundary)
+            }
+        }
+        return {s, c};
+    };
+
+    // Lazy sequence for parallel processing
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for aggregation
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T18:09:13.076919","17","165.72864254983557","True","20","20","0.006033959999999965","1.9657757359980162e-05","0.02157900000000268","0.12067919999999929","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Parse input efficiently using a buffered FastScanner.
+ * 2. Use Disjoint Set Union (DSU) to identify connected components (friends).
+ *    Track component size and edge count to distinguish between Paths and Cycles.
+ * 3. Use Parlay's parallel reduction to calculate the optimal students and cuts
+ *    for each component and aggregate the total.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <cstdio>
+#include <utility>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    inline char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    inline bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        // Skip whitespace
+        while (c <= 32) {
+            if (c == EOF) return false;
+            c = next_char();
+        }
+        // Read non-negative integer
+        while (c >= '0') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) structure
+// Uses Structure of Arrays (SoA) for better cache locality
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        // Initialize parent[i] = i
+        for (int i = 0; i <= n; ++i) parent[i] = i;
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        
+        int curr = i;
+        while (curr != root) {
+            int next = parent[curr];
+            parent[curr] = root;
+            curr = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    int students;
+    int cuts;
+};
+
+int main() {
+    FastScanner sc;
+    int N, M, K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each component in parallel
+    // We iterate over all indices but only process roots
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip index 0 and non-root nodes
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        int L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        int p = L / K;      // Number of full buses
+        int s = p * K;      // Total students
+        int c = 0;          // Cuts needed
+        
+        // Check if component is a Cycle (Edges == Vertices) or Path (Edges == Vertices - 1)
+        // Max degree 2 constraint ensures components are only Paths or Cycles
+        if (dsu.edges[r] == L) { // Cycle
+            // Cycle logic:
+            // If L == K: 0 cuts (perfect cycle).
+            // Else if L % K == 0: p cuts.
+            // Else: p + 1 cuts.
+            c = (L == K) ? 0 : p + (L % K != 0);
+        } else { // Path
+            // Path logic:
+            // If L % K == 0: p - 1 cuts (internal cuts).
+            // Else: p cuts (internal cuts + remainder cut).
+            c = p - (L % K == 0);
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence for lazy evaluation in parallel
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for combining results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Perform parallel reduction to sum up students and cuts
+    Result total = parlay::reduce(results, monoid);
+
+    printf(""%d %d\n"", total.students, total.cuts);
+
+    return 0;
+}"
+"2025-12-31T18:10:59.362176","18","163.30449920225783","True","20","20","0.006123529999999988","1.2265323839979989e-05","0.023159999999997183","0.12247059999999976","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for high-performance IO.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) to group students.
+ *    Tracks component size and edge count to distinguish between Paths and Cycles.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to efficiently 
+ *    calculate the optimal number of students and cuts for each component in parallel.
+ *    Logic is derived from the property that all components are simple Paths or Cycles (max degree 2).
+ */
+
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// FastScanner for efficient input reading with large datasets
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c != EOF && c <= 32) c = next_char();
+        if (c == EOF) return false;
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Disjoint Set Union (DSU) structure
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+        // Initialize parent pointers
+        for(int i = 0; i <= n; ++i) parent[i] = i;
+    }
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        while (i != root) {
+            int next = parent[i];
+            parent[i] = root;
+            i = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    int students;
+    int cuts;
+};
+
+int main() {
+    FastScanner sc;
+    int N, M, K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Define the processing logic for each component
+    // This lambda will be executed in parallel via parlay
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Only process root nodes (representatives of components)
+        // Skip index 0 and non-roots. Note: parent[r] == r is safe check for root.
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        int L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        int E = dsu.edges[r];
+        int p = L / K;      // Number of buses we can fill
+        int rem = L % K;    // Remainder students
+        int s = p * K;      // Total students taken
+        int c = 0;          // Cuts required
+
+        // Logic derived from graph properties (max degree 2 -> paths and cycles)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Take entire cycle as one bus
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments of size K
+            } else {
+                c = p + 1; // Cut p+1 edges to isolate p segments from remainder
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts to separate p segments
+            } else {
+                c = p; // p cuts (internal + boundary)
+            }
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence for parallel processing
+    // Range covers 0 to N
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid to aggregate results (summing students and cuts)
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Compute total students and cuts using parallel reduction
+    Result total = parlay::reduce(results, monoid);
+
+    printf(""%d %d\n"", total.students, total.cuts);
+
+    return 0;
+}"
+"2025-12-31T18:12:33.420468","19","198.92342641623398","True","20","20","0.0050270600000000346","3.934970159994072e-06","0.0199569999999909","0.10054120000000069","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parlay Parallel Reduction
+ */
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        char c = next();
+        while (c < '0' || c > '9') {
+            if (c == EOF) return 0;
+            c = next();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next();
+        }
+        return x;
+    }
+};
+
+// DSU with size optimization (stored as negative value in parent array)
+// Minimizes memory overhead and improves cache locality
+struct DSU {
+    vector<int> p;
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite with union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Union by size: smaller tree (less negative) points to larger (more negative)
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2]; // Add sizes
+            p[r2] = r1;     // Connect
+            if (is_cyc[r2]) is_cyc[r1] = 1;
+        } else {
+            is_cyc[r1] = 1; // Cycle detected
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction to compute the answer
+    // We process each component root in parallel
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Skip non-roots and index 0
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i];
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // If L % K == 0, p cuts (cut p edges to get p segments)
+            // If L % K != 0, p+1 cuts (isolate p segments)
+            c = (L == K) ? 0 : (L % K == 0 ? p : p + 1);
+        } else {
+            // Path logic
+            // If L % K == 0, p-1 cuts (internal cuts)
+            // If L % K != 0, p cuts (internal + 1 cut to separate remainder)
+            c = (L % K == 0) ? p - 1 : p;
+        }
+        return make_pair(s, c);
+    });
+
+    // Summing up results using a monoid
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:14:18.116207","20","171.55601303825637","True","20","20","0.005829000000000022","1.8142556000117522e-06","0.02030300000000551","0.11658000000000043","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for reading large input.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) to group students into connected components.
+ *    Tracks component size and edge count to distinguish between Paths and Cycles.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to calculate the optimal students/cuts
+ *    for each component in parallel and aggregate the results.
+ */
+
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// High-performance Input Scanner
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    int read_int() {
+        int x = 0;
+        // Handle buffer refill
+        if (ptr == len) fill_buf();
+        if (len == 0) return 0;
+        
+        // Skip whitespace
+        while (ptr < len && buf[ptr] <= ' ') {
+            ptr++;
+            if (ptr == len) fill_buf();
+        }
+        
+        // Read integer
+        while (ptr < len && buf[ptr] >= '0') {
+            x = x * 10 + (buf[ptr++] - '0');
+            if (ptr == len) fill_buf();
+        }
+        return x;
+    }
+};
+
+// Disjoint Set Union (DSU) structure
+struct DSU {
+    vector<int> parent;
+    vector<int> sz;
+    vector<int> edges;
+
+    DSU(int n) {
+        parent.resize(n + 1);
+        // Initialize parent pointers
+        for(int i = 0; i <= n; ++i) parent[i] = i;
+        sz.assign(n + 1, 1);
+        edges.assign(n + 1, 0);
+    }
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (root != parent[root]) root = parent[root];
+        while (i != root) {
+            int next = parent[i];
+            parent[i] = root;
+            i = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (sz[root_i] < sz[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            sz[root_i] += sz[root_j];
+            edges[root_i] += edges[root_j] + 1;
+        } else {
+            edges[root_i]++;
+        }
+    }
+};
+
+struct Result {
+    int students;
+    int cuts;
+};
+
+int main() {
+    // Fast IO
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastScanner sc;
+    int N = sc.read_int();
+    int M = sc.read_int();
+    int K = sc.read_int();
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u = sc.read_int();
+        int v = sc.read_int();
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each component root
+    auto process = [&](size_t i) -> Result {
+        int r = (int)i;
+        // Skip index 0 and non-root nodes
+        if (r == 0 || dsu.parent[r] != r) return {0, 0};
+
+        int L = dsu.sz[r];
+        if (L < K) return {0, 0};
+
+        int E = dsu.edges[r];
+        int p = L / K;
+        int s = p * K;
+        int c = 0;
+        int rem = L % K;
+
+        // Components are Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments
+            } else {
+                c = p + 1; // Isolate p segments
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts
+            } else {
+                c = p; // p cuts (internal + boundary)
+            }
+        }
+        return {s, c};
+    };
+
+    // Create a delayed sequence for parallel reduction
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid to sum results
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    Result total = parlay::reduce(results, monoid);
+
+    printf(""%d %d\n"", total.students, total.cuts);
+
+    return 0;
+}"
+"2025-12-31T18:15:56.988979","21","191.00263010621927","True","20","20","0.005235529999999926","5.91379303999353e-06","0.021043999999996288","0.10471059999999852","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for high-performance IO.
+ * 2. Compact DSU: Stores parent and size in the same array to reduce memory usage
+ *    and improve cache locality. 'parent' array stores non-negative parent index
+ *    or negative component size for roots. This minimizes cache misses during the
+ *    union-find operations and the final scan.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to calculate 
+ *    optimal results for each component in parallel. The logic handles both
+ *    Path and Cycle components based on vertex/edge counts.
+ */
+
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cstdio>
+#include <utility>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Fast Input Scanner for efficient IO with large datasets
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next_char() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+
+    template<typename T>
+    bool read(T& x) {
+        x = 0;
+        char c = next_char();
+        while (c <= 32) {
+            if (c == EOF) return false;
+            c = next_char();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next_char();
+        }
+        return true;
+    }
+};
+
+// Compact DSU: p[i] < 0 implies i is root with size -p[i].
+// p[i] >= 0 implies p[i] is parent of i.
+struct DSU {
+    vector<int> p;
+    vector<int> edges;
+
+    DSU(int n) : p(n + 1, -1), edges(n + 1, 0) {}
+
+    // Iterative find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int next = p[i];
+            p[i] = root;
+            i = next;
+        }
+        return root;
+    }
+
+    // Union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // p[r] is negative size. More negative -> larger size.
+            // We want r1 to be the larger component (more negative p).
+            // If p[r1] > p[r2], then p[r1] is closer to 0 (smaller size).
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2];          // Add size of r2 to r1
+            edges[r1] += edges[r2] + 1; // Add edges
+            p[r2] = r1;              // Make r1 parent of r2
+        } else {
+            edges[r1]++;
+        }
+    }
+};
+
+struct Result {
+    long long students;
+    long long cuts;
+};
+
+int main() {
+    FastScanner sc;
+    int N, M;
+    long long K;
+    
+    if (!sc.read(N)) return 0;
+    sc.read(M);
+    sc.read(K);
+
+    DSU dsu(N);
+
+    for(int i = 0; i < M; ++i) {
+        int u, v;
+        sc.read(u);
+        sc.read(v);
+        dsu.unite(u, v);
+    }
+
+    // Lambda to process each component in parallel
+    // Returns Result for component rooted at i, or {0,0} otherwise
+    auto process = [&](size_t i) -> Result {
+        // Skip index 0 and non-root nodes
+        // Check p[i] < 0 to identify roots
+        if (i == 0 || dsu.p[i] >= 0) return {0, 0};
+
+        long long L = -dsu.p[i]; // Size is stored as negative value
+        if (L < K) return {0, 0};
+
+        long long E = dsu.edges[i];
+        long long p = L / K;      // Number of buses
+        long long rem = L % K;    // Remainder students
+        long long s = p * K;      // Total students
+        long long c = 0;          // Cuts needed
+
+        // Components are either Cycles (Edges == Vertices) or Paths (Edges == Vertices - 1)
+        if (E == L) { // Cycle
+            if (L == K) {
+                c = 0; // Perfect cycle, take all
+            } else if (rem == 0) {
+                c = p; // Cut p edges to get p segments of size K
+            } else {
+                c = p + 1; // Isolate p segments from remainder
+            }
+        } else { // Path
+            if (rem == 0) {
+                c = p - 1; // p-1 internal cuts to separate p segments
+            } else {
+                c = p; // p cuts: internal cuts + cut off remainder
+            }
+        }
+        return {s, c};
+    };
+
+    // Lazy sequence for parallel processing.
+    // This avoids creating a large intermediate vector of Results.
+    auto results = parlay::delayed_seq<Result>(N + 1, process);
+
+    // Monoid for aggregation
+    auto monoid = parlay::make_monoid([](Result a, Result b) {
+        return Result{a.students + b.students, a.cuts + b.cuts};
+    }, Result{0, 0});
+
+    // Parallel reduction to compute total students and cuts
+    Result total = parlay::reduce(results, monoid);
+
+    cout << total.students << "" "" << total.cuts << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T18:17:43.801045","22","197.2658946994666","True","20","20","0.005069299999999969","2.1339124000073723e-06","0.019443000000009647","0.1013859999999994","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parlay Parallel Reduction
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for high-performance IO.
+ * 2. Component Identification: Uses Disjoint Set Union (DSU) with a compact representation.
+ *    - `p` array stores parent index for children, and negative size for roots.
+ *    - `is_cyc` array flags if a component contains a cycle.
+ *    - This reduces memory usage and improves cache locality compared to storing separate size/edge arrays.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to efficiently 
+ *    calculate the optimal number of students and cuts for each component in parallel.
+ *    - Components are either simple Paths or simple Cycles (max degree 2).
+ *    - Logic derives optimal cuts based on component size L, bus capacity K, and type.
+ */
+
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        char c = next();
+        while (c < '0' || c > '9') {
+            if (c == EOF) return 0;
+            c = next();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next();
+        }
+        return x;
+    }
+};
+
+// DSU with size optimization (stored as negative value in parent array)
+// Minimizes memory overhead and improves cache locality
+struct DSU {
+    vector<int> p;
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite with union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Union by size: smaller tree (less negative) points to larger (more negative)
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2]; // Add sizes
+            p[r2] = r1;     // Connect
+            if (is_cyc[r2]) is_cyc[r1] = 1;
+        } else {
+            is_cyc[r1] = 1; // Cycle detected
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction to compute the answer
+    // We process each component root in parallel
+    // delayed_seq creates a lazy sequence, avoiding large intermediate allocations
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Skip non-roots and index 0
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i];
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // If L % K == 0, p cuts (cut p edges to get p segments)
+            // If L % K != 0, p+1 cuts (isolate p segments from remainder)
+            c = (L == K) ? 0 : (L % K == 0 ? p : p + 1);
+        } else {
+            // Path logic
+            // If L % K == 0, p-1 cuts (internal cuts between segments)
+            // If L % K != 0, p cuts (internal cuts + 1 cut to separate remainder)
+            c = (L % K == 0) ? p - 1 : p;
+        }
+        return make_pair(s, c);
+    });
+
+    // Summing up results using a monoid
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:19:39.043969","23","202.63753009167183","True","20","20","0.004934920000000034","7.1453730399992155e-06","0.020893999999998414","0.09869840000000067","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parlay Parallel Reduction
+ */
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        if (ptr == len) fill_buf();
+        if (len == 0) return 0;
+        
+        while (ptr < len && buf[ptr] <= ' ') {
+            ptr++;
+            if (ptr == len) fill_buf();
+        }
+        
+        while (ptr < len && buf[ptr] >= '0') {
+            x = x * 10 + (buf[ptr++] - '0');
+            if (ptr == len) fill_buf();
+        }
+        return x;
+    }
+};
+
+// DSU with size optimization (stored as negative value in parent array)
+// Minimizes memory overhead and improves cache locality
+struct DSU {
+    vector<int> p;
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite with union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Union by size: smaller tree (less negative) points to larger (more negative)
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2]; // Add sizes
+            p[r2] = r1;     // Connect
+            if (is_cyc[r2]) is_cyc[r1] = 1;
+        } else {
+            is_cyc[r1] = 1; // Cycle detected
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction to compute the answer
+    // We process each component root in parallel
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Skip non-roots and index 0
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i];
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // If L % K == 0, p cuts (cut p edges to get p segments)
+            // If L % K != 0, p+1 cuts (isolate p segments)
+            c = (L == K) ? 0 : (L % K == 0 ? p : p + 1);
+        } else {
+            // Path logic
+            // If L % K == 0, p-1 cuts (internal cuts)
+            // If L % K != 0, p cuts (internal + 1 cut to separate remainder)
+            c = (L % K == 0) ? p - 1 : p;
+        }
+        return make_pair(s, c);
+    });
+
+    // Summing up results using a monoid
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:21:11.502087","24","199.11552882098056","True","20","20","0.005022209999999916","8.34360375998726e-06","0.024428999999997814","0.10044419999999832","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parlay Parallel Reduction
+ */
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        char c = next();
+        while (c < '0' || c > '9') {
+            if (c == EOF) return 0;
+            c = next();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next();
+        }
+        return x;
+    }
+};
+
+// DSU with size optimization (stored as negative value in parent array)
+// Minimizes memory overhead and improves cache locality
+struct DSU {
+    vector<int> p;
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite with union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Union by size: smaller tree (less negative) points to larger (more negative)
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2]; // Add sizes
+            p[r2] = r1;     // Connect
+            if (is_cyc[r2]) is_cyc[r1] = 1;
+        } else {
+            is_cyc[r1] = 1; // Cycle detected
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction to compute the answer
+    // We process each component root in parallel
+    // delayed_seq creates a lazy sequence, avoiding large intermediate allocations
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Skip non-roots and index 0
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i];
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long rem = L % K;    // Remainder students
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        // Determine cuts needed to extract p components of size K
+        // Base cuts logic: p cuts if rem == 0, p+1 cuts if rem > 0
+        // This base logic applies directly to cycles (unless perfect cycle)
+        // For paths, we save 1 cut because the ""last"" cut is not needed
+        long long base_cuts = p + (rem > 0);
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // Otherwise, base_cuts applies
+            c = (L == K) ? 0 : base_cuts;
+        } else {
+            // Path logic
+            // Always base_cuts - 1
+            c = base_cuts - 1;
+        }
+        return make_pair(s, c);
+    });
+
+    // Summing up results using a monoid
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:22:47.448311","25","196.69977123816838","True","20","20","0.00508388999999994","6.291563759980385e-06","0.019417000000004236","0.10167779999999879","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parallel Reduction via Parlay
+ * 
+ * Strategy:
+ * 1. Efficient Input Parsing: Uses a buffered FastScanner for high-performance IO.
+ * 2. Compact DSU: Uses a Disjoint Set Union (DSU) to identify connected components.
+ *    - `p` array stores parent index for children, and negative size for roots.
+ *    - `is_cyc` array flags if a component is a cycle. Since max degree is 2, 
+ *      components are simple paths or simple cycles.
+ * 3. Parallel Processing: Uses Parlay's delayed_seq and reduce to efficiently 
+ *    calculate the optimal number of students and cuts for each component in parallel.
+ *    - Components are processed independently.
+ *    - Logic derives optimal cuts based on component size L, bus capacity K, and topology.
+ */
+
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+#include <utility>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        if (ptr == len) fill_buf();
+        if (len == 0) return 0;
+        
+        while (ptr < len && buf[ptr] <= ' ') {
+            ptr++;
+            if (ptr == len) fill_buf();
+        }
+        
+        while (ptr < len && buf[ptr] >= '0') {
+            x = x * 10 + (buf[ptr++] - '0');
+            if (ptr == len) fill_buf();
+        }
+        return x;
+    }
+};
+
+// DSU with size optimization (stored as negative value in parent array)
+// Minimizes memory overhead and improves cache locality
+struct DSU {
+    vector<int> p;
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite with union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Union by size: smaller tree (less negative) points to larger (more negative)
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2]; // Add sizes
+            p[r2] = r1;     // Connect
+            if (is_cyc[r2]) is_cyc[r1] = 1;
+        } else {
+            is_cyc[r1] = 1; // Cycle detected
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction to compute the answer
+    // We process each component root in parallel using a lazy sequence
+    // This avoids generating a large intermediate vector
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Skip index 0 and non-roots
+        // p[i] < 0 indicates a root with size -p[i]
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i];
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // If L % K == 0, p cuts (cut p edges to get p segments)
+            // If L % K != 0, p+1 cuts (isolate p segments from remainder)
+            if (L == K) c = 0;
+            else if (L % K == 0) c = p;
+            else c = p + 1;
+        } else {
+            // Path logic
+            // If L % K == 0, p-1 cuts (internal cuts between segments)
+            // If L % K != 0, p cuts (internal cuts + 1 cut to separate remainder)
+            if (L % K == 0) c = p - 1;
+            else c = p;
+        }
+        return make_pair(s, c);
+    });
+
+    // Summing up results using a monoid
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:24:40.806076","26","199.72876833260793","True","20","20","0.0050067899999999095","8.727174159944322e-06","0.020558999999991556","0.10013579999999819","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parlay Parallel Reduction
+ */
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        if (ptr == len) fill_buf();
+        if (len == 0) return 0;
+        
+        while (ptr < len && buf[ptr] <= ' ') {
+            ptr++;
+            if (ptr == len) fill_buf();
+        }
+        
+        while (ptr < len && buf[ptr] >= '0') {
+            x = x * 10 + (buf[ptr++] - '0');
+            if (ptr == len) fill_buf();
+        }
+        return x;
+    }
+};
+
+// DSU with size optimization (stored as negative value in parent array)
+// Minimizes memory overhead and improves cache locality
+struct DSU {
+    vector<int> p;
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite with union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Union by size: smaller tree (less negative) points to larger (more negative)
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2]; // Add sizes
+            p[r2] = r1;     // Connect
+            if (is_cyc[r2]) is_cyc[r1] = 1;
+        } else {
+            is_cyc[r1] = 1; // Cycle detected
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction to compute the answer
+    // We process each component root in parallel
+    // delayed_seq creates a lazy sequence, avoiding large intermediate allocations
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Skip non-roots and index 0
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i];
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // If L % K == 0, p cuts (cut p edges to get p segments)
+            // If L % K != 0, p+1 cuts (isolate p segments)
+            c = (L == K) ? 0 : (L % K == 0 ? p : p + 1);
+        } else {
+            // Path logic
+            // If L % K == 0, p-1 cuts (internal cuts)
+            // If L % K != 0, p cuts (internal + 1 cut to separate remainder)
+            c = (L % K == 0) ? p - 1 : p;
+        }
+        return make_pair(s, c);
+    });
+
+    // Summing up results using a monoid
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:26:33.455741","27","200.1809635910903","True","20","20","0.004995479999999901","2.676316639988812e-06","0.017274000000000456","0.09990959999999802","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parlay Parallel Reduction
+ */
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    char next() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        char c = next();
+        while (c < '0' || c > '9') {
+            if (c == EOF) return 0;
+            c = next();
+        }
+        while (c >= '0' && c <= '9') {
+            x = x * 10 + (c - '0');
+            c = next();
+        }
+        return x;
+    }
+};
+
+// DSU with size optimization (stored as negative value in parent array)
+// Minimizes memory overhead and improves cache locality
+struct DSU {
+    vector<int> p;
+    vector<char> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite with union by size
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Union by size: smaller tree (less negative) points to larger (more negative)
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2]; // Add sizes
+            p[r2] = r1;     // Connect
+        } else {
+            is_cyc[r1] = 1; // Cycle detected (closing the loop)
+        }
+    }
+};
+
+int main() {
+    // Optimize standard I/O (though we use FastScanner mostly)
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction to compute the answer
+    // We process each component root in parallel
+    // delayed_seq creates a lazy sequence, avoiding large intermediate allocations
+    auto results = parlay::delayed_seq<pair<int, int>>(N + 1, [&](size_t i) {
+        // Skip non-roots and index 0
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0, 0);
+
+        int L = -dsu.p[i];
+        if (L < K) return make_pair(0, 0);
+
+        int p = L / K;      // Number of buses
+        int rem = L % K;    // Remainder students
+        int s = p * K;      // Number of students
+        int c = 0;          // Number of cuts
+
+        // Determine cuts needed to extract p components of size K
+        // Base cuts logic: p cuts if rem == 0, p+1 cuts if rem > 0
+        // This base logic applies directly to cycles (unless perfect cycle)
+        // For paths, we save 1 cut because the ""last"" cut is not needed
+        int base_cuts = p + (rem > 0);
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // Otherwise, base_cuts applies
+            c = (L == K) ? 0 : base_cuts;
+        } else {
+            // Path logic
+            // Always base_cuts - 1
+            c = base_cuts - 1;
+        }
+        return make_pair(s, c);
+    });
+
+    // Summing up results using a monoid
+    // Using pair<int, int> fits in 64-bit register for efficient reduction
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<int, int> a, pair<int, int> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0, 0)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:28:07.817703","28","203.11167079660453","True","20","20","0.004923399999999987","6.535561200003907e-06","0.019884000000004676","0.09846799999999974","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Simplified DSU and Parlay Parallel Reduction
+ *
+ * Strategy:
+ * 1. Read input using a fast buffered scanner.
+ * 2. Build the graph components using a Disjoint Set Union (DSU) data structure.
+ *    - Since the max degree is 2, components are either simple Paths or Cycles.
+ *    - We track component size and whether it is a cycle.
+ *    - Cycle detection is simplified: adding an edge between two nodes in the same component closes a cycle.
+ * 3. Use Parlay's parallel primitives to calculate the answer.
+ *    - `delayed_seq` creates a lazy view of the results for each component root.
+ *    - `reduce` sums up the students and cuts in parallel.
+ *    - Logic for cuts is derived from partitioning paths/cycles into segments of size K.
+ */
+
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        if (ptr == len) fill_buf();
+        if (len == 0) return 0;
+        
+        while (ptr < len && buf[ptr] <= ' ') {
+            ptr++;
+            if (ptr == len) fill_buf();
+        }
+        
+        while (ptr < len && buf[ptr] >= '0') {
+            x = x * 10 + (buf[ptr++] - '0');
+            if (ptr == len) fill_buf();
+        }
+        return x;
+    }
+};
+
+// Simplified DSU structure
+// p[i] < 0: i is root, size is -p[i]
+// p[i] >= 0: i is child of p[i]
+// is_cyc[i]: true if component rooted at i is a cycle
+struct DSU {
+    vector<int> p;
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite two sets
+    // In a graph with max degree 2, we only merge paths or close a cycle
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Merging two paths -> larger path
+            // Union by size: keep the larger component (more negative p) as root
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2];
+            p[r2] = r1;
+            // No need to propagate is_cyc because we only merge paths.
+            // A cycle cannot be merged with anything else in a max-degree-2 graph.
+        } else {
+            // Connecting two nodes in the same component -> Cycle
+            is_cyc[r1] = 1;
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Use delayed sequence to process each component in parallel without intermediate storage
+    // This scales well with N and avoids O(N) memory overhead for results
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Only process roots (p[i] < 0)
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i]; // Component size
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        if (dsu.is_cyc[i]) {
+            // Cycle logic
+            // If L == K, 0 cuts (perfect cycle)
+            // If L % K == 0, p cuts (cut p edges to get p segments)
+            // If L % K != 0, p+1 cuts (isolate p segments)
+            if (L == K) c = 0;
+            else if (L % K == 0) c = p;
+            else c = p + 1;
+        } else {
+            // Path logic
+            // If L % K == 0, p-1 cuts (internal cuts)
+            // If L % K != 0, p cuts (internal + 1 cut to separate remainder)
+            if (L % K == 0) c = p - 1;
+            else c = p;
+        }
+        return make_pair(s, c);
+    });
+
+    // Reduce results to get total students and cuts
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"
+"2025-12-31T18:30:28.204050","29","204.89997807570637","True","20","20","0.004880429999999904","7.280529839971183e-06","0.022499999999979536","0.09760859999999809","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Compact DSU and Parlay Parallel Reduction
+ */
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+
+// Parlay library includes
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// High-performance Input Scanner
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    // Inline next char for speed
+    inline char next() {
+        if (ptr == len) {
+            ptr = 0;
+            len = fread(buf, 1, BUF_SIZE, in);
+            if (len == 0) return EOF;
+        }
+        return buf[ptr++];
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    // Optimized integer reading
+    inline int readInt() {
+        int x = 0;
+        char c = next();
+        // Skip whitespace
+        while (c <= ' ') {
+            if (c == EOF) return 0;
+            c = next();
+        }
+        // Read digits
+        while (c >= '0') {
+            x = x * 10 + (c - '0');
+            c = next();
+        }
+        return x;
+    }
+};
+
+// Compact DSU structure
+struct DSU {
+    // p[i] < 0: i is root, -p[i] is size
+    // p[i] >= 0: p[i] is parent
+    vector<int> p;
+    // Track if component is a cycle
+    vector<uint8_t> is_cyc;
+
+    DSU(int n) : p(n + 1, -1), is_cyc(n + 1, 0) {}
+
+    // Non-recursive find with path compression
+    inline int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite by size
+    inline void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        if (r1 != r2) {
+            // Merge smaller into larger
+            if (p[r1] > p[r2]) swap(r1, r2);
+            p[r1] += p[r2];
+            p[r2] = r1;
+            // Note: Since max degree is 2, we never merge a cycle with anything.
+            // A cycle is closed and cannot be extended.
+        } else {
+            // Closing a cycle
+            is_cyc[r1] = 1;
+        }
+    }
+};
+
+int main() {
+    // Use FastScanner for input
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Parallel reduction using Parlay
+    // delayed_seq creates a lazy view, processing elements on demand
+    // We use long long to prevent any potential overflow, though int fits constraints
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Only process component roots
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        long long L = -dsu.p[i];
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;
+        long long rem = L % K;
+        long long s = p * K;
+        long long c = 0;
+
+        // Calculate cuts
+        // For a path component:
+        // We want p segments of size K.
+        // If rem == 0: we just cut the path into p segments (p-1 cuts).
+        // If rem > 0: we cut p segments and isolate them from remainder (p cuts).
+        long long path_cuts = (rem == 0) ? p - 1 : p;
+
+        if (dsu.is_cyc[i]) {
+            // For a cycle component:
+            // If L == K, we take the whole cycle (0 cuts).
+            // Otherwise, we first cut 1 edge to make it a path, then apply path logic.
+            // Result is path_cuts + 1.
+            if (L == K) {
+                c = 0;
+            } else {
+                c = path_cuts + 1;
+            }
+        } else {
+            c = path_cuts;
+        }
+        return make_pair(s, c);
+    });
+
+    // Reduce results using summation monoid
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    // Output result
+    printf(""%lld %lld\n"", total.first, total.second);
+
+    return 0;
+}"
+"2025-12-31T18:32:03.748761","30","201.93453282445245","True","20","20","0.004952100000000144","1.5587075999757666e-06","0.019588999999996304","0.09904200000000288","","/*
+ * Canadian Computing Olympiad: 2016 Day 1, Problem 1 - Field Trip
+ * Solution using Optimized DSU and Parlay Parallel Reduction
+ *
+ * Strategy:
+ * 1. Read input using a fast buffered scanner to handle large inputs efficiently.
+ * 2. Use a Disjoint Set Union (DSU) to manage connected components.
+ *    - The graph has a maximum degree of 2, so components are Paths or Cycles.
+ *    - We optimize DSU by encoding component size and cycle status into a single integer `p[i]`.
+ *      - `p[i] >= 0`: `i` is a child of `p[i]`.
+ *      - `p[i] < 0`: `i` is a root. Let `val = -p[i]`.
+ *        - Size = `val >> 1`.
+ *        - IsCycle = `val & 1`.
+ *    - This reduces memory usage and improves cache locality compared to separate arrays.
+ * 3. Use Parlay's `delayed_seq` and `reduce` to compute the total students and cuts in parallel.
+ *    - Iterate over all potential roots.
+ *    - For each component, calculate max students and min cuts based on its type (Path/Cycle) and size.
+ *    - Sum up the results using a parallel reduction.
+ */
+
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/delayed.h>
+
+using namespace std;
+
+// Efficient FastScanner using fread for high-performance IO
+class FastScanner {
+    static const int BUF_SIZE = 1 << 18;
+    char buf[BUF_SIZE];
+    int ptr, len;
+    FILE* in;
+
+    void fill_buf() {
+        len = fread(buf, 1, BUF_SIZE, in);
+        ptr = 0;
+    }
+
+public:
+    FastScanner() : ptr(0), len(0), in(stdin) {}
+    
+    int readInt() {
+        int x = 0;
+        if (ptr == len) fill_buf();
+        if (len == 0) return 0;
+        
+        while (ptr < len && buf[ptr] <= ' ') {
+            ptr++;
+            if (ptr == len) fill_buf();
+        }
+        
+        while (ptr < len && buf[ptr] >= '0') {
+            x = x * 10 + (buf[ptr++] - '0');
+            if (ptr == len) fill_buf();
+        }
+        return x;
+    }
+};
+
+// Optimized DSU structure with encoded size and cycle status
+// p[i] stores parent or encoded size/cycle info
+// If p[i] >= 0: p[i] is the parent index
+// If p[i] < 0: i is a root. Let v = -p[i].
+//   Size = v >> 1
+//   IsCycle = v & 1
+struct DSU {
+    vector<int> p;
+
+    // Initialize with -2 (Size=1, IsCycle=0)
+    // -2 = -( (1 << 1) | 0 )
+    DSU(int n) : p(n + 1, -2) {}
+
+    // Find with path compression
+    int find(int i) {
+        int root = i;
+        while (p[root] >= 0) root = p[root];
+        while (i != root) {
+            int tmp = p[i];
+            p[i] = root;
+            i = tmp;
+        }
+        return root;
+    }
+
+    // Unite sets
+    void unite(int i, int j) {
+        int r1 = find(i);
+        int r2 = find(j);
+        
+        if (r1 != r2) {
+            // Merging two paths (since max degree is 2, components are paths/cycles)
+            // Cycles cannot be merged with anything in a valid max-degree-2 graph.
+            // Decode sizes: v = -p[root], size = v >> 1
+            int s1 = (-p[r1]) >> 1;
+            int s2 = (-p[r2]) >> 1;
+            
+            // Union by size
+            if (s1 < s2) {
+                swap(r1, r2);
+                swap(s1, s2);
+            }
+            
+            // New size is s1 + s2, IsCycle is 0 (merging paths gives a path)
+            // New encoded value: -((size << 1) | cycle)
+            p[r1] = -(( (s1 + s2) << 1 )); 
+            p[r2] = r1;
+        } else {
+            // Connecting two nodes in the same component -> Cycle formed
+            int s1 = (-p[r1]) >> 1;
+            // Mark as cycle (bit 0 = 1)
+            p[r1] = -((s1 << 1) | 1);
+        }
+    }
+};
+
+int main() {
+    FastScanner sc;
+    int N = sc.readInt();
+    int M = sc.readInt();
+    int K = sc.readInt();
+
+    DSU dsu(N);
+    for (int i = 0; i < M; ++i) {
+        dsu.unite(sc.readInt(), sc.readInt());
+    }
+
+    // Process components in parallel
+    // delayed_seq generates results lazily for reduction
+    auto results = parlay::delayed_seq<pair<long long, long long>>(N + 1, [&](size_t i) {
+        // Skip dummy index 0 and non-roots
+        if (i == 0 || dsu.p[i] >= 0) return make_pair(0LL, 0LL);
+
+        // Decode component properties
+        int val = -dsu.p[i];
+        long long L = val >> 1;
+        bool is_cyc = val & 1;
+
+        if (L < K) return make_pair(0LL, 0LL);
+
+        long long p = L / K;      // Number of buses
+        long long s = p * K;      // Number of students
+        long long c = 0;          // Number of cuts
+
+        if (is_cyc) {
+            // Cycle logic
+            // If L == K, perfect cycle, 0 cuts needed (cycle is a valid bus)
+            // If L % K == 0, p cuts (cut p edges to get p segments)
+            // If L % K != 0, p + 1 cuts (isolate p segments)
+            if (L == K) c = 0;
+            else if (L % K == 0) c = p;
+            else c = p + 1;
+        } else {
+            // Path logic
+            // If L % K == 0, p - 1 cuts (internal cuts)
+            // If L % K != 0, p cuts (internal cuts + 1 cut to separate remainder)
+            if (L % K == 0) c = p - 1;
+            else c = p;
+        }
+        return make_pair(s, c);
+    });
+
+    // Reduce results to get total students and total cuts
+    auto total = parlay::reduce(results, parlay::make_monoid([](pair<long long, long long> a, pair<long long, long long> b) {
+        return make_pair(a.first + b.first, a.second + b.second);
+    }, make_pair(0LL, 0LL)));
+
+    cout << total.first << "" "" << total.second << ""\n"";
+    return 0;
+}"

@@ -1,0 +1,10 @@
+metric,value
+problem_id,joi13op2
+best_score,63.83376872628193
+has_solution,True
+metric_combined_score,63.83376872628193
+metric_passed,True
+metric_tests_passed,45
+metric_tests_total,45
+metric_avg_time,0.015665689492468826
+metric_artifacts,

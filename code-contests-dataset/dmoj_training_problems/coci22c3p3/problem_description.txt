@@ -1,0 +1,111 @@
+<style>
+.table{width:auto;}
+</style>
+
+<div style="float:right; width:200px; padding: 10px 10px">
+<img src="https://static.dmoj.ca/media/martor/6d4c0f47-f417-4a90-8eb2-64914d5b0fd3.png" style="margin: 0 auto; width:100%; height:50%;">
+</div>
+
+Baltazar decided to go on a vacation. Currently, he is in Baltazargrad, and wants
+to travel to Primošten. To get there, he has to go through many cities. There are
+~n~ cities, and they are connected with ~m~ two-way roads. Baltazargrad is labelled
+as city no. ~1~, and Primošten as city no. ~n~.
+
+Baltazar isn't sure about the route from Baltazargrad to Primošten, so he will use
+GPS. It will lead him to his destination using the **shortest** route.
+
+But Baltazar really likes to travel, and he can pour his magic potion on any road
+(even the ones he won't pass by), and increase its length by ~2~ kilometres. He can pour it on **only one**
+road.
+
+Soon he realized that he had to check-in in at the hotel Zora in Primošten before noon, so he couldn't increase
+the length of the shortest route too much. Now, he wants to know how many roads he can pour his magic
+potion on so that the shortest distance between Baltazargrad and Primošten increases by **exactly** ~1~
+kilometre.
+
+Help him determine the roads he can pour his magic potion on.
+
+## Input Specification
+Each test contains multiple test cases. The first line contains the number of test cases ~t~ ~(1 \le t \le 10\,000)~.
+The description of the test cases follows.
+
+The first line of each test case contains integers ~n~ and ~m~ ~(2 \le n \le 300\,000, 1 \le m \le \min(300\,000, \frac{n \cdot (n-1)}{2})~,
+the number of cities, and the number of roads between cities.
+
+The following ~m~ lines contain integers ~a_i~, ~b_i~, ~w_i~ ~(1 \le a_i, b_i \le n, a_i \ne b_i, 1 \le w_i \le 10^9)~, meaning there is
+a road between cities ~a_i~ and ~b_i~, and its length is ~w_i~. Between each pair of cities, there is at most one road
+connecting them.
+
+All the cities are connected, i.e., for each pair of cities, there is a path from one to another, but not
+necessary direct.
+
+It is guaranteed that the sum of ~n~ over all test cases does not exceed ~300\,000~, and that the sum of ~m~ over
+all test cases does not exceed ~300\,000~.
+
+## Output Specification
+In the first line, print the integer ~c~, the number of roads on which Baltazar can pour his magic potion. In
+the second line, print ~c~ integers, the indices of the roads in **increasing** order.
+
+## Constraints
+
+| Subtask | Points | Constraints |
+| - | - | - |
+| ~1~ | ~15~ | ~n, m \le 1\,000~ |
+| ~2~ | ~30~ | There is a road between Baltazargrad and Primošten, and its length is ~1~ kilometre longer than the shortest distance between these cities. |
+| ~3~ | ~65~ | No additional constraints. |
+
+## Sample Input
+```
+3
+6 6
+1 2 2
+1 3 2
+2 4 2
+3 5 2
+4 5 1
+5 6 2
+6 6
+1 2 2
+1 3 2
+2 4 2
+3 5 2
+4 5 3
+5 6 2
+6 7
+1 2 2
+1 3 2
+2 4 2
+3 5 2
+4 5 1
+5 6 2
+1 6 7
+```
+
+## Sample Output
+```
+2
+2 4
+0
+3
+2 4 6
+```
+
+## Explanation for Sample
+The cities and the roads are shown in the image. If Baltazar pours his magic potion on road ~2~ (between
+cities ~1~ and ~3~), or on road ~4~ (between cities ~3~ and ~5~), then the shortest distance between cities ~1~ and ~n~
+will increase by ~1~.
+
+<latex>
+\documentclass[tikz]{standalone}
+\begin{document}
+\begin{tikzpicture}[auto,very thick,s/.style={draw,circle,minimum width=1cm},every node/.style={font=\Large}]
+\node[s,line width=1mm] (1) at (0,1.8) {1};
+\node[s] (2) at (3,0) {2};
+\node[s] (3) at (0.3,5.4) {3};
+\node[s] (4) at (6,1.8) {4};
+\node[s] (5) at (3,3.3) {5};
+\node[s,line width=1mm] (6) at (5.7,5.4) {6};
+\draw \foreach \u/\v/\w in {1/2/2,1/3/2,2/4/2,3/5/2,5/4/1,5/6/2} {(\u) edge node {\w} (\v)};
+\end{tikzpicture}
+\end{document}
+</latex>

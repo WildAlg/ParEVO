@@ -1,0 +1,2081 @@
+"timestamp","iteration","combined_score","passed","tests_passed","tests_total","avg_time","variance_time","max_time","total_time","compile_error","code"
+"2025-12-31T13:06:39.158763","1","0.0","False","0","1","0.0","0.0","0.0","0.0","","
+//EVOLVE-BLOCK-START
+#include <iostream>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+using namespace std;
+
+int main() {
+    // TODO: Implement solution to the problem
+    // Read input, process it, and output the result
+    return 0;
+}
+//EVOLVE-BLOCK-END
+"
+"2025-12-31T13:10:13.682146","2","40.646034322761956","True","52","52","0.0246026461538462","7.577883783994397e-05","0.0417159999999992","1.2793376000000023","","#include <iostream>
+#include <vector>
+#include <string>
+#include <stack>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Structure to represent an edge in the adjacency list
+struct Edge {
+    int to;
+    int id; // Original index of the edge
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Adjacency list to store the graph
+    // adj[u] contains list of {neighbor, edge_index}
+    vector<vector<Edge>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result string initialized to 'G' (Grey)
+    // We will overwrite characters for painted edges
+    string result(M, 'G');
+
+    // DFS state arrays
+    vector<int> depth(N + 1, -1);
+    vector<int> parent(N + 1, -1);
+    vector<int> low(N + 1, 0);
+    vector<int> preorder;
+    preorder.reserve(N);
+
+    // Iterative DFS to build the tree and compute preorder traversal
+    // We iterate 1 to N to handle disconnected components
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != -1) continue;
+
+        stack<pair<int, int>> s;
+        s.push({root, 0});
+        depth[root] = 0;
+        preorder.push_back(root);
+
+        while (!s.empty()) {
+            int u = s.top().first;
+            int& idx = s.top().second; // Reference to current edge index
+
+            if (idx < adj[u].size()) {
+                int v = adj[u][idx].to;
+                int id = adj[u][idx].id;
+                idx++;
+
+                if (v == parent[u]) continue;
+
+                if (depth[v] != -1) {
+                    // Back-edge: v is already visited and is an ancestor
+                    // This edge remains Grey.
+                    // Its existence will update 'low' values in the next step.
+                } else {
+                    // Tree-edge
+                    parent[v] = u;
+                    depth[v] = depth[u] + 1;
+                    preorder.push_back(v);
+                    
+                    // Mark as painted in result (placeholder, specific color set later)
+                    result[id] = 'P'; 
+                    
+                    s.push({v, 0});
+                }
+            } else {
+                s.pop();
+            }
+        }
+    }
+
+    // Initialize low values with depth
+    for (int u : preorder) {
+        low[u] = depth[u];
+    }
+
+    // Compute low values using reverse preorder (bottom-up)
+    // low[u] = min depth reachable by a back-edge from subtree(u)
+    for (int i = preorder.size() - 1; i >= 0; --i) {
+        int u = preorder[i];
+        for (const auto& e : adj[u]) {
+            int v = e.to;
+            if (v == parent[u]) continue;
+
+            if (parent[v] == u) {
+                // v is a child of u in the DFS tree
+                low[u] = min(low[u], low[v]);
+            } else {
+                // (u, v) is a back-edge to an ancestor
+                low[u] = min(low[u], depth[v]);
+            }
+        }
+    }
+
+    // Assign colors top-down
+    // inc_color[u] stores the color of the edge (parent[u], u)
+    // 0 for Red, 1 for Blue. Root edges default to Red.
+    vector<int> inc_color(N + 1, 0); 
+
+    for (int u : preorder) {
+        int c_in = inc_color[u];
+        
+        for (const auto& e : adj[u]) {
+            int v = e.to;
+            int id = e.id;
+            
+            // Only process tree edges from u to children
+            if (parent[v] == u) {
+                int c_out;
+                
+                // If low[v] < depth[u], there is a back-edge from subtree(v) to an ancestor of u.
+                // The path for this back-edge passes through u (parent -> u -> v).
+                // We MUST alternate colors.
+                if (low[v] < depth[u]) {
+                    c_out = 1 - c_in;
+                } else {
+                    // No path passes through u via v to an ancestor.
+                    // We are free to choose. Default to Red (0).
+                    c_out = 0;
+                }
+                
+                inc_color[v] = c_out;
+                result[id] = (c_out == 0 ? 'R' : 'B');
+            }
+        }
+    }
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2025-12-31T13:13:05.730898","3","20.397248975959986","True","52","52","0.04902621923076936","7.626700823994523e-05","0.07764199999999732","2.5493634000000065","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Approach:
+ * To minimize the number of painted roads while satisfying the condition, we should paint
+ * a spanning forest of the graph. The condition requires that for every grey road (u, v),
+ * there exists an alternating colored path between u and v.
+ * 
+ * A Depth First Search (DFS) spanning tree has a useful property: all non-tree edges 
+ * are ""back-edges"", meaning they connect a node to one of its ancestors. In a DFS tree, 
+ * there are no ""cross-edges"" between different branches.
+ * 
+ * For any back-edge (u, v), the unique path in the tree between u and v is the vertical 
+ * path along the tree edges. If we color the tree edges based on the parity of their 
+ * depth (level), we can ensure this path alternates. Specifically, if an edge connects 
+ * a parent at depth d to a child at depth d+1, we color it Red if (d+1) is odd, and 
+ * Blue if (d+1) is even (or vice versa). Since the path consists of edges at consecutive 
+ * depths (d+1, d+2, ...), the colors will alternate.
+ * 
+ * Algorithm:
+ * 1. Perform a DFS traversal to construct a spanning forest.
+ * 2. Maintain the depth of each node.
+ * 3. When traversing a tree edge to a child v, color the edge based on depth[v] % 2.
+ * 4. Leave all back-edges unpainted (Grey).
+ * 
+ * This uses exactly N - C painted edges (where C is the number of connected components),
+ * which is the theoretical minimum to maintain connectivity properties required.
+ * 
+ * Time Complexity: O(N + M)
+ * Space Complexity: O(N + M)
+ */
+
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <tuple>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Adjacency list: u -> vector of {v, edge_index}
+    // We use a standard vector for the graph structure for simplicity and efficiency in random access
+    vector<vector<pair<int, int>>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result sequence using parlay library as required
+    // Initialize all roads to 'G' (Grey)
+    parlay::sequence<char> ans(M, 'G');
+
+    // Arrays for DFS state
+    vector<int> visited(N + 1, 0);
+    vector<int> depth(N + 1, 0);
+
+    // Stack for iterative DFS to avoid stack overflow on deep trees (N up to 2*10^5)
+    vector<int> stack;
+    stack.reserve(N);
+
+    // Pointer to the current edge index in adj[u] to avoid re-scanning edges
+    // This ensures overall O(N + M) time complexity
+    vector<int> edge_ptr(N + 1, 0);
+
+    // Iterate over all nodes 1 to N to handle potentially disconnected graph
+    for (int i = 1; i <= N; ++i) {
+        if (visited[i]) continue;
+
+        // Start DFS from unvisited node i (root of a component tree)
+        visited[i] = 1;
+        depth[i] = 0;
+        stack.push_back(i);
+
+        while (!stack.empty()) {
+            int u = stack.back();
+
+            bool pushed = false;
+            // Iterate over neighbors of u starting from the last processed edge
+            // idx is a reference to edge_ptr[u], so updates persist
+            for (int &idx = edge_ptr[u]; idx < adj[u].size(); ++idx) {
+                int v = adj[u][idx].first;
+                int edge_idx = adj[u][idx].second;
+
+                if (!visited[v]) {
+                    visited[v] = 1;
+                    depth[v] = depth[u] + 1;
+
+                    // This edge (u, v) is a tree edge.
+                    // Color it based on the parity of the depth of v.
+                    // If depth is odd -> 'R', even -> 'B'.
+                    // This ensures that any vertical path in the tree alternates colors.
+                    if (depth[v] % 2 != 0) {
+                        ans[edge_idx] = 'R';
+                    } else {
+                        ans[edge_idx] = 'B';
+                    }
+
+                    stack.push_back(v);
+                    pushed = true;
+                    
+                    // Increment idx to point to next edge for when we return to u
+                    idx++; 
+                    break; // Simulate recursive call: process v immediately
+                }
+            }
+
+            if (!pushed) {
+                // All neighbors processed or visited, backtrack
+                stack.pop_back();
+            }
+        }
+    }
+
+    // Output the resulting paint plan
+    for (char c : ans) {
+        cout << c;
+    }
+    cout << endl;
+
+    return 0;
+}"
+"2025-12-31T13:16:08.174295","4","12.49848756282715","True","52","52","0.08000968076923066","0.0008705935190395609","0.14825699999998676","4.160503399999994","","/*
+ * Solution for CCC '24 S4 - Painting Roads
+ * 
+ * Problem Analysis:
+ * The problem asks us to minimize the number of painted roads such that for every grey road (u, v),
+ * there exists a path between u and v consisting of alternating Red and Blue roads.
+ * 
+ * Strategy:
+ * 1. Minimization: To connect a component of V vertices, we need at least V-1 edges (a spanning tree).
+ *    Painting a spanning tree is sufficient to provide a unique path between any two nodes.
+ *    Any non-tree edge (back-edge) can be left Grey, provided the unique tree path between its endpoints
+ *    satisfies the alternating color condition. Thus, we only paint the edges of a DFS tree.
+ * 
+ * 2. Constraints: For a back-edge connecting a descendant v to an ancestor u, the path in the tree
+ *    from u to v must alternate colors. This implies that for any node x on this path (excluding u),
+ *    the edge entering x (from parent) and the edge leaving x (to child) must have different colors.
+ * 
+ * 3. Algorithm:
+ *    - Construct the graph using Parlay's sequence and sort for efficiency (CSR format).
+ *    - Perform an iterative DFS to build a spanning forest and determine tree edges.
+ *    - Compute 'low' values (similar to Tarjan's bridge-finding algorithm) to determine the highest
+ *      ancestor reachable from each node's subtree via back-edges.
+ *    - Assign colors top-down. If a node v's subtree has a back-edge going strictly above its parent u
+ *      (i.e., low[v] < depth[u]), we must switch colors between (parent[u], u) and (u, v).
+ *      Otherwise, we are free to choose (default to Red).
+ * 
+ * Complexity:
+ *    - Time: O(N + M) (Sorting takes O(M log M) or O(M) with radix sort, DFS is linear).
+ *    - Space: O(N + M).
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <stack>
+#include <algorithm>
+#include <tuple>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Structure to represent a directed edge in the graph construction
+struct Edge {
+    int u, v, id;
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Read edges into a temporary vector
+    // We use standard vector for sequential reading from cin
+    vector<Edge> input_edges(M);
+    for (int i = 0; i < M; ++i) {
+        cin >> input_edges[i].u >> input_edges[i].v;
+        input_edges[i].id = i;
+    }
+
+    // Create a sequence of symmetric edges for the undirected graph using Parlay
+    // We create 2 directed edges for each input road
+    parlay::sequence<Edge> edges(2 * M);
+    parlay::parallel_for(0, M, [&](size_t i) {
+        edges[2 * i] = {input_edges[i].u, input_edges[i].v, input_edges[i].id};
+        edges[2 * i + 1] = {input_edges[i].v, input_edges[i].u, input_edges[i].id};
+    });
+
+    // Sort edges by source vertex 'u' to build a CSR-like structure
+    // This allows efficient traversal of adjacency lists
+    parlay::sort_inplace(edges, [](const Edge& a, const Edge& b) {
+        return a.u < b.u;
+    });
+
+    // Build offsets array where offsets[u] is the start index of edges for vertex u
+    // offsets size is N + 2 to handle 1-based indexing and boundary check safely
+    parlay::sequence<int> offsets(N + 2, 0);
+    
+    // Sequential pass to fill offsets is efficient enough (O(M))
+    int current_u = 0;
+    offsets[0] = 0; 
+    for(int i = 0; i < 2 * M; ++i) {
+        while (current_u < edges[i].u) {
+            current_u++;
+            offsets[current_u] = i;
+        }
+    }
+    while(current_u < N + 1) {
+        current_u++;
+        offsets[current_u] = 2 * M;
+    }
+
+    // Result string initialized to 'G' (Grey)
+    // We will overwrite characters for painted edges
+    string result(M, 'G');
+
+    // DFS state arrays
+    vector<int> depth(N + 1, -1);
+    vector<int> parent(N + 1, 0);
+    vector<int> preorder;
+    preorder.reserve(N);
+
+    // Iterative DFS to handle stack depth and disconnected components
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != -1) continue;
+
+        stack<int> s;
+        s.push(root);
+        depth[root] = 0;
+        preorder.push_back(root);
+        
+        // Stack to keep track of current edge index for each node on the recursion stack
+        // Stores index into 'edges' array
+        stack<int> edge_ptr; 
+        edge_ptr.push(offsets[root]);
+
+        while (!s.empty()) {
+            int u = s.top();
+            int idx = edge_ptr.top();
+            
+            // Check if there are more edges to process for u
+            if (idx < offsets[u + 1]) {
+                int v = edges[idx].v;
+                int id = edges[idx].id;
+                
+                // Advance the edge pointer for u
+                edge_ptr.pop();
+                edge_ptr.push(idx + 1);
+
+                if (v == parent[u]) continue;
+
+                if (depth[v] != -1) {
+                    // Back-edge: already visited
+                    // Do nothing here, will be used in low-link calculation
+                } else {
+                    // Tree-edge
+                    parent[v] = u;
+                    depth[v] = depth[u] + 1;
+                    preorder.push_back(v);
+                    
+                    // Mark as painted in result (placeholder)
+                    result[id] = 'P'; 
+                    
+                    s.push(v);
+                    edge_ptr.push(offsets[v]);
+                }
+            } else {
+                // All edges processed for u, backtrack
+                s.pop();
+                edge_ptr.pop();
+            }
+        }
+    }
+
+    // Compute 'low' values
+    // low[u] is the smallest depth reachable from subtree of u via a back-edge
+    vector<int> low(N + 1);
+    // Initialize low[u] = depth[u] in parallel
+    parlay::parallel_for(1, N + 1, [&](size_t i) {
+        low[i] = depth[i];
+    });
+
+    // Process nodes in reverse preorder (bottom-up) to compute low values
+    for (int i = preorder.size() - 1; i >= 0; --i) {
+        int u = preorder[i];
+        int start = offsets[u];
+        int end = offsets[u + 1];
+        
+        for (int k = start; k < end; ++k) {
+            int v = edges[k].v;
+            if (v == parent[u]) continue;
+            
+            if (parent[v] == u) {
+                // v is a child in the DFS tree
+                low[u] = min(low[u], low[v]);
+            } else {
+                // (u, v) is a back-edge
+                low[u] = min(low[u], depth[v]);
+            }
+        }
+    }
+
+    // Assign colors top-down
+    // inc_color[u] is the color of the incoming tree edge (parent[u], u)
+    // 0 = Red, 1 = Blue
+    vector<int> inc_color(N + 1, 0); 
+
+    for (int u : preorder) {
+        int c_in = inc_color[u];
+        
+        int start = offsets[u];
+        int end = offsets[u + 1];
+        
+        for (int k = start; k < end; ++k) {
+            int v = edges[k].v;
+            int id = edges[k].id;
+            
+            // We only color tree edges (u, v) where v is child
+            if (parent[v] == u) {
+                int c_out;
+                
+                // If low[v] < depth[u], there is a back-edge from v's subtree to an ancestor of u.
+                // The path covering this back-edge passes through (parent[u], u) and (u, v).
+                // Thus, we must alternate colors to satisfy the condition for that back-edge.
+                if (low[v] < depth[u]) {
+                    c_out = 1 - c_in;
+                } else {
+                    // No back-edge constraint strictly above u.
+                    // We can choose freely. We default to Red (0).
+                    c_out = 0;
+                }
+                
+                inc_color[v] = c_out;
+                result[id] = (c_out == 0 ? 'R' : 'B');
+            }
+        }
+    }
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2025-12-31T13:18:32.469435","5","21.634442165061564","True","52","52","0.04622259230769283","0.00015858768736002336","0.08166699999999594","2.403574800000027","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Solution Analysis:
+ * We need to paint a minimal set of edges (Red/Blue) such that every unpainted (Grey) edge (u, v)
+ * has an alternating colored path between u and v consisting only of painted edges.
+ * 
+ * Minimizing painted edges implies maximizing Grey edges. The maximum number of edges we can 
+ * leave Grey while maintaining connectivity (necessary for paths to exist) corresponds to 
+ * selecting a spanning forest. The spanning forest edges will be painted, and all back-edges 
+ * will be Grey.
+ * 
+ * In a DFS spanning tree, any non-tree edge (back-edge) connects a node u to an ancestor v.
+ * The unique path in the tree between u and v is the direct vertical path.
+ * If we color the tree edges based on their depth (level) parity, consecutive edges on any 
+ * vertical path will have alternating colors.
+ * Specifically, an edge connecting depth d to d+1 can be colored Red if (d+1) is odd, and 
+ * Blue if (d+1) is even. Since the path traverses depths k, k+1, k+2..., the colors will alternate.
+ * 
+ * Implementation:
+ * 1. Build adjacency list storing edge indices.
+ * 2. Perform iterative DFS to handle deep recursion and disconnected components.
+ * 3. Maintain 'depth' to detect tree edges and assign colors.
+ * 4. Use parlay::sequence for the result and parlay::parallel_for for output construction.
+ * 
+ * Time Complexity: O(N + M)
+ * Space Complexity: O(N + M)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Structure to represent an edge in the adjacency list
+struct Edge {
+    int to;
+    int id; // Original index of the edge
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Adjacency list to store the graph
+    // adj[u] contains list of {neighbor, edge_index}
+    vector<vector<Edge>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result sequence using parlay library
+    // Initialize all roads to 'G' (Grey)
+    parlay::sequence<char> result(M, 'G');
+
+    // DFS state arrays
+    // depth: -1 for unvisited, >=0 for visited
+    vector<int> depth(N + 1, -1);
+    
+    // edge_ptr: current index in adj[u] to resume iteration
+    vector<int> edge_ptr(N + 1, 0);
+    
+    // Stack for iterative DFS
+    vector<int> stack;
+    stack.reserve(N);
+
+    // Iterative DFS to build the spanning forest
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != -1) continue;
+
+        depth[root] = 0;
+        stack.push_back(root);
+
+        while (!stack.empty()) {
+            int u = stack.back();
+            
+            bool pushed = false;
+            // Reference to the current edge index for node u
+            int &idx = edge_ptr[u];
+            
+            // Iterate through neighbors
+            while (idx < adj[u].size()) {
+                const Edge& e = adj[u][idx];
+                int v = e.to;
+                int id = e.id;
+                
+                // Move to next edge for future visits
+                idx++;
+                
+                if (depth[v] == -1) {
+                    // Tree edge found (u -> v)
+                    depth[v] = depth[u] + 1;
+                    
+                    // Assign color based on depth parity of the child v
+                    // If depth[v] is odd, color Red. If even, color Blue.
+                    // This ensures any vertical path in the tree alternates colors.
+                    if (depth[v] % 2 != 0) {
+                        result[id] = 'R';
+                    } else {
+                        result[id] = 'B';
+                    }
+                    
+                    stack.push_back(v);
+                    pushed = true;
+                    break; // Simulate recursive call
+                }
+            }
+            
+            if (!pushed) {
+                // All neighbors processed, backtrack
+                stack.pop_back();
+            }
+        }
+    }
+
+    // Convert result to string for output
+    // Use parlay::parallel_for to demonstrate library usage
+    string out_str(M, ' ');
+    parlay::parallel_for(0, M, [&](size_t i) {
+        out_str[i] = result[i];
+    });
+
+    cout << out_str << endl;
+
+    return 0;
+}"
+"2025-12-31T13:21:12.636761","6","14.587886320192547","True","52","52","0.06855002692307798","0.0011132617062389156","0.11583499999998992","3.564601400000055","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Solution Approach:
+ * The problem asks to minimize the number of painted roads such that for every grey road (u, v),
+ * there is an alternating colored path between u and v.
+ * 
+ * Key Insight:
+ * A spanning forest (specifically a DFS tree) is sufficient to connect the graph with the minimum
+ * number of edges. All non-tree edges in a DFS traversal are back-edges (connecting a node to an ancestor).
+ * For any back-edge (u, v) where v is an ancestor of u, the unique path in the tree is the vertical
+ * path from v to u.
+ * 
+ * By coloring the tree edges based on the depth of the child node, we can ensure alternating colors.
+ * Specifically, if an edge connects a parent at depth d to a child at depth d+1:
+ * - If (d+1) is odd, color it Red.
+ * - If (d+1) is even, color it Blue.
+ * This guarantees that any vertical path (which consists of edges at depths d+1, d+2, d+3...)
+ * will have alternating colors (Odd, Even, Odd...).
+ * 
+ * Implementation:
+ * 1. Efficiently build the graph using Parlay library primitives (parallel sort for CSR construction).
+ * 2. Perform an iterative DFS to build the spanning forest and assign colors.
+ * 3. Output the result.
+ * 
+ * Complexity:
+ * Time: O(N + M) (Sorting is O(M log M) but very fast in parallel).
+ * Space: O(N + M).
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Structure to represent an edge for sorting
+struct Edge {
+    int u, v, id;
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Read input edges
+    // Using std::vector for sequential reading from cin
+    vector<pair<int, int>> raw_edges(M);
+    for (int i = 0; i < M; ++i) {
+        cin >> raw_edges[i].first >> raw_edges[i].second;
+    }
+
+    // Create a symmetric edge list for the undirected graph
+    // We create 2 directed edges for each input road
+    // Using parlay::sequence and parallel_for for efficiency
+    parlay::sequence<Edge> edges(2 * M);
+    parlay::parallel_for(0, M, [&](size_t i) {
+        edges[2 * i] = {raw_edges[i].first, raw_edges[i].second, (int)i};
+        edges[2 * i + 1] = {raw_edges[i].second, raw_edges[i].first, (int)i};
+    });
+
+    // Sort edges by source vertex 'u' to build a CSR-like structure
+    // This groups all edges starting from the same vertex together
+    auto sorted_edges = parlay::sort(edges, [](const Edge& a, const Edge& b) {
+        return a.u < b.u;
+    });
+
+    // Build 'offsets' array where offsets[u] is the start index in sorted_edges for vertex u
+    // offsets size is N + 2 to handle 1-based indexing and provide an end sentinel
+    parlay::sequence<int> offsets(N + 2, 0);
+    
+    // Sequential pass to fill offsets is efficient enough (O(N + M))
+    {
+        int current_u = 0;
+        offsets[0] = 0;
+        for (size_t i = 0; i < sorted_edges.size(); ++i) {
+            int u = sorted_edges[i].u;
+            while (current_u < u) {
+                current_u++;
+                offsets[current_u] = i;
+            }
+        }
+        while (current_u < N + 1) {
+            current_u++;
+            offsets[current_u] = sorted_edges.size();
+        }
+    }
+
+    // Result string initialized to 'G' (Grey)
+    string ans(M, 'G');
+
+    // DFS State arrays
+    // visited: 0 = unvisited, 1 = visited
+    vector<int> visited(N + 1, 0);
+    // depth: depth of the node in the DFS tree
+    vector<int> depth(N + 1, 0);
+    // current_edge: index in sorted_edges for the next edge to process for each node
+    // This allows us to resume iterating adjacency list after returning from recursion
+    vector<int> current_edge(N + 1);
+
+    // Stack for iterative DFS
+    vector<int> stack;
+    stack.reserve(N);
+
+    // Iterate 1 to N to handle disconnected components
+    for (int root = 1; root <= N; ++root) {
+        if (visited[root]) continue;
+
+        visited[root] = 1;
+        depth[root] = 0;
+        current_edge[root] = offsets[root];
+        stack.push_back(root);
+
+        while (!stack.empty()) {
+            int u = stack.back();
+            int end = offsets[u + 1];
+            
+            bool pushed = false;
+            // Use reference to update the edge pointer directly in the array
+            int &idx = current_edge[u];
+
+            while (idx < end) {
+                const auto& e = sorted_edges[idx];
+                idx++; // Advance pointer so we don't process this edge again
+
+                if (!visited[e.v]) {
+                    visited[e.v] = 1;
+                    depth[e.v] = depth[u] + 1;
+
+                    // Color the tree edge based on the depth of the child (e.v)
+                    // If depth is odd -> Red, even -> Blue (or vice versa)
+                    // This ensures alternating colors on any vertical path in the tree
+                    if (depth[e.v] % 2 != 0) {
+                        ans[e.id] = 'R';
+                    } else {
+                        ans[e.id] = 'B';
+                    }
+
+                    // Prepare to visit v
+                    current_edge[e.v] = offsets[e.v];
+                    stack.push_back(e.v);
+                    pushed = true;
+                    break; // Simulate recursion: process v immediately
+                }
+            }
+
+            if (!pushed) {
+                // All neighbors processed, backtrack
+                stack.pop_back();
+            }
+        }
+    }
+
+    cout << ans << endl;
+
+    return 0;
+}"
+"2025-12-31T13:23:37.020902","7","19.116651868417044","True","52","52","0.05231041538461646","0.0026996978898380505","0.09147300000000769","2.7201416000000562","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Solution Analysis:
+ * To minimize the number of painted roads, we should paint a spanning forest of the graph.
+ * This leaves M - (N - C) edges as Grey, where C is the number of connected components.
+ * 
+ * The condition requires that for every Grey edge (u, v), there is an alternating colored path
+ * between u and v consisting only of painted edges.
+ * In a DFS spanning tree, all non-tree edges (Grey edges) are back-edges, connecting a node
+ * to one of its ancestors. The unique tree path between them is a vertical path.
+ * 
+ * If we color the tree edges based on the parity of the depth of the child node, we guarantee
+ * that any vertical path in the tree alternates colors.
+ * Specifically:
+ * - Edge (parent, child) is colored Blue if depth[child] is even.
+ * - Edge (parent, child) is colored Red if depth[child] is odd.
+ * Since a vertical path traverses depths d, d+1, d+2, ..., the colors will alternate.
+ * 
+ * Implementation:
+ * - Use standard vector adjacency list for performance.
+ * - Use iterative DFS with a pre-allocated stack to prevent stack overflow and avoid reallocation.
+ * - Use parlay::sequence and parlay::parallel_for to satisfy the library requirement and 
+ *   optimize output generation.
+ * 
+ * Time Complexity: O(N + M)
+ * Space Complexity: O(N + M)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Structure to represent a neighbor in the adjacency list
+struct Neighbor {
+    int to;
+    int id; // Original edge index
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Adjacency list to store the graph
+    // Using vector<vector> is efficient for the given constraints (N, M <= 2e5)
+    vector<vector<Neighbor>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result sequence using parlay library
+    // Initialize all roads to 'G' (Grey)
+    parlay::sequence<char> result(M, 'G');
+
+    // Depth array: 0 for unvisited, >0 for visited (depth level)
+    vector<int> depth(N + 1, 0);
+
+    // Stack for iterative DFS
+    // Stores {node, current_adj_index}
+    // Reserve memory to avoid reallocation during DFS
+    vector<pair<int, int>> stack;
+    stack.reserve(N);
+
+    // Iterative DFS to build the spanning forest
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != 0) continue;
+
+        // Start DFS from unvisited root
+        depth[root] = 1;
+        stack.push_back({root, 0});
+
+        while (!stack.empty()) {
+            int u = stack.back().first;
+            int idx = stack.back().second;
+
+            // Check if there are more neighbors to process for u
+            if (idx < adj[u].size()) {
+                // Increment index in the stack frame for the next iteration
+                stack.back().second++;
+
+                const auto& edge = adj[u][idx];
+                int v = edge.to;
+                
+                if (depth[v] == 0) {
+                    // Tree edge found (u -> v)
+                    int v_depth = depth[u] + 1;
+                    depth[v] = v_depth;
+                    
+                    // Assign color based on depth parity of the child v
+                    // Even depth -> Blue, Odd depth -> Red
+                    // This guarantees alternating colors on any vertical path
+                    if (v_depth % 2 == 0) {
+                        result[edge.id] = 'B';
+                    } else {
+                        result[edge.id] = 'R';
+                    }
+                    
+                    // Push child to stack to visit it next
+                    stack.push_back({v, 0});
+                }
+                // If v is visited, it's a back-edge (or parent). 
+                // We leave it Grey.
+            } else {
+                // All neighbors processed, backtrack
+                stack.pop_back();
+            }
+        }
+    }
+
+    // Convert result to string for output
+    // Use parlay::parallel_for for efficient parallel string construction
+    string out(M, ' ');
+    parlay::parallel_for(0, M, [&](size_t i) {
+        out[i] = result[i];
+    });
+
+    cout << out << endl;
+
+    return 0;
+}"
+"2025-12-31T13:26:10.457841","8","26.21815338890324","True","52","52","0.03814151153846126","0.0023709140642397685","0.07047000000000025","1.9833585999999854","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Solution Approach:
+ * To minimize the number of painted roads, we should paint a spanning forest of the graph.
+ * This corresponds to exactly N - C painted edges (where C is the number of connected components).
+ * 
+ * We use a Depth First Search (DFS) to traverse the graph. In an undirected graph, DFS produces a tree
+ * where all non-tree edges are ""back-edges"" connecting a node to an ancestor. There are no cross-edges.
+ * 
+ * The condition requires that for any grey road (back-edge) between u and v, there exists an alternating
+ * colored path between u and v. Since (u, v) is a back-edge, the unique path in the DFS tree is the 
+ * vertical path between u and v. This path consists of edges at consecutive depths.
+ * 
+ * By coloring tree edges based on the parity of the depth of the child node, we ensure that consecutive
+ * edges on any vertical path have alternating colors. Specifically:
+ * - If depth[child] is odd, color the edge Red.
+ * - If depth[child] is even, color the edge Blue.
+ * 
+ * Implementation Details:
+ * - Uses a Forward Star (array-based adjacency list) for memory efficiency and cache locality.
+ * - Performs iterative DFS to avoid stack overflow on deep trees.
+ * - Uses `parlay` library for parallel initialization and result construction.
+ * 
+ * Time Complexity: O(N + M)
+ * Space Complexity: O(N + M)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Optimize standard I/O operations for speed
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+int main() {
+    fast_io();
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Adjacency list using Forward Star representation for performance
+    // head[u] stores the index of the first edge starting at u
+    // nxt[i] stores the index of the next edge in the list
+    // to[i] stores the destination vertex of edge i
+    // edge_idx[i] stores the original index of the edge in the input
+    vector<int> head(N + 1, -1);
+    vector<int> nxt(2 * M);
+    vector<int> to(2 * M);
+    vector<int> edge_idx(2 * M);
+
+    int ecnt = 0;
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        
+        // Add edge u -> v
+        to[ecnt] = v;
+        edge_idx[ecnt] = i;
+        nxt[ecnt] = head[u];
+        head[u] = ecnt++;
+        
+        // Add edge v -> u
+        to[ecnt] = u;
+        edge_idx[ecnt] = i;
+        nxt[ecnt] = head[v];
+        head[v] = ecnt++;
+    }
+
+    // Result sequence initialized to 'G' (Grey)
+    // Using parlay::sequence as required by the problem environment
+    parlay::sequence<char> result(M, 'G');
+
+    // DFS state arrays
+    vector<int> depth(N + 1, -1);
+    vector<int> st;
+    st.reserve(N);
+    
+    // cur_edge[u] points to the current edge being processed for vertex u
+    // Initialized in parallel using parlay
+    vector<int> cur_edge(N + 1);
+    parlay::parallel_for(0, N + 1, [&](size_t i) {
+        cur_edge[i] = head[i];
+    });
+
+    // Iterative DFS to build a spanning forest and color tree edges
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != -1) continue;
+
+        depth[root] = 0;
+        st.push_back(root);
+
+        while (!st.empty()) {
+            int u = st.back();
+            bool pushed = false;
+
+            // Iterate over neighbors of u
+            // e is a reference to cur_edge[u], so updates persist across stack operations
+            for (int &e = cur_edge[u]; e != -1; e = nxt[e]) {
+                int v = to[e];
+                
+                if (depth[v] == -1) {
+                    // Tree edge found
+                    depth[v] = depth[u] + 1;
+                    
+                    // Color the edge based on the parity of the child's depth
+                    // This ensures that any vertical path in the tree alternates colors
+                    if (depth[v] & 1) {
+                        result[edge_idx[e]] = 'R';
+                    } else {
+                        result[edge_idx[e]] = 'B';
+                    }
+                    
+                    st.push_back(v);
+                    pushed = true;
+                    
+                    // Advance e to the next edge before pushing v, 
+                    // so we continue from the next edge when we backtrack to u
+                    e = nxt[e];
+                    break;
+                }
+            }
+
+            if (!pushed) {
+                st.pop_back();
+            }
+        }
+    }
+
+    // Convert result to string for fast output
+    // Using parlay::parallel_for for efficient construction
+    string output(M, ' ');
+    parlay::parallel_for(0, M, [&](size_t i) {
+        output[i] = result[i];
+    });
+
+    cout << output << endl;
+
+    return 0;
+}"
+"2025-12-31T13:28:32.135651","9","20.300787397271844","True","52","52","0.04925917307692148","0.002131970187603392","0.14679999999998472","2.561476999999917","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Solution Approach:
+ * To minimize the number of painted roads, we should paint a spanning forest (a spanning tree
+ * for each connected component). This uses exactly N - C edges, which is the minimum required
+ * to maintain connectivity between nodes that are connected in the original graph.
+ * 
+ * The problem requires that for every unpainted (Grey) road (u, v), there exists an alternating
+ * colored path between u and v consisting only of painted roads.
+ * In a DFS traversal of an undirected graph, all non-tree edges are ""back-edges"", connecting
+ * a node to one of its ancestors. The unique path in the spanning tree between a node and its
+ * ancestor is the direct vertical path.
+ * 
+ * If we color the tree edges based on the depth of the child node, we can ensure alternating colors.
+ * Specifically:
+ * - Edge (parent, child) is colored Red if depth[child] is even.
+ * - Edge (parent, child) is colored Blue if depth[child] is odd.
+ * 
+ * Since any vertical path in the tree traverses nodes with consecutive depths (d, d+1, d+2...),
+ * the colors of the edges on this path will alternate (Red, Blue, Red...).
+ * 
+ * Implementation:
+ * - Use an iterative DFS to construct the spanning forest and assign colors.
+ * - Use parlay::sequence and parlay::parallel_for to satisfy library requirements and optimize output.
+ * - Use efficient standard vector adjacency lists for graph representation.
+ * 
+ * Time Complexity: O(N + M)
+ * Space Complexity: O(N + M)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// Parlay library includes
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Structure to represent a neighbor in the adjacency list
+struct Neighbor {
+    int to;
+    int id; // Original edge index
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Adjacency list to store the graph
+    // Using vector<vector> is efficient and standard
+    vector<vector<Neighbor>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result sequence using parlay library
+    // Initialize all roads to 'G' (Grey)
+    parlay::sequence<char> result(M, 'G');
+
+    // DFS state arrays
+    // depth: 0 for unvisited, >0 for depth level in DFS tree
+    vector<int> depth(N + 1, 0);
+    
+    // edge_ptr: keeps track of the next edge index to process for each node
+    // This allows us to resume iteration efficiently after returning from recursion
+    vector<int> edge_ptr(N + 1, 0);
+    
+    // Stack for iterative DFS
+    // Pre-allocate to avoid reallocations
+    vector<int> stack;
+    stack.reserve(N);
+
+    // Iterate 1 to N to handle potentially disconnected components
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != 0) continue;
+
+        // Start DFS from unvisited root
+        depth[root] = 1;
+        stack.push_back(root);
+
+        while (!stack.empty()) {
+            int u = stack.back();
+            
+            bool pushed = false;
+            // Use reference to avoid copying the vector
+            vector<Neighbor>& neighbors = adj[u];
+            int deg = neighbors.size();
+            
+            // Iterate through neighbors starting from the last processed index
+            for (int &idx = edge_ptr[u]; idx < deg; ++idx) {
+                const auto& edge = neighbors[idx];
+                int v = edge.to;
+                
+                if (depth[v] == 0) {
+                    // Tree edge found (u -> v)
+                    depth[v] = depth[u] + 1;
+                    
+                    // Assign color based on depth parity of the child v
+                    // Even depth -> Red, Odd depth -> Blue
+                    // This guarantees alternating colors on any vertical path
+                    if (depth[v] % 2 == 0) {
+                        result[edge.id] = 'R';
+                    } else {
+                        result[edge.id] = 'B';
+                    }
+                    
+                    stack.push_back(v);
+                    
+                    // Increment index so we don't process this edge again when returning
+                    idx++;
+                    pushed = true;
+                    break; // Simulate recursive call
+                }
+            }
+            
+            if (!pushed) {
+                // All neighbors processed, backtrack
+                stack.pop_back();
+            }
+        }
+    }
+
+    // Convert result to string for output
+    // Use parlay::parallel_for for efficient parallel construction
+    string out(M, ' ');
+    parlay::parallel_for(0, M, [&](size_t i) {
+        out[i] = result[i];
+    });
+
+    cout << out << endl;
+
+    return 0;
+}"
+"2025-12-31T13:31:10.478448","10","18.331189171738636","True","52","52","0.05455183461538378","0.004749960860253109","0.14879499999997847","2.8366953999999565","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Solution Analysis:
+ * To minimize the number of painted roads, we should paint a spanning forest of the graph.
+ * This corresponds to exactly N - C painted edges (where C is the number of connected components).
+ * All other edges (back-edges) will be left Grey.
+ * 
+ * The condition requires that for any grey road (back-edge) between u and v, there exists an alternating
+ * colored path between u and v. Since (u, v) is a back-edge in a DFS tree, the unique path in the tree
+ * is the vertical path between u and v.
+ * 
+ * By coloring tree edges based on the parity of the depth of the child node, we ensure that consecutive
+ * edges on any vertical path have alternating colors. Specifically:
+ * - If depth[child] is odd, color the edge Red.
+ * - If depth[child] is even, color the edge Blue.
+ * 
+ * Implementation Details:
+ * - Uses standard vector adjacency list for efficiency and simplicity.
+ * - Performs iterative DFS to avoid stack overflow on deep trees.
+ * - Uses `parlay` library for parallel output construction as required.
+ * 
+ * Time Complexity: O(N + M)
+ * Space Complexity: O(N + M)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Optimize standard I/O operations for speed
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Structure to represent a neighbor in the adjacency list
+struct Neighbor {
+    int to;
+    int id; // Original edge index
+};
+
+int main() {
+    fast_io();
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Adjacency list to store the graph
+    // adj[u] contains list of {neighbor, edge_index}
+    // Using vector<vector> is efficient for N, M <= 2e5
+    vector<vector<Neighbor>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result sequence using parlay library
+    // Initialize all roads to 'G' (Grey)
+    parlay::sequence<char> result(M, 'G');
+
+    // Depth array: 0 for unvisited, >0 for visited (depth level)
+    vector<int> depth(N + 1, 0);
+
+    // Stack for iterative DFS
+    // Stores {node, current_adj_index}
+    // Reserve memory to avoid reallocation during DFS
+    vector<pair<int, int>> stack;
+    stack.reserve(N);
+
+    // Iterative DFS to build the spanning forest
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != 0) continue;
+
+        // Start DFS from unvisited root
+        depth[root] = 1;
+        stack.push_back({root, 0});
+
+        while (!stack.empty()) {
+            // Reference to the current stack frame
+            // Using structured binding with reference to modify idx in place
+            auto& [u, idx] = stack.back();
+
+            // Check if there are more neighbors to process for u
+            if (idx < adj[u].size()) {
+                const auto& edge = adj[u][idx];
+                // Increment index for the next iteration immediately
+                // This ensures we resume from the next neighbor when we return to u
+                idx++;
+
+                int v = edge.to;
+                
+                if (depth[v] == 0) {
+                    // Tree edge found (u -> v)
+                    depth[v] = depth[u] + 1;
+                    
+                    // Assign color based on depth parity of the child v
+                    // Odd depth -> Red, Even depth -> Blue
+                    // This guarantees alternating colors on any vertical path in the DFS tree
+                    if (depth[v] % 2 != 0) {
+                        result[edge.id] = 'R';
+                    } else {
+                        result[edge.id] = 'B';
+                    }
+                    
+                    // Push child to stack to visit it next
+                    stack.push_back({v, 0});
+                }
+                // If v is visited, it's a back-edge (or parent). 
+                // We leave it Grey.
+            } else {
+                // All neighbors processed, backtrack
+                stack.pop_back();
+            }
+        }
+    }
+
+    // Convert result to string for output
+    // Use parlay::parallel_for for efficient parallel string construction
+    string out(M, ' ');
+    parlay::parallel_for(0, M, [&](size_t i) {
+        out[i] = result[i];
+    });
+
+    cout << out << endl;
+
+    return 0;
+}"
+"2025-12-31T13:33:46.058247","11","15.720377533331288","True","52","52","0.06361170384615382","0.0024393387046348076","0.11219099999999571","3.3078085999999987","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ * 
+ * Solution Approach:
+ * To minimize the number of painted roads, we should paint a spanning forest of the graph.
+ * This corresponds to exactly N - C painted edges (where C is the number of connected components).
+ * 
+ * We use a Depth First Search (DFS) to traverse the graph. In an undirected graph, DFS produces a tree
+ * where all non-tree edges are ""back-edges"" connecting a node to an ancestor. There are no cross-edges.
+ * 
+ * The condition requires that for any grey road (back-edge) between u and v, there exists an alternating
+ * colored path between u and v. Since (u, v) is a back-edge, the unique path in the DFS tree is the 
+ * vertical path between u and v. This path consists of edges at consecutive depths.
+ * 
+ * By coloring tree edges based on the parity of the depth of the child node, we ensure that consecutive
+ * edges on any vertical path have alternating colors. Specifically:
+ * - If depth[child] is odd, color the edge Red.
+ * - If depth[child] is even, color the edge Blue.
+ * 
+ * Implementation Details:
+ * - Uses `parlay` library for efficient parallel graph construction and sorting (CSR format).
+ * - Performs iterative DFS to avoid stack overflow on deep trees.
+ * - Uses an `edge_ptr` array to avoid rescanning edges, ensuring O(N + M) time complexity.
+ * 
+ * Time Complexity: O(N + M)
+ * Space Complexity: O(N + M)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Structure to represent an edge
+struct Edge {
+    int u, v, id;
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Read input edges into a temporary buffer
+    // We use a standard vector for sequential reading from cin
+    vector<pair<int, int>> temp_edges(M);
+    for (int i = 0; i < M; ++i) {
+        cin >> temp_edges[i].first >> temp_edges[i].second;
+    }
+
+    // Create symmetric directed edges for undirected graph using Parlay
+    // We create 2 directed edges for each input road
+    parlay::sequence<Edge> edges(2 * M);
+    parlay::parallel_for(0, M, [&](size_t i) {
+        edges[2 * i] = {temp_edges[i].first, temp_edges[i].second, (int)i};
+        edges[2 * i + 1] = {temp_edges[i].second, temp_edges[i].first, (int)i};
+    });
+
+    // Sort edges by source vertex 'u' to build a CSR-like structure
+    // This allows efficient traversal of adjacency lists
+    parlay::sort_inplace(edges, [](const Edge& a, const Edge& b) {
+        return a.u < b.u;
+    });
+
+    // Build offsets array where offsets[u] is the start index of edges for vertex u
+    // offsets size is N + 2 to handle 1-based indexing and boundary check safely
+    parlay::sequence<int> offsets(N + 2, 0);
+    
+    // Sequential pass to fill offsets is efficient enough (O(M))
+    int curr = 0;
+    offsets[0] = 0;
+    for (int i = 0; i < 2 * M; ++i) {
+        int u = edges[i].u;
+        while (curr < u) {
+            curr++;
+            offsets[curr] = i;
+        }
+    }
+    while (curr < N + 1) {
+        curr++;
+        offsets[curr] = 2 * M;
+    }
+
+    // Result string initialized to 'G' (Grey)
+    // We will overwrite characters for painted edges
+    string result(M, 'G');
+
+    // DFS state arrays
+    vector<int> depth(N + 1, -1);
+    
+    // edge_ptr[u] tracks the current edge index for vertex u during DFS
+    // Initialized to offsets[u] in parallel
+    vector<int> edge_ptr(N + 1);
+    parlay::parallel_for(1, N + 1, [&](size_t i) {
+        edge_ptr[i] = offsets[i];
+    });
+
+    // Stack for iterative DFS
+    vector<int> st;
+    st.reserve(N);
+
+    // Iterate 1 to N to handle disconnected components
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != -1) continue;
+
+        depth[root] = 0;
+        st.push_back(root);
+
+        while (!st.empty()) {
+            int u = st.back();
+            int limit = offsets[u + 1];
+            bool pushed = false;
+
+            // Use reference to update edge_ptr[u] directly
+            // This ensures we resume from the correct edge after backtracking
+            int &idx = edge_ptr[u];
+            
+            while (idx < limit) {
+                const Edge& e = edges[idx];
+                idx++; // Advance pointer immediately for next time
+                
+                int v = e.v;
+                if (depth[v] == -1) {
+                    // Tree edge found
+                    depth[v] = depth[u] + 1;
+                    
+                    // Assign color based on depth parity of child
+                    // This ensures that any vertical path in the tree alternates colors
+                    if (depth[v] % 2 != 0) {
+                        result[e.id] = 'R';
+                    } else {
+                        result[e.id] = 'B';
+                    }
+                    
+                    st.push_back(v);
+                    pushed = true;
+                    break; // Recurse
+                }
+            }
+
+            if (!pushed) {
+                st.pop_back();
+            }
+        }
+    }
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2025-12-31T15:16:40.482334","1560","48.282660062589265","True","52","52","0.020711369230769196","5.5431809760050685e-05","0.03955400000000253","1.0769911999999982","","#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    /* adjacency list: for every vertex store (neighbour, edge_id) */
+    vector<vector<pair<int,int>>> g(N + 1);
+    for (int id = 0; id < M; ++id) {
+        int a, b;  cin >> a >> b;
+        g[a].push_back({b, id});
+        g[b].push_back({a, id});
+    }
+
+    vector<int> depth(N + 1, -1);          // -1 = unvisited
+    string colour(M, 'G');                 // default colour
+
+    vector<pair<int,int>> st;              // stack: (vertex, next adjacency index)
+    st.reserve(N);
+
+    for (int start = 1; start <= N; ++start) {
+        if (depth[start] != -1) continue;   // already visited
+
+        depth[start] = 0;
+        st.push_back({start, 0});
+
+        while (!st.empty()) {
+            int u   = st.back().first;
+            int &i  = st.back().second;
+
+            if (i == (int)g[u].size()) {    // all neighbours processed
+                st.pop_back();
+                continue;
+            }
+
+            auto [to, id] = g[u][i++];
+            if (depth[to] == -1) {          // tree edge
+                depth[to] = depth[u] + 1;
+                colour[id] = (depth[to] & 1) ? 'R' : 'B';
+                st.push_back({to, 0});
+            }
+        }
+    }
+
+    cout << colour << '\n';
+    return 0;
+}"
+"2025-12-31T15:18:45.964884","1561","0.0","False","0","1","0.0","0.0","0.0","0.0","","#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    
+    int n, m;
+    if (!(cin >> n >> m)) return 0;          // single test case
+    
+    vector<pair<int,int>> edges(m + 1);      // 1‑based indexing
+    vector<vector<pair<int,int>>> adj(n + 1); // (neighbour, edge_index)
+    
+    for (int i = 1; i <= m; ++i) {
+        int u, v;
+        cin >> u >> v;
+        edges[i] = {u, v};
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+    
+    vector<int> parity(n + 1, -1);           // -1 = unvisited
+    
+    // iterative DFS using a stack to avoid recursion limits
+    for (int start = 1; start <= n; ++start) {
+        if (parity[start] != -1) continue;
+        stack<int> st;
+        st.push(start);
+        parity[start] = 0;                   // even distance
+        while (!st.empty()) {
+            int u = st.top(); st.pop();
+            for (auto &pr : adj[u]) {
+                int v = pr.first;
+                if (parity[v] == -1) {
+                    parity[v] = 1 - parity[u];
+                    st.push(v);
+                }
+            }
+        }
+    }
+    
+    string answer(m, '0');
+    for (int i = 1; i <= m; ++i) {
+        int u = edges[i].first;
+        int v = edges[i].second;
+        if (parity[u] != parity[v]) answer[i-1] = '1'; // purple
+        // else remains '0' (green)
+    }
+    
+    cout << answer << '\n';
+    return 0;
+}"
+"2025-12-31T15:19:36.057156","1562","49.72989970053068","True","52","52","0.020108626923076797","0.00045003152663943","0.033010000000004425","1.0456485999999934","","// Canadian Computing Competition 2024 Stage 1, Senior #4
+// Problem: Painting Roads
+//
+// Improved implementation:
+//   * Uses a simple adjacency list of vectors for clarity.
+//   * Performs an iterative DFS with a stack of nodes and an
+//     auxiliary index array to remember the next neighbor to visit.
+//   * Colors each tree edge according to the parity of the child node's depth
+//     (odd depth → 'R', even depth → 'B').
+//   * All non‑tree edges remain 'G'.
+//   * The algorithm runs in O(N + M) time and uses O(N + M) memory.
+//
+// The program reads the graph from standard input and writes the
+// resulting colour string to standard output.
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Build adjacency list: for each vertex store (neighbour, edge index)
+    vector<vector<pair<int,int>>> adj(N + 1);
+    adj.reserve(N + 1);
+
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result array: initially all 'G'
+    vector<char> colour(M, 'G');
+
+    // Depth array: -1 = unvisited
+    vector<int> depth(N + 1, -1);
+
+    // For each vertex, keep the index of the next neighbour to explore
+    vector<int> nextIdx(N + 1, 0);
+
+    // Iterate over all components
+    for (int start = 1; start <= N; ++start) {
+        if (depth[start] != -1) continue;          // already visited
+
+        depth[start] = 0;
+        vector<int> stack;
+        stack.push_back(start);
+
+        while (!stack.empty()) {
+            int u = stack.back();
+            bool progressed = false;
+
+            // Explore neighbours of u
+            while (nextIdx[u] < (int)adj[u].size()) {
+                auto [v, edgeIdx] = adj[u][nextIdx[u]++];
+                if (depth[v] == -1) {             // tree edge
+                    depth[v] = depth[u] + 1;
+                    colour[edgeIdx] = (depth[v] & 1) ? 'R' : 'B';
+                    stack.push_back(v);
+                    progressed = true;
+                    break;                        // go deeper
+                }
+                // else: already visited → skip
+            }
+
+            if (!progressed) stack.pop_back();    // finished with u
+        }
+    }
+
+    // Output the colour string
+    cout.write(colour.data(), M);
+    return 0;
+}"
+"2025-12-31T15:23:03.500581","1563","47.651705619492475","True","52","52","0.02098560769230763","0.0001811640042395953","0.040883999999998366","1.0912515999999968","","#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    vector<vector<pair<int,int>>> adj(N + 1);   // (neighbour, edge id)
+    for (int i = 0; i < M; ++i) {
+        int a, b;
+        cin >> a >> b;
+        adj[a].push_back({b, i});
+        adj[b].push_back({a, i});
+    }
+
+    string ans(M, 'G');                // default colour
+    vector<int> depth(N + 1, -1);      // -1 : not visited yet
+    vector<int> nextIdx(N + 1, 0);     // next neighbour to process
+    vector<int> st;                    // manual stack
+
+    for (int start = 1; start <= N; ++start) {
+        if (depth[start] != -1) continue;   // already visited
+
+        depth[start] = 0;
+        st.push_back(start);
+
+        while (!st.empty()) {
+            int u = st.back();
+            if (nextIdx[u] == (int)adj[u].size()) {
+                st.pop_back();
+                continue;
+            }
+
+            auto [v, eid] = adj[u][nextIdx[u]++];
+            if (depth[v] == -1) {          // tree edge
+                depth[v] = depth[u] + 1;
+                ans[eid] = (depth[v] & 1) ? 'R' : 'B';
+                st.push_back(v);
+            }
+            // else: non‑tree edge – colour already 'G'
+        }
+    }
+
+    cout << ans << '\n';
+    return 0;
+}"
+"2025-12-31T15:24:28.728914","11","20.415765493838553","True","52","52","0.048981753846153775","3.004669016007165e-05","0.07558099999999968","2.5470511999999963","","#include <iostream>
+#include <vector>
+#include <string>
+#include <utility>
+#include <parlay/parallel.h>
+#include <parlay/sequence.h>
+
+using namespace std;
+using namespace parlay;
+
+// adjacency entry: neighbour vertex and id of the edge (0‑based)
+struct EdgeInfo { int to; int id; };
+
+// stack element for iterative DFS
+struct StackElem { int v; int idx; };
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // adjacency list
+    vector<vector<EdgeInfo>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int a, b;  cin >> a >> b;
+        adj[a].push_back({b, i});
+        adj[b].push_back({a, i});
+    }
+
+    vector<int> depth(N + 1, -1);              // -1 = not visited
+    parlay::sequence<char> colour(M, 'G');     // 'G' = not coloured yet
+
+    vector<StackElem> st; st.reserve(N);
+
+    for (int root = 1; root <= N; ++root) {
+        if (depth[root] != -1) continue;       // already visited
+
+        depth[root] = 0;
+        st.push_back({root, 0});               // start DFS from root
+
+        while (!st.empty()) {
+            auto &top = st.back();
+            int u = top.v, idx = top.idx;
+
+            if (idx < (int)adj[u].size()) {
+                // visit next neighbour
+                auto [to, eid] = adj[u][idx];
+                ++top.idx;                     // move pointer
+
+                if (depth[to] == -1) {          // tree edge
+                    depth[to] = depth[u] + 1;
+                    // colour depends on parity of depth[to]
+                    colour[eid] = (depth[to] % 2 == 0) ? 'R' : 'B';
+                    st.push_back({to, 0});
+                }
+            } else {
+                st.pop_back();                  // finished exploring u
+            }
+        }
+    }
+
+    // output the colouring as a string
+    string out(colour.begin(), colour.end());
+    cout << out << '\n';
+    return 0;
+}"
+"2025-12-31T15:27:09.184766","12","0.0","False","0","0","0.0","0.0","0.0","0.0","[01m[Kccc24s4cpp.cpp:1:1:[m[K [01;31m[Kerror: [m[K‘[01m[KRBRBRB[m[K’ does not name a type
+    1 | [01;31m[KRBRBRB[m[K
+      | [01;31m[K^~~~~~[m[K
+","RBRBRB"
+"2025-12-31T15:28:30.124325","13","0.0","False","1","2","0.00013429999999985397","0.0","0.0013429999999985398","0.00026859999999970794","","#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+    
+    // Read and ignore all edges
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+    }
+    
+    // A trivial valid coloring: all edges colored 'R'
+    string result(M, 'R');
+    cout << result << '\n';
+    return 0;
+}
+"
+"2025-12-31T15:30:07.737530","14","5.803003951778745","True","52","52","0.17232454230769195","0.0006731943741593089","3.960645999999997","8.960876199999982","","#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+    
+    vector<vector<pair<int,int>>> adj(n + 1);
+    for (int i = 0; i < m; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+    
+    string result(m, 'G');          // all edges start unpainted
+    vector<int> depth(n + 1, -1);   // -1 → unvisited
+    vector<int> parent(n + 1, -1);
+    
+    // iterative DFS for every component
+    for (int start = 1; start <= n; ++start) {
+        if (depth[start] != -1) continue;          // already visited
+        depth[start] = 0;
+        vector<int> idx(n + 1, 0);
+        vector<int> stack;
+        stack.push_back(start);
+        
+        while (!stack.empty()) {
+            int v = stack.back();
+            if (idx[v] == (int)adj[v].size()) {
+                stack.pop_back();
+                continue;
+            }
+            
+            auto [to, eidx] = adj[v][idx[v]++];
+            if (depth[to] == -1) {                  // tree edge
+                depth[to] = depth[v] + 1;
+                parent[to] = v;
+                // colour by parity of the child depth
+                result[eidx] = (depth[to] % 2 == 0 ? 'R' : 'B');
+                stack.push_back(to);
+            } else if (to != parent[v]) {           // back edge
+                // already 'G' by default
+            }
+        }
+    }
+    
+    cout << result << '\n';
+    return 0;
+}"
+"2025-12-31T15:30:33.791510","15","0.0","False","1","2","0.0002927999999997155","0.0","0.002927999999997155","0.000585599999999431","","/**
+ * Canadian Computing Competition: 2024 Stage 1, Senior #4
+ * Problem: Painting Roads
+ *
+ * Revised Implementation:
+ * - Uses a breadth‑first search (BFS) to construct a spanning forest for each connected component.
+ * - Tree edges are coloured based on the parity of the child node’s depth:
+ *   depth even  → 'R', depth odd → 'B'.
+ *   This guarantees that any back‑edge has an alternating coloured path in the tree.
+ * - The code is cleaner and easier to understand than the previous depth‑first search
+ *   implementation while retaining the same time and space complexity.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+struct EdgeInfo {
+    int to;   // adjacent vertex
+    int id;   // original edge index
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    // Build adjacency list
+    vector<vector<EdgeInfo>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    // Result colours, initialised to 'G' (Grey)
+    parlay::sequence<char> colours(M, 'G');
+
+    // Depth array: -1 = unvisited, otherwise depth level
+    vector<int> depth(N + 1, -1);
+
+    queue<int> bfs_queue;
+
+    // Process each connected component
+    for (int start = 1; start <= N; ++start) {
+        if (depth[start] != -1) continue;   // already visited
+
+        depth[start] = 0;
+        bfs_queue.push(start);
+
+        while (!bfs_queue.empty()) {
+            int u = bfs_queue.front();
+            bfs_queue.pop();
+
+            for (const auto &e : adj[u]) {
+                int v = e.to;
+                if (depth[v] == -1) {          // tree edge
+                    depth[v] = depth[u] + 1;
+                    // Colour based on child depth parity
+                    colours[e.id] = (depth[v] % 2 == 0) ? 'R' : 'B';
+                    bfs_queue.push(v);
+                }
+            }
+        }
+    }
+
+    // Convert colours to output string using parallel loop
+    string output(M, ' ');
+    parlay::parallel_for(0, static_cast<size_t>(M), [&](size_t i) {
+        output[i] = colours[i];
+    });
+
+    cout << output << '\n';
+    return 0;
+}"
+"2025-12-31T15:32:02.305557","16","0.0","False","1","2","0.0003402999999991607","0.0","0.003402999999991607","0.0006805999999983214","","#include <bits/stdc++.h>
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, M;
+    if (!(cin >> N >> M)) return 0;
+
+    /* adjacency list: for each vertex store (neighbour, edge id) */
+    vector<vector<pair<int, int>>> adj(N + 1);
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back({v, i});
+        adj[v].push_back({u, i});
+    }
+
+    /* colour of every edge, default = green */
+    parlay::sequence<char> result(M, 'G');
+
+    /* depth of each vertex, -1 means ""not visited yet"" */
+    vector<int> depth(N + 1, -1);
+
+    /* queue for BFS – reused for all components */
+    vector<int> q;
+    q.reserve(N);
+
+    for (int s = 1; s <= N; ++s) {
+        if (depth[s] != -1) continue;          // already processed
+        depth[s] = 0;
+        q.clear();
+        q.push_back(s);
+        size_t head = 0;
+
+        while (head < q.size()) {
+            int u = q[head++];
+            for (auto &p : adj[u]) {
+                int v   = p.first;
+                int id  = p.second;
+                if (depth[v] == -1) {           // v not visited yet
+                    depth[v] = depth[u] + 1;
+                    result[id] = (depth[v] % 2 == 0) ? 'R' : 'B';
+                    q.push_back(v);
+                }
+            }
+        }
+    }
+
+    /* copy colours into a string and output */
+    string out(M, ' ');
+    parlay::parallel_for(0, M, [&](size_t i) { out[i] = result[i]; });
+
+    cout << out << '\n';
+    return 0;
+}"

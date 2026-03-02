@@ -1,0 +1,2543 @@
+"timestamp","iteration","combined_score","passed","tests_passed","tests_total","avg_time","variance_time","max_time","total_time","compile_error","code"
+"2025-12-31T21:20:58.411560","1","0.0","False","0","1","0.0","0.0","0.0","0.0","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+using namespace std;
+
+int main() {
+    // TODO: Implement solution to the problem
+    // Read input, process it, and output the result
+    return 0;
+}
+//EVOLVE-BLOCK-END
+"
+"2025-12-31T21:23:12.061370","1","63.37998283780291","True","23","23","0.015777852173913042","1.9256008239998754e-05","0.1388209999999992","0.36289059999999995","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O setup to handle large input efficiently
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation to calculate (base^exp) % MOD
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= 1000000007;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % 1000000007;
+        base = (base * base) % 1000000007;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay sequences for data storage
+    // f stores the dependency graph where edge is i -> f[i]
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    // Read input and calculate in-degrees
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Use parlay to filter nodes that have in-degree 0 initially
+    // These are the leaves of the tree components (start of dependency chains)
+    auto initial_zeros = parlay::filter(parlay::iota(N + 1), [&](size_t i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for peeling process (topological sort style)
+    vector<int> q;
+    q.reserve(N);
+    for (auto x : initial_zeros) {
+        q.push_back(x);
+    }
+
+    // Process the queue to remove all tree nodes
+    // This reduces the functional graph to just its cycles
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    // Number of nodes in the trees
+    long long tree_nodes = q.size();
+    
+    // Each tree node contributes (K-1) choices relative to its parent (the node it points to)
+    // because c(u) != c(f(u)), so given c(f(u)), there are K-1 choices for c(u).
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Identify nodes that are part of cycles (those not peeled)
+    auto cycle_candidates = parlay::filter(parlay::iota(N + 1), [&](size_t i) {
+        return i > 0 && in_degree[i] > 0;
+    });
+
+    parlay::sequence<bool> visited(N + 1, false);
+
+    // Process each cycle
+    for (auto i : cycle_candidates) {
+        if (!visited[i]) {
+            int curr = i;
+            long long len = 0;
+            // Traverse the cycle to find its length and mark nodes as visited
+            while (!visited[curr]) {
+                visited[curr] = true;
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Self-loop: f_i = i. The problem states ""except when f_i = i"".
+                // In this case, there is no restriction on node i relative to f_i.
+                // It can be any of the K colors.
+                ways = K % 1000000007;
+            } else {
+                // Cycle of length > 1.
+                // The number of ways to color a cycle of length L with K colors such that
+                // adjacent nodes have different colors is given by the chromatic polynomial of C_L:
+                // P(C_L, K) = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % 1000000007;
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + 1000000007) % 1000000007;
+                } else {
+                    ways = (term1 + term2) % 1000000007;
+                }
+            }
+            total_ways = (total_ways * ways) % 1000000007;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}
+//EVOLVE-BLOCK-END"
+"2025-12-31T21:25:42.159385","2","44.81012973896344","True","23","23","0.022316382608695663","4.453067359996407e-06","0.19907000000000075","0.5132768000000002","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+// Include parlay libraries
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Modular exponentiation to calculate (base^exp) % mod
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= 1000000007;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % 1000000007;
+        base = (base * base) % 1000000007;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N, K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Read f_i into a standard vector first
+    vector<int> f_vec(N);
+    for (int i = 0; i < N; i++) {
+        cin >> f_vec[i];
+        f_vec[i]--; // Convert to 0-based indexing
+    }
+
+    // Convert to parlay sequence for parallel processing
+    // This allows us to use efficient parallel primitives
+    parlay::sequence<int> f(f_vec.begin(), f_vec.end());
+    parlay::sequence<int> P = f; // Initialize P with f for doubling algorithm
+
+    // Use parallel doubling (pointer jumping) to find nodes that are part of cycles.
+    // In a functional graph, repeatedly following edges eventually leads to a cycle.
+    // After k steps where 2^k >= N, P[i] will point to a node on the cycle of i's component.
+    // Since N <= 1,000,000, 20 iterations (2^20 > 10^6) are sufficient.
+    for (int k = 0; k < 20; k++) {
+        // Compute next P in parallel: P_new[i] = P_old[P_old[i]]
+        auto next_P = parlay::map(P, [&](int target) {
+            return P[target];
+        });
+        P = std::move(next_P);
+    }
+
+    // P now contains cycle nodes (possibly with duplicates, as multiple tree nodes map to the same cycle node).
+    // We extract the unique cycle nodes using parallel sort and unique operations.
+    parlay::sort_inplace(P);
+    auto cycle_nodes = parlay::unique(P);
+
+    // Calculate the contribution of cycles to the answer.
+    // We need to decompose the set of cycle nodes into disjoint cycles and find their lengths.
+    // We use a visited array and traverse the graph starting from each unique cycle node.
+    // Since cycle_nodes contains all nodes in all cycles, traversing from unvisited nodes in this set covers all cycles exactly once.
+    
+    vector<bool> visited(N, false);
+    
+    long long total_ways = 1;
+    long long mod = 1000000007;
+    long long total_cycle_nodes = 0;
+
+    for (int u : cycle_nodes) {
+        if (visited[u]) continue;
+        
+        // Traverse the cycle to find its length
+        int curr = u;
+        int length = 0;
+        while (!visited[curr]) {
+            visited[curr] = true;
+            curr = f[curr]; // Use the original f to traverse along the cycle
+            length++;
+        }
+        total_cycle_nodes += length;
+        
+        // Calculate ways to color this cycle
+        long long ways = 0;
+        if (length == 1) {
+            // Self-loop (f[u] == u). The problem states ""except when f_i = i"".
+            // This means there is no constraint for this node relative to itself.
+            ways = K;
+        } else {
+            // Cycle of length L > 1.
+            // The number of ways to color a cycle of length L with K colors such that adjacent colors are different
+            // is given by the chromatic polynomial of the cycle graph: (K-1)^L + (-1)^L * (K-1).
+            long long term1 = power(K-1, length);
+            long long term2 = (K-1);
+            if (length % 2 == 1) {
+                // Odd length: subtract term2
+                ways = (term1 - term2 + mod) % mod;
+            } else {
+                // Even length: add term2
+                ways = (term1 + term2) % mod;
+            }
+        }
+        total_ways = (total_ways * ways) % mod;
+    }
+    
+    // Calculate contribution of tree nodes
+    // Nodes that are not part of any cycle form trees rooted on the cycles.
+    // For every edge u -> v in the tree (where v is closer to cycle), fixing v's color leaves (K-1) choices for u.
+    // Thus, each tree node contributes a factor of (K-1).
+    long long tree_nodes = N - total_cycle_nodes;
+    long long tree_ways = power(K-1, tree_nodes);
+    
+    total_ways = (total_ways * tree_ways) % mod;
+    
+    cout << total_ways << endl;
+
+    return 0;
+}
+//EVOLVE-BLOCK-END"
+"2025-12-31T21:27:12.423655","3","67.26629204216366","True","23","23","0.014866286956521745","1.2738583040001528e-05","0.13119799999999948","0.34192460000000013","","/**
+ * Problem: Little Mirko's Coloring Book
+ * Approach:
+ * The problem can be modeled as a functional graph where each node i has exactly one outgoing edge to f[i].
+ * A functional graph consists of components, where each component contains exactly one cycle with several trees rooted on the cycle nodes.
+ * 
+ * 1. Tree nodes: Any node that is not part of a cycle can be colored in (K-1) ways relative to the node it points to.
+ *    We can identify and count these nodes using a topological sort (peeling) starting from nodes with in-degree 0.
+ * 
+ * 2. Cycle nodes: After removing tree nodes, we are left with disjoint cycles.
+ *    For a cycle of length L:
+ *    - If L = 1 (f[i] = i), the problem states the restriction is lifted, so there are K ways.
+ *    - If L > 1, we need to color L nodes such that adjacent nodes have different colors. This is the chromatic polynomial of a cycle C_L:
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * The total number of ways is the product of ways for all components modulo 10^9 + 7.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Function to speed up standard I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation: (base^exp) % MOD
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Store the functional graph: f[i] is the target of edge from i
+    // Using parlay::sequence as requested
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) using parlay
+    // parlay::iota(N + 1) generates sequence 0, 1, ..., N
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for peeling (topological sort)
+    // Using std::vector for efficient queue operations
+    vector<int> q;
+    q.reserve(N);
+    for (int u : leaves) {
+        q.push_back(u);
+    }
+
+    // Process the queue to peel off tree nodes
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    // Each tree node contributes (K-1) possibilities
+    long long tree_nodes = q.size();
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Process remaining nodes which form cycles
+    // After peeling, nodes with in_degree > 0 are exactly the nodes in cycles
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse the cycle to find its length and mark as visited
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; // Mark as visited by setting in-degree to 0
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Special case: f_i = i, no restriction on color of i relative to f_i
+                ways = K % MOD;
+            } else {
+                // Cycle of length L > 1
+                // Number of ways is P(C_L, K) = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:29:17.954431","4","65.06007873966739","True","23","23","0.015370408695652192","7.10043423999838e-06","0.13811400000000162","0.3535194000000004","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Fast I/O setup
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+const int MOD = 1000000007;
+
+// Modular exponentiation to calculate (base^exp) % MOD
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay sequences for efficient storage and operations
+    // f stores the dependency: i must be different from f[i]
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    // Read input and compute in-degrees
+    // We use sequential reading as it's sufficient for N=10^6 and standard input
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Use parlay to filter nodes that are leaves (in-degree 0)
+    // These are the starting points of the trees in the functional graph
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for topological sort (peeling process)
+    // We move leaves to a standard vector for sequential processing
+    vector<int> q;
+    q.reserve(N);
+    for (int u : leaves) {
+        q.push_back(u);
+    }
+
+    // Process the queue to remove all tree nodes
+    // This reduces the graph to just its cycles
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    // Number of nodes in the trees
+    long long tree_nodes = q.size();
+    
+    // Each tree node contributes (K-1) choices
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Identify nodes that are part of cycles (in-degree > 0 after peeling)
+    auto cycle_candidates = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] > 0;
+    });
+
+    // Process each cycle
+    for (int start_node : cycle_candidates) {
+        // If in_degree is 0, it means this node was part of a cycle already processed
+        if (in_degree[start_node] == 0) continue;
+
+        int curr = start_node;
+        long long len = 0;
+        
+        // Traverse the cycle to find its length and mark nodes as visited
+        // We use in_degree=0 as the visited mark
+        while (in_degree[curr] > 0) {
+            in_degree[curr] = 0; 
+            curr = f[curr];
+            len++;
+        }
+
+        long long ways = 0;
+        if (len == 1) {
+            // Self-loop: f[i] = i. No restriction.
+            ways = K % MOD;
+        } else {
+            // Cycle of length > 1
+            // Ways = (K-1)^L + (-1)^L * (K-1)
+            long long term1 = power(K - 1, len);
+            long long term2 = (K - 1) % MOD;
+            if (len % 2 == 1) {
+                ways = (term1 - term2 + MOD) % MOD;
+            } else {
+                ways = (term1 + term2) % MOD;
+            }
+        }
+        total_ways = (total_ways * ways) % MOD;
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}
+//EVOLVE-BLOCK-END"
+"2025-12-31T21:30:47.171313","5","68.69855075926833","True","23","23","0.014556347826086958","3.4838388000015405e-06","0.12597799999999992","0.33479600000000004","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem asks for the number of ways to color a functional graph such that no node i has the same color as f[i] (unless f[i] == i).
+ * A functional graph is a collection of components, each consisting of a cycle with trees rooted on the cycle nodes.
+ * 
+ * 1. Tree nodes: Can be peeled off using topological sort. Each tree node u contributes (K-1) choices (any color except f[u]).
+ * 2. Cycle nodes: After peeling, only disjoint cycles remain.
+ *    - Cycle of length 1 (f[i] == i): The restriction is lifted, so K choices.
+ *    - Cycle of length L > 1: This is coloring a cycle graph C_L with K colors.
+ *      The number of ways is P(C_L, K) = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Complexity: O(N) time and space.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Optimize standard I/O operations
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation to calculate (base^exp) % MOD efficiently
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay::sequence for data storage
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) using parlay::filter
+    // This step leverages the parallel library to quickly identify start nodes
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Topological sort (peeling) to count tree nodes
+    // Using a standard vector as a queue is efficient for this sequential process
+    vector<int> q;
+    q.reserve(N);
+    for (int u : leaves) {
+        q.push_back(u);
+    }
+
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long tree_nodes = q.size();
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // After peeling, nodes with in_degree > 0 are exactly those forming cycles
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse the cycle to determine its length
+            // Mark nodes as visited by setting in_degree to 0
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0;
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Case f[i] == i: The problem states ""except when f_i = i"".
+                // This implies no restriction on the color of i relative to f[i].
+                // So there are K choices.
+                ways = K % MOD;
+            } else {
+                // Case Cycle length L > 1:
+                // We need to color L nodes such that adjacent nodes have different colors.
+                // Formula: (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:32:29.454169","6","69.0802712752217","True","23","23","0.014475913043478282","1.8388188000026913e-06","0.12605899999999792","0.33294600000000046","","/**
+ * Problem: Little Mirko's Coloring Book
+ * Approach: Functional Graph Decomposition
+ * 
+ * The problem is modeled as a functional graph where each node i has a directed edge to f[i].
+ * The graph consists of several components, each containing exactly one cycle and a set of trees rooted on the cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    Any node that is part of a tree (not in a cycle) must have a color different from its parent (f[i]).
+ *    However, the coloring dependency flows from f[i] to i. If f[i] is colored, there are K-1 choices for i.
+ *    We can count these nodes by topologically sorting (peeling) the graph starting from nodes with in-degree 0.
+ *    Total ways for tree nodes = (K-1)^(number of tree nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    After peeling, only cycles remain.
+ *    For a cycle of length L:
+ *    - If L = 1 (f[i] = i), the constraint is lifted. There are K ways to color this node.
+ *    - If L > 1, we must color L nodes such that adjacent nodes have different colors.
+ *      The number of ways is given by the chromatic polynomial of a cycle C_L:
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * The final answer is the product of ways for all components modulo 10^9 + 7.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Fast I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay sequences for storage
+    // f[i] is the node that node i depends on
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) using parlay's parallel filter
+    // parlay::iota(N + 1) generates 0, 1, ..., N
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for topological sort (peeling)
+    vector<int> q;
+    q.reserve(N);
+    for (int u : leaves) {
+        q.push_back(u);
+    }
+
+    // Process the queue to peel off tree nodes
+    int head = 0;
+    while(head < q.size()) {
+        int u = q[head++];
+        int v = f[u];
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    // Each tree node contributes (K-1) choices
+    long long tree_nodes = q.size();
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Process remaining nodes (cycles)
+    // After peeling, nodes with in_degree > 0 are exactly the nodes in cycles
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse the cycle to determine length and mark as visited
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; // Mark as visited by setting in-degree to 0
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Self-loop: f[i] = i. Restriction is lifted.
+                ways = K % MOD;
+            } else {
+                // Cycle of length L > 1
+                // Ways = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:34:27.515211","7","67.60609748211367","True","23","23","0.014791565217391328","7.884936400000511e-06","0.12837899999999536","0.34020600000000056","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem asks for the number of ways to color a functional graph where edges i -> f[i] imply color(i) != color(f[i]).
+ * Exception: if f[i] == i, no restriction.
+ * 
+ * Functional Graph Structure:
+ * - Components consist of a cycle with trees rooted on cycle nodes.
+ * - Edges are directed from child to parent (dependency).
+ * 
+ * Calculation:
+ * 1. Tree Nodes:
+ *    - Can be identified by peeling nodes with in-degree 0.
+ *    - Each tree node u depends on f[u]. Since f[u] is colored first (or simultaneously), u has K-1 choices.
+ *    - Total tree ways = (K-1)^(count of tree nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    - Remaining nodes form disjoint cycles.
+ *    - For a cycle of length L:
+ *      - If L=1 (f[i]==i): K ways (no restriction).
+ *      - If L>1: Number of ways to color cycle C_L with K colors is P(C_L, K) = (K-1)^L + (-1)^L*(K-1).
+ * 
+ * Implementation:
+ * - Use parlay::sequence for storage and parlay::filter for identifying leaves.
+ * - Topological sort (peeling) to count tree nodes.
+ * - Iterate to find cycles and compute their contributions.
+ * - Result is product of all parts modulo 10^9+7.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Fast I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay sequences for data storage
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    // Read input and build graph
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves using parallel filter
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for topological sort
+    vector<int> q;
+    q.reserve(N);
+    // Copy leaves to queue
+    q.insert(q.end(), leaves.begin(), leaves.end());
+
+    // Process trees using topological sort
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long tree_nodes = q.size();
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Process cycles
+    // Nodes with in_degree > 0 are part of cycles
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Measure cycle length and mark as visited
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0;
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // f[i] == i, no restriction
+                ways = K % MOD;
+            } else {
+                // Cycle C_L
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:36:14.541823","8","67.98088495742603","True","23","23","0.01471001739130439","3.274040640000539e-06","0.1269449999999992","0.338330400000001","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem can be modeled as finding the number of valid colorings on a functional graph.
+ * A functional graph consists of components, where each component contains exactly one cycle
+ * and a set of trees rooted on the cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    Nodes that are not part of any cycle form trees leading into cycles.
+ *    For each such node u, the coloring constraint is c(u) != c(f(u)).
+ *    Since f(u) is closer to the cycle (or in it), we can determine colors from the cycle outwards.
+ *    Once f(u) is colored, there are (K-1) choices for u.
+ *    We count these nodes by topologically sorting (peeling) nodes with in-degree 0.
+ * 
+ * 2. Cycle Nodes:
+ *    After removing tree nodes, only cycles remain.
+ *    For a cycle of length L:
+ *    - If L = 1 (f[i] == i), the constraint is lifted (problem statement exception). Ways = K.
+ *    - If L > 1, it's a cycle graph C_L. Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation uses the Parlay library for efficient sequence operations and filtering.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Fast I/O for performance
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+const int MOD = 1000000007;
+
+// Modular exponentiation: (base^exp) % MOD
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp /= 2;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay sequences for data storage
+    // f[i] stores the target of the edge from i
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) using parlay's parallel filter
+    // These are the starting points of the trees
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Peeling process (Topological Sort)
+    // We use a standard vector as a queue for sequential processing
+    // This efficiently counts the number of tree nodes
+    vector<int> q;
+    q.reserve(N);
+    for (int u : leaves) {
+        q.push_back(u);
+    }
+
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    // All nodes in the queue are part of the trees
+    long long tree_nodes = q.size();
+    
+    // Each tree node contributes (K-1) choices
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Process remaining nodes, which form disjoint cycles
+    // Nodes with in_degree > 0 are part of a cycle
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse the cycle to determine its length
+            // Mark nodes as visited by setting in_degree to 0
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0;
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Self-loop: f[i] = i. Exception in problem statement implies no restriction relative to itself.
+                // So K choices.
+                ways = K % MOD;
+            } else {
+                // Cycle of length L > 1
+                // Number of ways to color C_L with K colors is P(C_L, K) = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:37:41.109538","9","67.66743866387985","True","23","23","0.01477815652173915","9.778521040003976e-06","0.12698999999999927","0.33989760000000047","","/**
+ * Problem: Little Mirko's Coloring Book
+ * Solution: Functional Graph Decomposition
+ * 
+ * We decompose the functional graph into components. Each component has exactly one cycle.
+ * Nodes not in cycles form trees rooted on cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    We peel nodes with in-degree 0 iteratively.
+ *    For each such node u, color(u) != color(f[u]).
+ *    Given f[u] is determined later (or is part of cycle), there are K-1 choices for u.
+ *    Total ways for tree part = (K-1)^(number of tree nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    Remaining nodes form disjoint cycles.
+ *    For a cycle of length L:
+ *    - If L=1 (f[i]=i), constraint is lifted -> K choices.
+ *    - If L>1, it's a cycle graph coloring C_L with K colors.
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation uses parlay for parallel filtering of leaves.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+constexpr int MOD = 1000000007;
+
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // parlay::sequence allows parallel construction/operations
+    // We use it to satisfy requirements and for efficient filtering
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Find leaves (nodes with in-degree 0) in parallel
+    // These are the starting points of the trees feeding into cycles
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for topological sort
+    vector<int> q;
+    q.reserve(N);
+    q.insert(q.end(), leaves.begin(), leaves.end());
+
+    // Process tree nodes
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        if (--in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long total_ways = power(K - 1, q.size());
+    
+    // Optimization: if ways is already 0, we can stop
+    if (total_ways == 0) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Process cycles
+    // Nodes with in_degree > 0 are part of cycles (since trees are peeled)
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse cycle to measure length and mark visited
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0;
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways;
+            if (len == 1) {
+                // f[i] == i -> K choices (constraint lifted)
+                ways = K % MOD;
+            } else {
+                // Cycle C_L coloring
+                // Formula: (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+            if (total_ways == 0) break;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:39:11.702482","10","68.11726831984309","True","23","23","0.014680565217391316","9.985987999997865e-06","0.12614599999999854","0.33765300000000026","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem is modeled as counting valid colorings on a functional graph where each node i has a directed edge to f[i].
+ * A functional graph consists of components, each containing exactly one cycle and a set of trees rooted on the cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    Nodes that are part of the tree structures (leading to cycles) can be processed by topological sort (peeling).
+ *    For any tree node u, the color c(u) must be different from c(f(u)).
+ *    Since the dependency is from u to f(u), once f(u) is colored, there are (K-1) choices for u.
+ *    Total ways for tree nodes = (K-1)^(number of tree nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    After peeling all tree nodes (nodes with effective in-degree 0), only disjoint cycles remain.
+ *    For a cycle of length L:
+ *    - If L = 1 (f[i] = i), the problem statement allows any color (exception to the rule). Ways = K.
+ *    - If L > 1, we must color the cycle such that adjacent nodes have different colors.
+ *      The number of ways is given by the chromatic polynomial of the cycle graph C_L:
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation Details:
+ * - Uses the Parlay library for efficient sequence management and parallel filtering of initial leaves.
+ * - Uses a standard vector for the topological sort queue to handle the sequential peeling process efficiently.
+ * - Reuses the in_degree array to mark visited nodes during cycle detection, minimizing memory usage.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O for performance
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+const int MOD = 1000000007;
+
+// Modular exponentiation: (base^exp) % MOD
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay::sequence for data storage
+    // f[i] stores the target of the edge from i
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) using parlay's parallel filter
+    // parlay::iota generates a sequence 0, 1, ..., N
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for topological sort (peeling)
+    vector<int> q;
+    q.reserve(N);
+    
+    // Initialize queue with initial leaves
+    for (int u : leaves) {
+        q.push_back(u);
+    }
+
+    // Process the queue to peel off tree nodes
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        // Decrement in-degree of the parent node
+        if (--in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    // Calculate contribution from tree nodes
+    long long tree_nodes = q.size();
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Process remaining nodes, which form disjoint cycles
+    // Nodes with in_degree > 0 are part of a cycle
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse the cycle to determine its length
+            // Mark nodes as visited by setting in_degree to 0
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; 
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Self-loop: f[i] = i. Exception in problem statement implies no restriction relative to itself.
+                // So K choices.
+                ways = K % MOD;
+            } else {
+                // Cycle of length L > 1
+                // Number of ways to color C_L with K colors is P(C_L, K) = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:40:46.990593","11","65.05879051748332","True","23","23","0.015370713043478252","1.7754661039990402e-05","0.13682100000000474","0.3535263999999998","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem is modeled as a functional graph where each node i has a directed edge to f[i].
+ * The graph consists of components, each with exactly one cycle and trees rooted on cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    We peel nodes with in-degree 0 (leaves) iteratively using a topological sort.
+ *    Each tree node u contributes (K-1) choices because c(u) != c(f[u]).
+ *    Total ways for tree nodes = (K-1)^(count of tree nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    After peeling, only cycles remain.
+ *    For a cycle of length L:
+ *    - If L=1 (f[i]=i), the constraint is lifted -> K choices.
+ *    - If L>1, it's a cycle graph coloring C_L with K colors.
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation:
+ * - Use parlay::sequence for storage and parlay::filter for parallel identification of nodes.
+ * - Topological sort (peeling) to count tree nodes.
+ * - Iterate to find cycles and compute contributions.
+ * - 0-based indexing used internally.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+const int MOD = 1000000007;
+
+// Modular exponentiation
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay sequences for data storage
+    // f[i] stores the dependency: node i depends on node f[i]
+    parlay::sequence<int> f(N);
+    parlay::sequence<int> in_degree(N, 0);
+
+    for (int i = 0; i < N; ++i) {
+        int val;
+        cin >> val;
+        f[i] = val - 1; // Convert 1-based input to 0-based
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) using parlay::filter
+    auto leaves = parlay::filter(parlay::iota(N), [&](int i) {
+        return in_degree[i] == 0;
+    });
+
+    // Queue for topological sort (peeling)
+    vector<int> q;
+    q.reserve(N);
+    q.insert(q.end(), leaves.begin(), leaves.end());
+
+    // Process the queue to count tree nodes
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        // Decrement in-degree of the parent
+        in_degree[v]--;
+        if (in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long tree_nodes = q.size();
+    long long total_ways = power(K - 1, tree_nodes);
+    
+    // Optimization: if ways is already 0, we can stop
+    if (total_ways == 0) {
+        cout << 0 << ""\n"";
+        return 0;
+    }
+
+    // Identify cycle nodes (nodes with in-degree > 0 after peeling)
+    // Using parallel filter to efficiently gather remaining nodes
+    auto cycle_candidates = parlay::filter(parlay::iota(N), [&](int i) {
+        return in_degree[i] > 0;
+    });
+
+    // Process disjoint cycles
+    for (int start_node : cycle_candidates) {
+        // Check if already visited (visited nodes have in_degree set to 0)
+        if (in_degree[start_node] > 0) {
+            int curr = start_node;
+            long long len = 0;
+            
+            // Traverse the cycle to determine length and mark as visited
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; 
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Case f[i] == i: Constraint lifted.
+                ways = K % MOD;
+            } else {
+                // Case Cycle length L > 1:
+                // Ways = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+            if (total_ways == 0) break;
+        }
+    }
+
+    cout << total_ways << ""\n"";
+
+    return 0;
+}"
+"2025-12-31T21:42:30.820737","12","68.12985906598138","True","23","23","0.014677852173912985","1.6228006240022985e-05","0.125745000000002","0.33759059999999863","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem is modeled as a functional graph where each node i has a directed edge to f[i].
+ * The graph consists of components, each containing exactly one cycle and trees rooted on the cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    We peel nodes with in-degree 0 iteratively (topological sort).
+ *    Each tree node u contributes (K-1) choices because its color must differ from f[u].
+ *    Total ways = (K-1)^(tree_nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    After peeling, only disjoint cycles remain.
+ *    For a cycle of length L:
+ *    - If L=1 (f[i]=i), the constraint is lifted -> K choices.
+ *    - If L>1, we color a cycle graph C_L with K colors.
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation:
+ * - Uses `parlay::filter` to identify initial leaves in parallel.
+ * - Uses efficient sequential peeling for tree processing.
+ * - Identifies cycles sequentially.
+ * - Uses `parlay::map` and `parlay::reduce` to calculate the product of cycle contributions in parallel.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Fast I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+// Monoid for modular multiplication
+struct MulMod {
+    long long identity = 1;
+    long long operator()(long long a, long long b) const {
+        return (a * b) % MOD;
+    }
+};
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    parlay::sequence<int> f(N + 1);
+    vector<int> in_degree(N + 1, 0);
+
+    // Read input and compute in-degrees
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) in parallel
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Topological sort (peeling)
+    vector<int> q;
+    q.reserve(N);
+    for(int u : leaves) q.push_back(u);
+
+    int head = 0;
+    while(head < q.size()) {
+        int u = q[head++];
+        int v = f[u];
+        if (--in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long tree_node_count = q.size();
+
+    // Identify Cycles
+    // Nodes with in_degree > 0 after peeling are part of cycles
+    vector<int> cycle_lengths;
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            int len = 0;
+            // Traverse the cycle
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; // Mark as visited
+                curr = f[curr];
+                len++;
+            }
+            cycle_lengths.push_back(len);
+        }
+    }
+
+    // Calculate ways for each cycle in parallel using parlay::map
+    parlay::sequence<int> cycles(cycle_lengths.begin(), cycle_lengths.end());
+
+    auto cycle_ways = parlay::map(cycles, [&](int len) -> long long {
+        if (len == 1) {
+            // f[i] == i, constraint lifted -> K choices
+            return K % MOD;
+        } else {
+            // Cycle C_L coloring: (K-1)^L + (-1)^L * (K-1)
+            long long term1 = power(K - 1, len);
+            long long term2 = (K - 1) % MOD;
+            if (len % 2 == 1) {
+                return (term1 - term2 + MOD) % MOD;
+            } else {
+                return (term1 + term2) % MOD;
+            }
+        }
+    });
+
+    // Combine results using parallel reduce
+    long long total_cycle_ways = parlay::reduce(cycle_ways, MulMod());
+    
+    long long total_tree_ways = power(K - 1, tree_node_count);
+
+    long long ans = (total_cycle_ways * total_tree_ways) % MOD;
+
+    cout << ans << endl;
+
+    return 0;
+}"
+"2025-12-31T21:44:10.285420","13","67.3593156762114","True","23","23","0.01484575652173913","2.087978984002093e-05","0.13423999999999836","0.3414524","","/**
+ * Problem: Little Mirko's Coloring Book
+ * Solution: Functional Graph Decomposition using Parlay
+ * 
+ * The problem is modeled as a functional graph (each node has exactly one outgoing edge).
+ * The graph consists of components, each containing exactly one cycle and trees rooted on cycle nodes.
+ * 
+ * Algorithm:
+ * 1. Compute in-degrees of all nodes.
+ * 2. Identify tree nodes (starting from in-degree 0) and ""peel"" them using topological sort.
+ *    Each tree node contributes (K-1) ways since it must differ from its parent.
+ * 3. Remaining nodes form disjoint cycles.
+ *    - Cycle length L=1 (f[i]=i): K ways (constraint lifted).
+ *    - Cycle length L>1: Chromatic polynomial of C_L: (K-1)^L + (-1)^L*(K-1).
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+constexpr int MOD = 1000000007;
+
+// Modular exponentiation: (b^e) % MOD
+long long power(long long b, long long e) {
+    long long r = 1;
+    b %= MOD;
+    while (e) {
+        if (e & 1) r = (r * b) % MOD;
+        b = (b * b) % MOD;
+        e >>= 1;
+    }
+    return r;
+}
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay::sequence for efficient storage and parallel operations
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> deg(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        deg[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) in parallel
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && deg[i] == 0;
+    });
+
+    // Queue for topological sort (peeling tree nodes)
+    vector<int> q;
+    q.reserve(N);
+    for (int u : leaves) q.push_back(u);
+
+    // Process tree nodes
+    int head = 0;
+    while(head < q.size()) {
+        int v = f[q[head++]];
+        if (--deg[v] == 0) q.push_back(v);
+    }
+
+    // Each tree node contributes (K-1) choices
+    long long ans = power(K - 1, q.size());
+
+    // Process remaining nodes, which form disjoint cycles
+    for (int i = 1; i <= N; ++i) {
+        if (deg[i] > 0) {
+            int u = i;
+            long long len = 0;
+            
+            // Traverse cycle to determine length and mark as visited
+            while (deg[u] > 0) {
+                deg[u] = 0;
+                u = f[u];
+                len++;
+            }
+            
+            long long w;
+            if (len == 1) {
+                // f[i] == i: No restriction relative to itself, so K choices
+                w = K % MOD;
+            } else {
+                // Cycle C_L: Ways = (K-1)^L + (-1)^L * (K-1)
+                long long t1 = power(K - 1, len);
+                long long t2 = (K - 1) % MOD;
+                if (len & 1) w = (t1 - t2 + MOD) % MOD;
+                else w = (t1 + t2) % MOD;
+            }
+            ans = (ans * w) % MOD;
+        }
+    }
+
+    cout << ans << endl;
+    return 0;
+}"
+"2025-12-31T21:45:52.641392","14","66.30210120006778","True","23","23","0.015082478260869621","0.00010156275440007014","0.13305400000000134","0.3468970000000013","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem is modeled as counting valid colorings on a functional graph where each node i has a directed edge to f[i].
+ * A functional graph consists of components, each containing exactly one cycle and a set of trees rooted on the cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    Nodes that are part of the tree structures (leading to cycles) can be processed by topological sort (peeling).
+ *    For any tree node u, the color c(u) must be different from c(f(u)).
+ *    Since the dependency is from u to f(u), once f(u) is colored, there are (K-1) choices for u.
+ *    Total ways for tree nodes = (K-1)^(number of tree nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    After peeling all tree nodes (nodes with effective in-degree 0), only disjoint cycles remain.
+ *    For a cycle of length L:
+ *    - If L = 1 (f[i] = i), the problem statement allows any color (exception to the rule). Ways = K.
+ *    - If L > 1, we must color the cycle such that adjacent nodes have different colors.
+ *      The number of ways is given by the chromatic polynomial of the cycle graph C_L:
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation Details:
+ * - Uses the Parlay library for efficient sequence management and parallel filtering of initial leaves.
+ * - Uses a pre-allocated vector for the topological sort queue to minimize allocation overhead.
+ * - Reuses the in_degree array to mark visited nodes during cycle detection, minimizing memory usage.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O for performance
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+const int MOD = 1000000007;
+
+// Modular exponentiation: (base^exp) % MOD
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay::sequence for data storage
+    // f[i] stores the target of the edge from i
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) using parlay's parallel filter
+    // parlay::iota generates a sequence 0, 1, ..., N
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for topological sort (peeling)
+    // Using a pre-allocated vector to avoid dynamic resizing overhead
+    vector<int> q(N);
+    int head = 0;
+    int tail = 0;
+    
+    // Initialize queue with initial leaves
+    for (int u : leaves) {
+        q[tail++] = u;
+    }
+
+    // Process the queue to peel off tree nodes
+    while(head < tail){
+        int u = q[head++];
+        int v = f[u];
+        // Decrement in-degree of the parent node
+        if (--in_degree[v] == 0) {
+            q[tail++] = v;
+        }
+    }
+
+    // Calculate contribution from tree nodes
+    long long tree_nodes = tail;
+    long long total_ways = power(K - 1, tree_nodes);
+    
+    if (total_ways == 0) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Process remaining nodes, which form disjoint cycles
+    // Nodes with in_degree > 0 are part of a cycle
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse the cycle to determine its length
+            // Mark nodes as visited by setting in_degree to 0
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; 
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Self-loop: f[i] = i. Exception in problem statement implies no restriction relative to itself.
+                // So K choices.
+                ways = K % MOD;
+            } else {
+                // Cycle of length L > 1
+                // Number of ways to color C_L with K colors is P(C_L, K) = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+            if (total_ways == 0) break;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:47:29.772241","15","67.27361113629776","True","23","23","0.014864669565217464","4.663365743998861e-05","0.13003899999999646","0.3418874000000017","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem asks for the number of ways to color a functional graph G (where each node i has exactly
+ * one outgoing edge to f[i]) such that color(i) != color(f[i]), unless f[i] == i.
+ * 
+ * A functional graph consists of several connected components. Each component contains exactly one cycle
+ * and a set of trees rooted on the cycle nodes.
+ * 
+ * The counting can be decomposed into two parts:
+ * 1. Tree Nodes: These can be processed by topological sorting (peeling).
+ *    For a node u in a tree, once f[u] is colored, u has (K-1) valid colors.
+ *    Thus, if there are T tree nodes, they contribute (K-1)^T to the answer.
+ * 
+ * 2. Cycle Nodes: After peeling tree nodes, the remaining nodes form disjoint cycles.
+ *    For a cycle of length L:
+ *    - If L = 1 (f[i] == i), the restriction is lifted (exception in problem). Ways = K.
+ *    - If L > 1, the number of ways to color the cycle is given by the chromatic polynomial of C_L:
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * The total number of ways is the product of ways for all components.
+ * 
+ * Implementation Details:
+ * - Use parlay::sequence for data management.
+ * - Use parlay::filter to identify initial leaves.
+ * - Perform sequential peeling to count tree nodes and isolate cycles.
+ * - Use parlay::map and parlay::reduce to efficiently calculate the product of ways for all cycles in parallel.
+ *   This parallelizes the modular exponentiation operations.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Fast I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+const int MOD = 1000000007;
+
+// Modular exponentiation: (base^exp) % MOD
+// Inline for performance
+inline long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+// Monoid for modular multiplication
+struct MulMod {
+    long long identity = 1;
+    long long operator()(long long a, long long b) const {
+        return (a * b) % MOD;
+    }
+};
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // f[i] stores the target of the edge from i
+    // Using parlay::sequence. Indexing is 1-based, so size is N+1.
+    parlay::sequence<int> f(N + 1);
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) in parallel
+    // parlay::iota generates a sequence 0, 1, ..., N. We filter for i > 0.
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Peeling process (Topological Sort)
+    // We use a standard vector as a queue for sequential processing.
+    // This efficiently separates tree nodes from cycle nodes.
+    vector<int> q;
+    q.reserve(N);
+    for (int u : leaves) {
+        q.push_back(u);
+    }
+
+    int head = 0;
+    while(head < q.size()){
+        int u = q[head++];
+        int v = f[u];
+        // Decrement in-degree of the parent; if it becomes 0, it's a tree node
+        if (--in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    // All nodes in the queue are part of the trees
+    long long tree_nodes = q.size();
+    
+    // Identify Cycles
+    // Nodes with in_degree > 0 after peeling are part of cycles.
+    // We collect cycle lengths to process their contributions in parallel.
+    vector<int> cycle_lengths;
+    // Heuristic reservation
+    cycle_lengths.reserve((N - tree_nodes) / 2 + 1); 
+
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            int len = 0;
+            // Traverse the cycle to determine its length
+            // Mark nodes as visited by setting in_degree to 0
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0;
+                curr = f[curr];
+                len++;
+            }
+            cycle_lengths.push_back(len);
+        }
+    }
+
+    // Calculate ways for each cycle in parallel using parlay::map
+    // This allows concurrent execution of modular exponentiation for each cycle.
+    parlay::sequence<int> cycles(cycle_lengths.begin(), cycle_lengths.end());
+
+    auto cycle_ways = parlay::map(cycles, [&](int len) -> long long {
+        if (len == 1) {
+            // f[i] == i, constraint lifted -> K choices
+            return K % MOD;
+        } else {
+            // Cycle C_L coloring: (K-1)^L + (-1)^L * (K-1)
+            long long term1 = power(K - 1, len);
+            long long term2 = (K - 1) % MOD;
+            
+            if (len % 2 == 1) {
+                return (term1 - term2 + MOD) % MOD;
+            } else {
+                return (term1 + term2) % MOD;
+            }
+        }
+    });
+
+    // Combine results from all cycles using parallel reduce
+    long long total_cycle_ways = parlay::reduce(cycle_ways, MulMod());
+    
+    // Calculate contribution from tree nodes
+    long long total_tree_ways = power(K - 1, tree_nodes);
+
+    // Final answer is the product of tree ways and cycle ways
+    long long ans = (total_cycle_ways * total_tree_ways) % MOD;
+
+    cout << ans << endl;
+
+    return 0;
+}"
+"2025-12-31T21:49:11.800223","16","61.346420569721964","True","23","23","0.01630086956521728","9.182888600004564e-05","0.14256300000000977","0.37491999999999737","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem is modeled as a functional graph (each node has exactly one outgoing edge).
+ * Such a graph decomposes into components, each with exactly one cycle and trees rooted on cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    Identified by topological sort (peeling nodes with in-degree 0).
+ *    Each tree node u contributes (K-1) ways because color(u) != color(f[u]).
+ *    Total tree ways = (K-1)^(count of tree nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    Nodes remaining after peeling form disjoint cycles.
+ *    - Cycle length 1 (f[i] == i): K ways (constraint lifted).
+ *    - Cycle length L > 1: Chromatic polynomial of cycle C_L with K colors.
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation:
+ * - Uses `parlay` library for efficient parallel filtering of leaves and cycle candidates.
+ * - Uses sequential topological sort for tree processing (efficient linear scan).
+ * - Optimized cycle processing by filtering candidates first.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Fast I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay::sequence for graph structure
+    // f[i] is the target of node i
+    parlay::sequence<int> f(N + 1);
+    // in_degree stores incoming edge counts, initialized to 0 in parallel
+    parlay::sequence<int> in_degree(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) in parallel
+    // These are the starting points for tree peeling
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Queue for topological sort
+    // Initialize with identified leaves
+    vector<int> q;
+    q.reserve(N);
+    q.assign(leaves.begin(), leaves.end());
+
+    // Process trees via topological sort (peeling)
+    int head = 0;
+    while(head < q.size()) {
+        int u = q[head++];
+        int v = f[u];
+        // Decrement in-degree of parent
+        // If it becomes 0, it means all its dependencies (children) are processed
+        if (--in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long tree_nodes = q.size();
+    long long total_ways = power(K - 1, tree_nodes);
+
+    // Identify remaining nodes, which form cycles
+    // Use parallel filter to efficiently gather potential cycle nodes
+    // This skips all processed tree nodes (where in_degree is 0)
+    auto cycle_candidates = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] > 0;
+    });
+
+    // Process each cycle
+    for (int i : cycle_candidates) {
+        // Check if node is still unvisited (in_degree > 0)
+        // We set in_degree to 0 as we traverse to mark visited
+        if (in_degree[i] > 0) {
+            int curr = i;
+            long long len = 0;
+            
+            // Traverse the cycle to determine length and mark visited
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; // Mark as visited
+                curr = f[curr];
+                len++;
+            }
+            
+            long long ways = 0;
+            if (len == 1) {
+                // Self-loop: f[i] == i
+                // Problem statement: ""except when f_i = i"" -> constraint lifted
+                ways = K % MOD;
+            } else {
+                // Cycle of length L > 1
+                // Ways = (K-1)^L + (-1)^L * (K-1)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                
+                if (len % 2 == 1) {
+                    ways = (term1 - term2 + MOD) % MOD;
+                } else {
+                    ways = (term1 + term2) % MOD;
+                }
+            }
+            
+            total_ways = (total_ways * ways) % MOD;
+        }
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"
+"2025-12-31T21:50:47.394066","17","67.25582771747213","True","23","23","0.01486859999999991","9.008681359979531e-06","0.13209700000000169","0.34197779999999794","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem is modeled as a functional graph where each node i has a directed edge to f[i].
+ * The graph consists of components, each containing exactly one cycle and trees rooted on the cycle nodes.
+ * 
+ * 1. Tree Nodes:
+ *    We peel nodes with in-degree 0 iteratively (topological sort).
+ *    Each tree node u contributes (K-1) choices because its color must differ from f[u].
+ *    Total ways = (K-1)^(tree_nodes).
+ * 
+ * 2. Cycle Nodes:
+ *    After peeling, only disjoint cycles remain.
+ *    For a cycle of length L:
+ *    - If L=1 (f[i]=i), the constraint is lifted -> K choices.
+ *    - If L>1, we color a cycle graph C_L with K colors.
+ *      Ways = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * Implementation:
+ * - Uses `parlay::filter` to identify initial leaves in parallel.
+ * - Uses efficient sequential peeling for tree processing.
+ * - Identifies cycles sequentially.
+ * - Uses `parlay::map` and `parlay::reduce` to calculate the product of cycle contributions in parallel.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Fast I/O
+void fast_io() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
+
+// Modular exponentiation
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+// Monoid for modular multiplication
+struct MulMod {
+    long long identity = 1;
+    long long operator()(long long a, long long b) const {
+        return (a * b) % MOD;
+    }
+};
+
+int main() {
+    fast_io();
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    parlay::sequence<int> f(N + 1);
+    vector<int> in_degree(N + 1, 0);
+
+    // Read input and compute in-degrees
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        in_degree[f[i]]++;
+    }
+
+    // Identify initial leaves (nodes with in-degree 0) in parallel
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && in_degree[i] == 0;
+    });
+
+    // Topological sort (peeling)
+    vector<int> q;
+    q.reserve(N);
+    q.assign(leaves.begin(), leaves.end());
+
+    int head = 0;
+    while(head < q.size()) {
+        int u = q[head++];
+        int v = f[u];
+        if (--in_degree[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long tree_node_count = q.size();
+
+    // Identify Cycles
+    // Nodes with in_degree > 0 after peeling are part of cycles
+    vector<int> cycle_lengths;
+    for (int i = 1; i <= N; ++i) {
+        if (in_degree[i] > 0) {
+            int curr = i;
+            int len = 0;
+            // Traverse the cycle
+            while (in_degree[curr] > 0) {
+                in_degree[curr] = 0; // Mark as visited
+                curr = f[curr];
+                len++;
+            }
+            cycle_lengths.push_back(len);
+        }
+    }
+
+    // Calculate ways for each cycle in parallel using parlay::map
+    parlay::sequence<int> cycles(cycle_lengths.begin(), cycle_lengths.end());
+
+    auto cycle_ways = parlay::map(cycles, [&](int len) -> long long {
+        if (len == 1) {
+            // f[i] == i, constraint lifted -> K choices
+            return K % MOD;
+        } else {
+            // Cycle C_L coloring: (K-1)^L + (-1)^L * (K-1)
+            long long term1 = power(K - 1, len);
+            long long term2 = (K - 1) % MOD;
+            if (len % 2 == 1) {
+                return (term1 - term2 + MOD) % MOD;
+            } else {
+                return (term1 + term2) % MOD;
+            }
+        }
+    });
+
+    // Combine results using parallel reduce
+    long long total_cycle_ways = parlay::reduce(cycle_ways, MulMod());
+    
+    long long total_tree_ways = power(K - 1, tree_node_count);
+
+    long long ans = (total_cycle_ways * total_tree_ways) % MOD;
+
+    cout << ans << endl;
+
+    return 0;
+}"
+"2025-12-31T21:52:32.961368","18","63.2278765659898","True","23","23","0.015815808695652113","0.00011538174944011722","0.15746899999999187","0.36376359999999863","","/**
+ * Problem: Little Mirko's Coloring Book
+ * 
+ * Approach:
+ * The problem counts valid colorings of a functional graph (each node has exactly one outgoing edge).
+ * Constraints: color(u) != color(f(u)) unless f(u) == u.
+ * 
+ * Graph Structure:
+ * A functional graph is a collection of components. Each component contains exactly one cycle
+ * and a set of trees rooted on the cycle nodes.
+ * 
+ * Algorithm:
+ * 1. Tree Nodes:
+ *    - Identify nodes that are part of trees leading to cycles.
+ *    - These nodes can be ""peeled"" starting from those with in-degree 0.
+ *    - Each tree node u contributes (K-1) possibilities (any color except f(u)).
+ *    - We count tree nodes using a topological sort (peeling) approach.
+ * 
+ * 2. Cycle Nodes:
+ *    - Nodes remaining after peeling form disjoint cycles.
+ *    - For each cycle of length L:
+ *      - If L = 1 (f(u) == u): The constraint is lifted. Contribution = K.
+ *      - If L > 1: We must color a cycle graph C_L with K colors.
+ *        Contribution = (K-1)^L + (-1)^L * (K-1).
+ * 
+ * 3. Total Ways:
+ *    - Product of contributions from all tree nodes and all cycles modulo 10^9 + 7.
+ * 
+ * Implementation:
+ * - Uses `parlay::sequence` for efficient memory management.
+ * - Uses `parlay::filter` to identify initial leaves and cycle nodes in parallel.
+ * - Uses `parlay::map` and `parlay::reduce` to calculate cycle contributions in parallel.
+ * - Uses a sequential queue for the peeling process (inherently sequential dependencies).
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+// Function for modular exponentiation: (base^exp) % MOD
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1;
+    }
+    return res;
+}
+
+// Monoid for modular multiplication to be used with parlay::reduce
+struct MulMod {
+    long long identity = 1;
+    long long operator()(long long a, long long b) const {
+        return (a * b) % MOD;
+    }
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N;
+    long long K;
+    if (!(cin >> N >> K)) return 0;
+
+    // Use parlay::sequence for storing graph structure
+    // f[i] is the destination of the edge from i
+    parlay::sequence<int> f(N + 1);
+    // deg[i] stores the in-degree of node i
+    parlay::sequence<int> deg(N + 1, 0);
+
+    for (int i = 1; i <= N; ++i) {
+        cin >> f[i];
+        deg[f[i]]++;
+    }
+
+    // Phase 1: Identify Tree Nodes via Peeling
+    // Find all nodes with in-degree 0 in parallel
+    // parlay::iota(N + 1) generates 0, 1, ..., N
+    auto leaves = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && deg[i] == 0;
+    });
+
+    // Queue for processing tree nodes (Topological Sort)
+    // We reuse a vector as a queue.
+    vector<int> q;
+    q.reserve(N);
+    // Initialize queue with found leaves
+    q.insert(q.end(), leaves.begin(), leaves.end());
+
+    // Process the queue
+    int head = 0;
+    while (head < q.size()) {
+        int u = q[head++];
+        int v = f[u];
+        // Decrement in-degree of the neighbor
+        if (--deg[v] == 0) {
+            q.push_back(v);
+        }
+    }
+
+    long long tree_node_count = q.size();
+
+    // Phase 2: Identify and Process Cycles
+    // Nodes with deg[i] > 0 after peeling are part of cycles.
+    // We identify them using parallel filter to speed up iteration if cycles are sparse.
+    auto cycle_nodes = parlay::filter(parlay::iota(N + 1), [&](int i) {
+        return i > 0 && deg[i] > 0;
+    });
+
+    vector<int> cycle_lengths;
+    cycle_lengths.reserve(cycle_nodes.size());
+
+    // Iterate through potential cycle nodes to extract cycles
+    // We use 'deg' array to mark visited nodes (set to 0 after visit)
+    for (int u : cycle_nodes) {
+        if (deg[u] > 0) {
+            int curr = u;
+            int len = 0;
+            // Traverse the cycle
+            while (deg[curr] > 0) {
+                deg[curr] = 0; // Mark as visited
+                curr = f[curr];
+                len++;
+            }
+            cycle_lengths.push_back(len);
+        }
+    }
+
+    // Phase 3: Calculate Total Ways
+    // Calculate contribution from tree nodes: (K-1)^tree_node_count
+    long long total_ways = power(K - 1, tree_node_count);
+
+    // Calculate contribution from each cycle in parallel
+    if (!cycle_lengths.empty()) {
+        parlay::sequence<int> cycles(cycle_lengths.begin(), cycle_lengths.end());
+
+        // Map each cycle length to its number of valid colorings
+        auto cycle_ways_seq = parlay::map(cycles, [&](int len) -> long long {
+            if (len == 1) {
+                // Special case: f(i) = i. No restriction relative to itself.
+                return K % MOD;
+            } else {
+                // Cycle graph C_L. Chromatic polynomial P(C_L, K)
+                long long term1 = power(K - 1, len);
+                long long term2 = (K - 1) % MOD;
+                if (len % 2 == 1) {
+                    return (term1 - term2 + MOD) % MOD;
+                } else {
+                    return (term1 + term2) % MOD;
+                }
+            }
+        });
+
+        // Reduce (multiply) all cycle contributions
+        long long cycles_product = parlay::reduce(cycle_ways_seq, MulMod());
+
+        total_ways = (total_ways * cycles_product) % MOD;
+    }
+
+    cout << total_ways << endl;
+
+    return 0;
+}"

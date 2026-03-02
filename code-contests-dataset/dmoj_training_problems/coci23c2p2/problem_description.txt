@@ -1,0 +1,127 @@
+<style>.table{width:auto;}</style>
+
+<div style="float:right; width:200px; padding: 10px 10px">
+<img src="//static.dmoj.ca/data/coci/23/c2/coci23c2p2.png" style="margin: 0 auto; width:100%; height:50%;">
+</div>
+
+Zrakoplović the penguin wants to learn how to fly!
+
+The space in which he will learn to fly can be imagined as a cube of dimensions
+~n \times n \times n~, divided into ~n^3~ unit cubes. Each unit cube can be described with
+three coordinates ~(x, y, z)~, where ~x~, ~y~ and ~z~ are integers between ~1~ and ~n~. The
+coordinate ~x~ denotes the distance from the left edge of the space, the coordinate ~y~
+denotes the distance from the front edge of the space, and the coordinate ~z~ denotes
+the height.
+
+Some of these unit cubes contain clouds, and some do not.
+
+Zrakoplović is afraid of clouds, so he will learn to fly only where there are no clouds. He initially finds
+himself at a position ~(x_s, y_s, z_s)~, such that ~z_s = 1~ (i.e. at height ~1~), and wants to get to position ~(x_e, y_e, z_e)~.
+
+At the moment, he is perfecting the skill of flying in directions that are parallel to one of the axes of space
+(i.e. in the direction of the x-axis, y-axis or z-axis), and in one wing flap he can cross at most one unit
+cube.
+
+Before he decides to fly, Zrakoplović wants to know how many wing flaps he needs to get to the desired
+position. While he is preparing for the flight, help him answer that question.
+
+## Input Specification
+
+The first line contains an integer ~n~ ~(1 \le n \le 100)~, the size of the dimensions of the space in which Zrakoplović learns
+to fly.
+
+The second line contains three integers ~x_s~, ~y_s~ and ~z_s~ ~(1 \le  x_s, y_s \le n, z_s = 1)~, the starting position of
+Zrakoplović.
+
+The third line contains three integers ~x_e~, ~y_e~ and ~z_e~ ~(1 \le x_e, y_e, z_e \le n)~, the ending position of Zrakoplović.
+
+This is followed by ~n~ binary matrices of dimensions ~n \times n~ that describe the space, where the ~i~-th matrix
+describes the space at height ~i~. The upper-left corner has the coordinates ~(1, 1, i)~.
+All elements in the same row have the same ~x~-coordinate and all elements in the same column have the same ~y~-coordinate.
+
+`0` denotes a unit cube in which there are no clouds, and `1` denotes a unit cube in which there are
+clouds.
+
+The start and end position of Zrakoplović will not be a cloud.
+
+## Output Specification
+
+In the first and only line, print the smallest number of wing flaps that Zrakoplović must make to reach
+the desired position. If Zrakoplović cannot reach the desired position, print `-1`.
+
+## Constraints
+
+| Subtask | Points | Constraints |
+| - | - | - |
+| 1 | 7 | ~n = 2~ |
+| 2 | 16 | There are no clouds. |
+| 3 | 22 | All positions with ~z~-coordinate greater than 1 will be clouds. |
+| 4 | 25 | No additional constraints. |
+
+## Sample Input 1
+```
+2
+1 1 1
+1 1 2
+00
+10
+01
+00
+```
+
+## Sample Output 1
+```
+1
+```
+
+## Explanation for Sample 1
+
+Zrakoplović can reach the desired position in one wing flap by moving in the direction of the ~z~-axis for
+one unit cube.
+
+## Sample Input 2
+```
+3
+2 3 1
+1 1 1
+000
+010
+000
+111
+111
+111
+111
+111
+111
+```
+
+## Sample Output 2
+```
+3
+```
+
+## Explanation for Sample 2
+
+Zrakoplović can reach the desired position in three wing flaps by first moving to position ~(2, 1, 2)~, then to
+~(2, 2, 2)~ and finally to ~(3, 2, 2)~.
+
+## Sample Input 3
+```
+3
+2 1 1
+3 2 2
+000
+010
+110
+010
+001
+001
+101
+110
+000
+```
+
+## Sample Output 3
+```
+3
+```

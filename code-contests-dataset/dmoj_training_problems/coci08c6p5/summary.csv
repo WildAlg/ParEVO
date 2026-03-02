@@ -1,0 +1,10 @@
+metric,value
+problem_id,coci08c6p5
+best_score,105.92412443118683
+has_solution,True
+metric_combined_score,105.92412443118683
+metric_passed,True
+metric_tests_passed,10
+metric_tests_total,10
+metric_avg_time,0.009440720000000055
+metric_artifacts,

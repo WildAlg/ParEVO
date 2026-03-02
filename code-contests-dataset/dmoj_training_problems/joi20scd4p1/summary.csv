@@ -1,0 +1,10 @@
+metric,value
+problem_id,joi20scd4p1
+best_score,27.793435230568946
+has_solution,True
+metric_combined_score,27.793435230568946
+metric_passed,True
+metric_tests_passed,96
+metric_tests_total,96
+metric_avg_time,0.035979719372729355
+metric_artifacts,

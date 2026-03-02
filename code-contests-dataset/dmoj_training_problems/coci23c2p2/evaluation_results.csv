@@ -1,0 +1,5163 @@
+"timestamp","iteration","combined_score","passed","tests_passed","tests_total","avg_time","variance_time","max_time","total_time","compile_error","code"
+"2026-01-24T16:47:20.417053","1","0.0","False","0","1","0.0","0.0","0.0","0.0","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+using namespace std;
+
+int main() {
+    // TODO: Implement solution to the problem
+    // Read input, process it, and output the result
+    return 0;
+}
+//EVOLVE-BLOCK-END"
+"2026-01-24T16:50:08.184829","1","87.333918675334","True","32","32","0.011450304934987799","0.00010711508678206299","0.04730261815711856","0.36640975791960956","","/**
+ * Solution for Zrakoplović
+ * 
+ * Problem: Shortest path in a 3D grid with obstacles.
+ * Algorithm: Parallel Breadth-First Search (BFS) using the ParlayLib library.
+ * 
+ * Coordinate Mapping:
+ * - x corresponds to the row index (0 to n-1)
+ * - y corresponds to the column index (0 to n-1)
+ * - z corresponds to the layer/height index (0 to n-1)
+ * 
+ * Flattened Index: idx = z * n^2 + x * n + y
+ * 
+ * Complexity:
+ * - Time: O(N^3) work, O(N) span (parallel)
+ * - Space: O(N^3)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Convert 1-based coordinates to 0-based
+    xs--; ys--; zs--;
+    xe--; ye--; ze--;
+
+    // Calculate start and end flattened indices
+    int start_idx = zs * n * n + xs * n + ys;
+    int end_idx = ze * n * n + xe * n + ye;
+
+    // Flattened grid: z * n * n + x * n + y
+    // x corresponds to row, y corresponds to column
+    // grid[i] is true if there is a cloud (blocked), false otherwise
+    vector<bool> grid(n * n * n);
+
+    for (int z = 0; z < n; ++z) {
+        for (int x = 0; x < n; ++x) {
+            string row;
+            cin >> row;
+            for (int y = 0; y < n; ++y) {
+                int idx = z * n * n + x * n + y;
+                grid[idx] = (row[y] == '1');
+            }
+        }
+    }
+
+    // Distance array using atomic integers for thread-safe updates
+    // Initialize with -1 (unvisited)
+    // We use a raw pointer because vector<atomic> is not copyable/movable
+    std::atomic<int>* dist = new std::atomic<int>[n * n * n];
+    
+    // Parallel initialization of the distance array
+    parlay::parallel_for(0, n * n * n, [&](size_t i) {
+        dist[i].store(-1, std::memory_order_relaxed);
+    });
+
+    // Set distance for start position
+    dist[start_idx].store(0, std::memory_order_relaxed);
+
+    // Frontier contains the indices of nodes to process in the current step
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+    bool found = false;
+    int result = -1;
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination has been reached
+        // We check dist[end_idx] because it might have been set in the previous iteration
+        int d_end = dist[end_idx].load(std::memory_order_relaxed);
+        if (d_end != -1) {
+            result = d_end;
+            found = true;
+            break;
+        }
+
+        // Parallel expansion: Generate next level candidates
+        auto neighbors_nested = parlay::map(frontier, [&](int u) {
+            // Decode index to coordinates
+            int temp = u;
+            int uy = temp % n;
+            temp /= n;
+            int ux = temp % n;
+            int uz = temp / n;
+
+            int cands[6];
+            int count = 0;
+
+            // Generate potential neighbors (up, down, left, right, forward, backward)
+            // z-axis
+            if (uz > 0) cands[count++] = u - n * n;
+            if (uz < n - 1) cands[count++] = u + n * n;
+            // x-axis
+            if (ux > 0) cands[count++] = u - n;
+            if (ux < n - 1) cands[count++] = u + n;
+            // y-axis
+            if (uy > 0) cands[count++] = u - 1;
+            if (uy < n - 1) cands[count++] = u + 1;
+
+            int valid_cands[6];
+            int valid_count = 0;
+            for (int i = 0; i < count; ++i) {
+                int v = cands[i];
+                if (!grid[v]) { // Must not be a cloud
+                    // Optimistic check to reduce atomic contention:
+                    // Only consider if it looks unvisited
+                    if (dist[v].load(std::memory_order_relaxed) == -1) {
+                        valid_cands[valid_count++] = v;
+                    }
+                }
+            }
+            return parlay::sequence<int>(valid_cands, valid_cands + valid_count);
+        });
+
+        // Flatten nested sequences to get all candidates
+        auto candidates = parlay::flatten(neighbors_nested);
+        
+        if (candidates.empty()) break;
+
+        // Filter candidates and update distances atomically
+        // parlay::filter keeps elements for which the predicate returns true
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            int expected = -1;
+            // Atomic Compare-And-Swap: if dist[v] is -1, set to current_dist + 1 and return true
+            // This ensures each node is added to the next frontier exactly once
+            return dist[v].compare_exchange_strong(expected, current_dist + 1, std::memory_order_relaxed);
+        });
+
+        frontier = next_frontier;
+        current_dist++;
+    }
+
+    // Final check if loop exited without breaking
+    if (!found) {
+        int d_end = dist[end_idx].load(std::memory_order_relaxed);
+        if (d_end != -1) result = d_end;
+    }
+
+    cout << result << endl;
+
+    delete[] dist;
+    return 0;
+}"
+"2026-01-24T16:52:53.170326","2","123.83562649544889","True","32","32","0.008075220583123155","1.526555239016805e-05","0.032260683830827475","0.25840705865994096","","/**
+ * Problem: Zrakoplović
+ * Approach: Parallel Breadth-First Search (BFS) using the Parlay library.
+ * 
+ * The problem asks for the minimum number of steps to travel from a starting point to an ending point
+ * in a 3D grid with obstacles (clouds). Movement is allowed in 6 directions (up, down, left, right, forward, backward)
+ * to adjacent cells. This is a classic shortest path problem on an unweighted graph, which can be solved using BFS.
+ * 
+ * We use the Parlay library to parallelize the BFS process. The BFS proceeds in levels (frontiers).
+ * In each iteration, we generate the neighbors of the current frontier in parallel, filter out visited nodes
+ * and invalid moves, and update the distances using atomic operations to ensure thread safety.
+ * 
+ * Coordinate System:
+ * Input gives n matrices for z = 1 to n.
+ * Each matrix has rows corresponding to x-coordinates and columns corresponding to y-coordinates.
+ * We map (x, y, z) to a flattened index: z * n * n + x * n + y.
+ * 
+ * Complexity:
+ * Work: O(N^3) - each node and edge is processed once.
+ * Span: O(Diameter) - proportional to the shortest path length.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// Include Parlay libraries
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Convert 1-based input coordinates to 0-based internal coordinates
+    xs--; ys--; zs--;
+    xe--; ye--; ze--;
+
+    // Calculate flattened indices for start and end positions
+    int start_node = zs * n * n + xs * n + ys;
+    int end_node = ze * n * n + xe * n + ye;
+
+    // Edge case: Start and end are the same
+    if (start_node == end_node) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Read the grid configuration
+    // We use a flat vector to represent the 3D grid.
+    // Index mapping: index = z * n^2 + x * n + y
+    size_t total_nodes = (size_t)n * n * n;
+    vector<char> is_cloud(total_nodes);
+
+    for (int z = 0; z < n; ++z) {
+        for (int x = 0; x < n; ++x) {
+            string row;
+            cin >> row;
+            for (int y = 0; y < n; ++y) {
+                // '1' indicates a cloud (blocked), '0' is free
+                is_cloud[z * n * n + x * n + y] = (row[y] == '1');
+            }
+        }
+    }
+
+    // Distance array to store minimum steps to each node. Initialized to -1 (unvisited).
+    // We use int to allow atomic operations (CAS).
+    vector<int> dist(total_nodes, -1);
+    dist[start_node] = 0;
+
+    // Current frontier of nodes to visit
+    parlay::sequence<int> frontier(1, start_node);
+
+    int current_dist = 0;
+
+    // Direction arrays for 6 neighbors: (dx, dy, dz)
+    // Corresponds to x (row), y (col), z (height) changes
+    const int dz[] = {0, 0, 0, 0, 1, -1};
+    const int dx[] = {0, 0, 1, -1, 0, 0};
+    const int dy[] = {1, -1, 0, 0, 0, 0};
+
+    // Parallel BFS Loop
+    while (frontier.size() > 0) {
+        // If the destination has been reached, we can stop.
+        // Note: In a level-synchronous BFS, if end_node is found, its distance is optimal.
+        if (dist[end_node] != -1) {
+            cout << dist[end_node] << endl;
+            return 0;
+        }
+
+        // Step 1: Generate all valid neighbors for the current frontier in parallel.
+        // parlay::map applies the function to each element of the frontier.
+        auto nested_neighbors = parlay::map(frontier, [&](int u) {
+            // Decode index back to coordinates
+            int z = u / (n * n);
+            int rem = u % (n * n);
+            int x = rem / n;
+            int y = rem % n;
+
+            vector<int> neighbors;
+            neighbors.reserve(6);
+
+            for (int i = 0; i < 6; ++i) {
+                int nz = z + dz[i];
+                int nx = x + dx[i];
+                int ny = y + dy[i];
+
+                // Check boundaries
+                if (nz >= 0 && nz < n && nx >= 0 && nx < n && ny >= 0 && ny < n) {
+                    int v = nz * n * n + nx * n + ny;
+                    // Check if not cloud
+                    if (!is_cloud[v]) {
+                        neighbors.push_back(v);
+                    }
+                }
+            }
+            return neighbors;
+        });
+
+        // Step 2: Flatten the nested sequence of neighbors into a single sequence.
+        auto candidates = parlay::flatten(nested_neighbors);
+
+        // Step 3: Filter candidates to keep only unvisited nodes and mark them as visited.
+        // We use atomic Compare-And-Swap (CAS) to ensure each node is added to the next frontier exactly once.
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Optimization: Quick check if already visited
+            if (dist[v] != -1) return false;
+
+            // Atomic CAS: Try to update dist[v] from -1 to current_dist + 1.
+            // Returns true only if this thread successfully changed the value.
+            return __sync_bool_compare_and_swap(&dist[v], -1, current_dist + 1);
+        });
+
+        // Move to the next level
+        frontier = next_frontier;
+        current_dist++;
+    }
+
+    // Output result
+    if (dist[end_node] != -1) {
+        cout << dist[end_node] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T16:54:57.343449","3","113.77680363488369","True","32","32","0.00878913775086403","5.019689947005495e-06","0.028246345929801464","0.28125240802764895","","/**
+ * Solution for Zrakoplović
+ * 
+ * Problem: Shortest path in a 3D grid with obstacles.
+ * Algorithm: Parallel Breadth-First Search (BFS) using ParlayLib.
+ * Optimization: Explicit Graph Construction (CSR) to avoid repeated coordinate math and boundary checks.
+ * 
+ * Complexity:
+ * - Time: O(N^3) work, O(N) span.
+ * - Space: O(N^3) for grid, graph, and distance array.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Convert 1-based coordinates to 0-based
+    xs--; ys--; zs--;
+    xe--; ye--; ze--;
+
+    // Helper for flattening coordinates
+    auto get_idx = [&](int x, int y, int z) {
+        return z * n * n + x * n + y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Early exit if start is end
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    int num_nodes = n * n * n;
+    
+    // Store cloud information
+    // Using char instead of bool for potentially faster access and to avoid vector<bool> specialization
+    vector<char> is_cloud(num_nodes);
+
+    for (int z = 0; z < n; ++z) {
+        for (int x = 0; x < n; ++x) {
+            string row;
+            cin >> row;
+            for (int y = 0; y < n; ++y) {
+                int idx = get_idx(x, y, z);
+                is_cloud[idx] = (row[y] == '1');
+            }
+        }
+    }
+
+    // --- Graph Construction (CSR Format) ---
+    // We precompute the adjacency list to speed up the BFS traversal.
+    // This removes coordinate calculations and boundary checks from the BFS loop.
+
+    // 1. Calculate degrees (number of valid neighbors) for each node
+    parlay::sequence<int> degrees(num_nodes);
+    
+    parlay::parallel_for(0, num_nodes, [&](size_t u) {
+        if (is_cloud[u]) {
+            degrees[u] = 0;
+            return;
+        }
+        
+        // Decode index
+        int temp = u;
+        int y = temp % n;
+        temp /= n;
+        int x = temp % n;
+        int z = temp / n;
+        
+        int deg = 0;
+        
+        // Check 6 directions
+        if (x + 1 < n && !is_cloud[u + n]) deg++;
+        if (x - 1 >= 0 && !is_cloud[u - n]) deg++;
+        if (y + 1 < n && !is_cloud[u + 1]) deg++;
+        if (y - 1 >= 0 && !is_cloud[u - 1]) deg++;
+        if (z + 1 < n && !is_cloud[u + n * n]) deg++;
+        if (z - 1 >= 0 && !is_cloud[u - n * n]) deg++;
+        
+        degrees[u] = deg;
+    });
+
+    // 2. Compute offsets using prefix sum
+    auto [offsets, total_edges] = parlay::scan(degrees);
+    
+    // 3. Fill the edges array
+    parlay::sequence<int> edges(total_edges);
+    
+    parlay::parallel_for(0, num_nodes, [&](size_t u) {
+        if (is_cloud[u]) return;
+        
+        int temp = u;
+        int y = temp % n;
+        temp /= n;
+        int x = temp % n;
+        int z = temp / n;
+        
+        int offset = offsets[u];
+        int k = 0;
+        
+        // Add neighbors to edges array
+        if (x + 1 < n && !is_cloud[u + n]) edges[offset + k++] = u + n;
+        if (x - 1 >= 0 && !is_cloud[u - n]) edges[offset + k++] = u - n;
+        if (y + 1 < n && !is_cloud[u + 1]) edges[offset + k++] = u + 1;
+        if (y - 1 >= 0 && !is_cloud[u - 1]) edges[offset + k++] = u - 1;
+        if (z + 1 < n && !is_cloud[u + n * n]) edges[offset + k++] = u + n * n;
+        if (z - 1 >= 0 && !is_cloud[u - n * n]) edges[offset + k++] = u - n * n;
+    });
+
+    // --- Parallel BFS ---
+    
+    // Distance array, initialized to -1
+    // We use raw pointer to array of atomics because vector<atomic> is not valid
+    std::atomic<int>* dist = new std::atomic<int>[num_nodes];
+    parlay::parallel_for(0, num_nodes, [&](size_t i) {
+        dist[i].store(-1, std::memory_order_relaxed);
+    });
+
+    // Initialize start
+    dist[start_idx].store(0, std::memory_order_relaxed);
+
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+    int result = -1;
+
+    while (!frontier.empty()) {
+        // Check if destination reached in previous step
+        int d_end = dist[end_idx].load(std::memory_order_relaxed);
+        if (d_end != -1) {
+            result = d_end;
+            break;
+        }
+
+        // 1. Calculate size of next frontier candidates
+        // We map each node u in frontier to its degree
+        auto frontier_degrees = parlay::map(frontier, [&](int u) {
+            return degrees[u];
+        });
+        
+        // 2. Scan to get write offsets for candidates
+        auto [write_offsets, total_next] = parlay::scan(frontier_degrees);
+        
+        if (total_next == 0) break;
+
+        // 3. Populate candidates array in parallel
+        parlay::sequence<int> candidates(total_next);
+
+        parlay::parallel_for(0, frontier.size(), [&](size_t i) {
+            int u = frontier[i];
+            int off = offsets[u];
+            int deg = degrees[u];
+            int write_pos = write_offsets[i];
+            
+            for (int j = 0; j < deg; ++j) {
+                candidates[write_pos + j] = edges[off + j];
+            }
+        });
+
+        // 4. Filter candidates to keep only unvisited nodes and update distances
+        // compare_exchange_strong ensures each node is added exactly once
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            int expected = -1;
+            // If dist[v] is -1, set it to current_dist + 1 and return true
+            // Otherwise return false
+            return dist[v].compare_exchange_strong(expected, current_dist + 1, std::memory_order_relaxed);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check in case the loop exited
+    if (result == -1) {
+        int d_end = dist[end_idx].load(std::memory_order_relaxed);
+        if (d_end != -1) result = d_end;
+    }
+
+    cout << result << endl;
+
+    delete[] dist;
+    return 0;
+}"
+"2026-01-24T16:57:11.035752","4","94.11506073689517","True","32","32","0.010625291979522444","2.1055049017912417e-05","0.04153364058583975","0.3400093433447182","","/**
+ * Problem: Zrakoplović
+ * Approach: Parallel Breadth-First Search (BFS) using the Parlay library.
+ * 
+ * Optimization Details:
+ * 1. Padded Grid: The 3D grid is padded with a layer of 'clouds' (walls) on all sides.
+ *    This eliminates the need for boundary checks (x>=0, x<n, etc.) in the inner loop,
+ *    reducing branching and improving performance.
+ * 2. Flattened Coordinates: We map (x, y, z) to a single integer index.
+ *    Precomputed strides allow fast neighbor calculation using simple addition.
+ * 3. Parallel Expansion: We use parlay::map to generate neighbors in parallel.
+ * 4. Atomic Visited Array: We use atomic Compare-And-Swap (CAS) to ensure each node
+ *    is visited exactly once and to build the next frontier without duplicates.
+ * 5. Level-Synchronous BFS: Guarantees the shortest path in unweighted graphs.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// Include Parlay libraries
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // Valid coordinates: 1 to n
+    int dim = n + 2;
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+    int total_nodes = dim * dim * dim;
+
+    // Convert 1-based coordinates to flattened indices
+    int start_idx = zs * stride_z + xs * stride_x + ys * stride_y;
+    int end_idx = ze * stride_z + xe * stride_x + ye * stride_y;
+
+    // Edge case: Start equals End
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid representation: 1 = blocked (cloud/wall), 0 = free
+    // Initialize with 1 to create the padded boundary walls
+    vector<char> grid(total_nodes, 1);
+
+    // Read input and fill the grid
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base_idx = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base_idx + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Visited array: 0 = unvisited, 1 = visited
+    // Using int to support atomic CAS
+    vector<int> visited(total_nodes, 0);
+    visited[start_idx] = 1;
+
+    // BFS Frontier
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int steps = 0;
+
+    // Precomputed offsets for 6 directions
+    int offsets[6] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        steps++;
+
+        // Step 1: Generate neighbors in parallel
+        // parlay::map runs the lambda for each node in the frontier
+        auto nested_candidates = parlay::map(frontier, [&](int u) {
+            int buf[6];
+            int count = 0;
+            for (int i = 0; i < 6; ++i) {
+                int v = u + offsets[i];
+                // Check if the neighbor is free (0) and optimistically unvisited (0)
+                // No boundary checks needed due to padding
+                if (grid[v] == 0 && visited[v] == 0) {
+                    buf[count++] = v;
+                }
+            }
+            // Return a sequence of valid neighbors
+            return parlay::sequence<int>(buf, buf + count);
+        });
+
+        // Step 2: Flatten the nested sequence
+        auto candidates = parlay::flatten(nested_candidates);
+
+        if (candidates.empty()) break;
+
+        // Step 3: Filter unvisited nodes and mark them atomically
+        // parlay::filter keeps elements where the predicate returns true
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Atomic Compare-And-Swap:
+            // If visited[v] is 0, set it to 1 and return true.
+            // Otherwise, return false.
+            return __sync_bool_compare_and_swap(&visited[v], 0, 1);
+        });
+
+        // Check if destination is reached
+        // If end_idx was successfully marked in this step, we are done
+        if (visited[end_idx]) {
+            cout << steps << endl;
+            return 0;
+        }
+
+        frontier = next_frontier;
+    }
+
+    // Destination unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T16:59:09.771054","5","128.73155225577892","True","32","32","0.007768103331909515","1.687462680418018e-05","0.02300932165235281","0.24857930662110447","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach:
+ * - Precompute the graph structure (Adjacency List) in parallel.
+ *   This avoids costly coordinate conversions and boundary checks during the BFS.
+ * - Use ParlayLib for a level-synchronous Parallel BFS.
+ * - Use atomic operations to handle concurrent updates to the distance array.
+ * 
+ * Optimizations:
+ * - Flattened 3D coordinates to 1D index.
+ * - Static arrays for graph storage to minimize allocation overhead.
+ * - Custom view struct for `parlay::flatten` to avoid copying neighbor lists.
+ * - Fast I/O.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Maximum number of nodes: 100^3 = 1,000,000
+constexpr int MAX_NODES = 1000005;
+
+// Adjacency list: each node has max 6 neighbors
+// Stored statically to avoid dynamic allocation overhead
+int adj[MAX_NODES][6];
+int deg[MAX_NODES];
+
+// Distance array: stores min steps from start
+// Accessed atomically
+int dist[MAX_NODES];
+
+// Lightweight range view for parlay::flatten
+// Allows us to expose the adjacency list rows without copying
+struct NeighborsView {
+    int* start;
+    int len;
+    
+    using value_type = int;
+    using iterator = int*;
+    using const_iterator = int*;
+    
+    iterator begin() const { return start; }
+    iterator end() const { return start + len; }
+    size_t size() const { return len; }
+};
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Convert 1-based coordinates to 0-based
+    xs--; ys--; zs--;
+    xe--; ye--; ze--;
+
+    int start_node = zs * n * n + xs * n + ys;
+    int end_node = ze * n * n + xe * n + ye;
+
+    // Edge case: Start equals End
+    if (start_node == end_node) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    size_t num_nodes = (size_t)n * n * n;
+
+    // Read grid configuration
+    // We use a temporary vector to store cloud status for graph building
+    vector<char> is_cloud(num_nodes);
+    char row_buf[105];
+
+    for (int z = 0; z < n; ++z) {
+        for (int x = 0; x < n; ++x) {
+            cin >> row_buf;
+            for (int y = 0; y < n; ++y) {
+                is_cloud[z * n * n + x * n + y] = (row_buf[y] == '1');
+            }
+        }
+    }
+
+    // Parallel Graph Construction
+    // Pre-calculating neighbors allows the BFS to be very fast
+    parlay::parallel_for(0, num_nodes, [&](size_t u) {
+        // Initialize distance
+        dist[u] = -1;
+
+        if (is_cloud[u]) {
+            deg[u] = 0;
+            return;
+        }
+
+        // Decode index to coordinates
+        int temp = (int)u;
+        int y = temp % n;
+        temp /= n;
+        int x = temp % n;
+        int z = temp / n;
+
+        int count = 0;
+        int* neighbors = adj[u];
+        
+        // Check all 6 directions and add valid non-cloud neighbors
+        
+        // Z-axis
+        if (z + 1 < n) {
+            int v = u + n * n;
+            if (!is_cloud[v]) neighbors[count++] = v;
+        }
+        if (z - 1 >= 0) {
+            int v = u - n * n;
+            if (!is_cloud[v]) neighbors[count++] = v;
+        }
+        
+        // X-axis
+        if (x + 1 < n) {
+            int v = u + n;
+            if (!is_cloud[v]) neighbors[count++] = v;
+        }
+        if (x - 1 >= 0) {
+            int v = u - n;
+            if (!is_cloud[v]) neighbors[count++] = v;
+        }
+
+        // Y-axis
+        if (y + 1 < n) {
+            int v = u + 1;
+            if (!is_cloud[v]) neighbors[count++] = v;
+        }
+        if (y - 1 >= 0) {
+            int v = u - 1;
+            if (!is_cloud[v]) neighbors[count++] = v;
+        }
+        
+        deg[u] = count;
+    });
+
+    // Set start distance
+    dist[start_node] = 0;
+
+    // Initialize frontier with start node
+    parlay::sequence<int> frontier(1, start_node);
+
+    int current_dist = 0;
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination was reached
+        if (dist[end_node] != -1) {
+            cout << dist[end_node] << endl;
+            return 0;
+        }
+
+        // 1. Generate neighbors for all nodes in the frontier
+        // parlay::map returns a sequence of NeighborsView
+        auto nested_neighbors = parlay::map(frontier, [&](int u) {
+            return NeighborsView{adj[u], deg[u]};
+        });
+
+        // 2. Flatten the nested sequence into a single sequence of candidates
+        auto candidates = parlay::flatten(nested_neighbors);
+
+        // 3. Filter candidates to find unvisited nodes
+        // Use atomic CAS to ensure each node is visited exactly once
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Optimistic read to avoid cache contention
+            if (dist[v] != -1) return false;
+            
+            // Atomic update: try to set dist[v] to current_dist + 1
+            return __sync_bool_compare_and_swap(&dist[v], -1, current_dist + 1);
+        });
+
+        // Move to next level
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Output result
+    if (dist[end_node] != -1) {
+        cout << dist[end_node] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:01:08.521548","6","128.7683444176914","True","32","32","0.007765883801039308","9.109555508482071e-06","0.02787369815632701","0.24850828163325786","","/**
+ * Solution for Zrakoplović
+ * 
+ * Problem: Shortest path in a 3D grid with obstacles.
+ * Approach: Parallel Breadth-First Search (BFS) using the Parlay library.
+ * 
+ * Key Optimizations:
+ * 1. Padded Grid: The grid is padded with walls (clouds) on all boundaries. This eliminates
+ *    the need for coordinate boundary checks (x>=0, x<n, etc.) inside the BFS loop,
+ *    reducing branching and improving performance.
+ * 2. Implicit Graph: We do not construct an explicit graph. Neighbors are calculated on-the-fly
+ *    using precomputed memory offsets. This avoids the O(N^3) memory and time overhead of graph construction.
+ * 3. Two-Pass Expansion: Instead of allocating small vectors for neighbors (which causes memory fragmentation),
+ *    we use a two-pass approach:
+ *    - Pass 1: Count valid neighbors for each node in parallel.
+ *    - Pass 2: Use parallel scan to determine write positions and fill a single large array.
+ * 4. Atomic Visited Check: We use atomic Compare-And-Swap (CAS) on the distance array to ensure
+ *    each node is visited exactly once, preventing race conditions and duplicates.
+ * 
+ * Complexity:
+ * - Work: O(N^3) - proportional to the number of edges/nodes.
+ * - Span: O(Diameter) - proportional to the shortest path length.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// Include Parlay libraries for parallel primitives
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Wrapper for atomic Compare-And-Swap
+// Returns true if the swap occurred (i.e., we successfully marked the node)
+inline bool atomic_cas(int& ptr, int old_val, int new_val) {
+    return __sync_bool_compare_and_swap(&ptr, old_val, new_val);
+}
+
+int main() {
+    // Optimize I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Grid Dimensions with Padding
+    // The internal grid is of size (N+2)x(N+2)x(N+2).
+    // Indices 0 and N+1 in each dimension serve as sentinel walls.
+    // Valid coordinates are 1 to N.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened index calculation
+    // idx = z * (dim*dim) + x * dim + y
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Precomputed offsets for the 6 adjacent neighbors (x+/-1, y+/-1, z+/-1)
+    int offsets[6] = {
+        stride_x, -stride_x,
+        stride_y, -stride_y,
+        stride_z, -stride_z
+    };
+
+    // Calculate start and end flattened indices
+    // Input coordinates are 1-based, which maps directly to our padded grid indices.
+    int start_idx = zs * stride_z + xs * stride_x + ys * stride_y;
+    int end_idx = ze * stride_z + xe * stride_x + ye * stride_y;
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid representation: 1 = Cloud/Wall (Blocked), 0 = Free
+    // Initialize with 1 to create the padded boundary walls
+    vector<char> grid(total_nodes, 1);
+
+    // Read Input
+    // The input provides N matrices for z = 1 to N.
+    // Each matrix has N rows corresponding to x = 1 to N.
+    // Each row is a string of length N corresponding to y = 1 to N.
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base_idx = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base_idx + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Distance array: stores min steps to each node. -1 indicates unvisited.
+    // We use parallel_for for initialization to utilize threads.
+    vector<int> dist(total_nodes);
+    parlay::parallel_for(0, total_nodes, [&](size_t i) {
+        dist[i] = -1;
+    });
+
+    dist[start_idx] = 0;
+
+    // BFS Frontier: contains nodes to process in the current step
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+    int result = -1;
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination was reached in the previous step
+        if (dist[end_idx] != -1) {
+            result = dist[end_idx];
+            break;
+        }
+
+        // Pass 1: Count valid neighbors for each node in the frontier
+        // A neighbor is valid if it's not a cloud/wall and hasn't been visited yet.
+        auto counts = parlay::map(frontier, [&](int u) {
+            int c = 0;
+            for (int off : offsets) {
+                int v = u + off;
+                // grid[v] == 1 handles both clouds and the padded boundaries
+                // dist[v] == -1 is an optimistic check to reduce contention
+                if (grid[v] == 0 && dist[v] == -1) {
+                    c++;
+                }
+            }
+            return c;
+        });
+
+        // Pass 2: Compute write offsets using parallel scan
+        auto [write_offsets, total_candidates] = parlay::scan(counts);
+
+        if (total_candidates == 0) break;
+
+        // Pass 3: Fill candidates array in parallel
+        // We regenerate the neighbors and write them to the pre-calculated positions.
+        parlay::sequence<int> candidates(total_candidates);
+        parlay::parallel_for(0, frontier.size(), [&](size_t i) {
+            int u = frontier[i];
+            int pos = write_offsets[i];
+            for (int off : offsets) {
+                int v = u + off;
+                if (grid[v] == 0 && dist[v] == -1) {
+                    candidates[pos++] = v;
+                }
+            }
+        });
+
+        // Pass 4: Filter candidates and update distances atomically
+        // parlay::filter keeps elements where the predicate returns true.
+        // atomic_cas ensures that if multiple threads try to visit the same node,
+        // only one succeeds and adds it to the next frontier.
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Try to update dist[v] from -1 to current_dist + 1
+            return atomic_cas(dist[v], -1, current_dist + 1);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check for result
+    if (result == -1 && dist[end_idx] != -1) {
+        result = dist[end_idx];
+    }
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2026-01-24T17:03:09.955964","7","117.69872774461793","True","32","32","0.008496268559247256","4.331343783323321e-05","0.021833968814462423","0.2718805938959122","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach:
+ * - Parallel BFS using ParlayLib to find the shortest path in a 3D grid.
+ * - Optimization 1: Padded Grid (N+2)^3 to eliminate costly boundary checks in inner loops.
+ * - Optimization 2: Static Adjacency List to avoid dynamic allocation overhead and improve cache locality.
+ * - Optimization 3: Delayed Sequence in BFS loop to reduce memory bandwidth usage.
+ * - Optimization 4: Manual Expansion kernel to avoid overhead of generic flattening.
+ * 
+ * The grid is padded with a layer of ""clouds"" (walls) around the valid N*N*N area.
+ * This allows unconditional neighbor checking, simplifying the logic.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// Include Parlay libraries
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Constants
+// N <= 100. Padded dimension D = N + 2 <= 102.
+// Total nodes <= 102^3 = 1,061,208.
+// We use a safe upper bound for static arrays.
+constexpr int MAX_NODES = 1100000;
+
+// Static Graph Storage
+// adj: Stores indices of valid neighbors (max 6) for each node.
+// deg: Number of valid neighbors for each node.
+// dist: Distance from start, also serves as visited array (-1 = unvisited).
+// is_cloud: 1 if blocked (cloud/wall), 0 if free.
+int adj[MAX_NODES][6];
+int deg[MAX_NODES];
+int dist[MAX_NODES];
+char is_cloud[MAX_NODES];
+
+int main() {
+    // Optimize I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding
+    // Internal coordinates: 0 to D-1
+    // Valid coordinates: 1 to N
+    // Indices 0 and N+1 are padding (walls)
+    int D = n + 2;
+    size_t stride_y = 1;
+    size_t stride_x = D;
+    size_t stride_z = D * D;
+    size_t total_nodes = stride_z * D;
+
+    // Helper to map (x, y, z) to flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_node = get_idx(xs, ys, zs);
+    int end_node = get_idx(xe, ye, ze);
+
+    // Edge case: Start is End
+    if (start_node == end_node) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Initialize arrays
+    // Set all to blocked/unvisited initially.
+    // This sets up the boundary walls automatically.
+    parlay::parallel_for(0, total_nodes, [&](size_t i) {
+        is_cloud[i] = 1;
+        dist[i] = -1;
+    });
+
+    // Read input
+    // Only valid range 1..N is updated to 0 (if not cloud).
+    // Boundaries remain 1 (blocked).
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base_idx = get_idx(x, 1, z);
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    is_cloud[base_idx + (y-1)] = 0;
+                }
+            }
+        }
+    }
+
+    // Parallel Graph Construction
+    // Precompute adjacency list to speed up BFS.
+    // Offsets for 6 neighbors in flattened grid.
+    int offsets[6] = {
+        (int)stride_y, -(int)stride_y,
+        (int)stride_x, -(int)stride_x,
+        (int)stride_z, -(int)stride_z
+    };
+
+    parlay::parallel_for(0, total_nodes, [&](size_t u) {
+        // If node is blocked, it has no outgoing edges
+        if (is_cloud[u]) {
+            deg[u] = 0;
+            return;
+        }
+
+        int count = 0;
+        int* neighbors = adj[u];
+        
+        // Check 6 directions
+        // Boundary checks are implicit via is_cloud padding
+        for (int k = 0; k < 6; ++k) {
+            int v = u + offsets[k];
+            if (!is_cloud[v]) {
+                neighbors[count++] = v;
+            }
+        }
+        deg[u] = count;
+    });
+
+    // BFS Initialization
+    dist[start_node] = 0;
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Heuristic reservation
+    frontier.push_back(start_node);
+
+    int current_dist = 0;
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached
+        if (dist[end_node] != -1) {
+            break;
+        }
+
+        // 1. Calculate next frontier size
+        // Use delayed_seq to avoid allocating temporary vector for degrees
+        auto degrees_seq = parlay::delayed_seq<int>(frontier.size(), [&](size_t i) {
+            return deg[frontier[i]];
+        });
+
+        auto [write_offsets, total_next] = parlay::scan(degrees_seq);
+
+        if (total_next == 0) break;
+
+        // 2. Expand neighbors into candidates array
+        parlay::sequence<int> candidates(total_next);
+
+        parlay::parallel_for(0, frontier.size(), [&](size_t i) {
+            int u = frontier[i];
+            int d = deg[u];
+            int offset = write_offsets[i];
+            int* neighbors = adj[u];
+            
+            // Copy precomputed neighbors
+            for (int k = 0; k < d; ++k) {
+                candidates[offset + k] = neighbors[k];
+            }
+        });
+
+        // 3. Filter candidates to find unvisited nodes
+        // Use atomic Compare-And-Swap to ensure thread safety and uniqueness
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Optimistic check to avoid expensive atomic op if already visited
+            if (dist[v] != -1) return false;
+            
+            // Atomic CAS: Try to update dist[v] from -1 to current_dist + 1
+            // Returns true only if this thread successfully updated the value
+            return __sync_bool_compare_and_swap(&dist[v], -1, current_dist + 1);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Output result
+    if (dist[end_node] != -1) {
+        cout << dist[end_node] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:05:24.309289","8","129.38195804410887","True","32","32","0.007729052915237844","2.8048013204872054e-05","0.021291686221957207","0.247329693287611","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Padded Grid: Size (N+2)^3 to avoid boundary checks.
+ * 2. Constant Expansion: Each node expands to exactly 8 candidates (6 neighbors + 2 dummies).
+ *    This allows bitwise logic (shift/mask) instead of division/modulo, and avoids
+ *    variable-sized expansion overhead.
+ * 3. Atomic Updates: Compare-And-Swap (CAS) ensures thread-safe visitation.
+ * 4. Fast I/O and flattened 1D indexing.
+ * 
+ * Complexity:
+ * - Work: O(N^3)
+ * - Span: O(Diameter)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // idx = z * stride_z + x * stride_x + y * stride_y
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    int start_idx = zs * stride_z + xs * stride_x + ys * stride_y;
+    int end_idx = ze * stride_z + xe * stride_x + ye * stride_y;
+
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid: 0 = free, 1 = blocked (cloud/wall)
+    // Initialize with 1 to create padded boundaries
+    parlay::sequence<char> grid(total_nodes, 1);
+
+    // Read Input
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Distance array, initialized to -1
+    // Access with atomic CAS
+    parlay::sequence<int> dist(total_nodes, -1);
+    dist[start_idx] = 0;
+
+    // Frontier initialized with start node
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations
+    int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached
+        if (dist[end_idx] != -1) {
+            cout << dist[end_idx] << endl;
+            return 0;
+        }
+
+        // Expand frontier: each node produces 8 candidates
+        // This fixed expansion is faster than variable-sized expansion
+        size_t num_candidates = frontier.size() * 8;
+        parlay::sequence<int> candidates(num_candidates);
+
+        // Fill candidates in parallel
+        parlay::parallel_for(0, num_candidates, [&](size_t i) {
+            // i >> 3 is i / 8; i & 7 is i % 8
+            int u = frontier[i >> 3];
+            int offset = offsets[i & 7];
+            int v = u + offset;
+            
+            // Validity check:
+            // 1. grid[v] == 0 (not cloud/wall)
+            // 2. dist[v] == -1 (not visited)
+            // Note: offset 0 (dummy) leads to v=u. Since u is in frontier, 
+            // dist[u] != -1, so it fails the check automatically.
+            if (grid[v] == 0 && dist[v] == -1) {
+                candidates[i] = v;
+            } else {
+                candidates[i] = -1;
+            }
+        });
+
+        // Filter valid candidates and atomically mark them visited
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            if (v == -1) return false;
+            // Atomic Compare-And-Swap
+            // Try to update dist[v] from -1 to current_dist + 1
+            // Returns true only if this thread successfully updated it
+            return __sync_bool_compare_and_swap(&dist[v], -1, current_dist + 1);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check
+    if (dist[end_idx] != -1) {
+        cout << dist[end_idx] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:07:41.800434","9","112.02791131846313","True","32","32","0.00892634690972045","1.9475395210757345e-05","0.026725418400019407","0.2856431011110544","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Parallel Breadth-First Search (BFS) with Explicit Graph and Two-Pass Filtering.
+ * 
+ * Key Optimizations:
+ * 1. Padded Grid Logic + Explicit Graph:
+ *    - We use a padded coordinate system (0 and N+1 are walls) to simplify graph construction.
+ *    - We build an explicit adjacency list (static array) to avoid coordinate math and boundary checks 
+ *      during the BFS critical path.
+ *    - Construction uses parallel_for and simple pointer arithmetic.
+ * 
+ * 2. Two-Phase Expansion in BFS:
+ *    - Instead of blindly adding all neighbors to the candidate list, we filter them twice.
+ *    - Phase 1 (Count): Count neighbors that appear unvisited (dist == -1).
+ *    - Phase 2 (Fill): Write these neighbors to the candidate array.
+ *    - This reduces memory bandwidth usage significantly by removing back-edges early.
+ * 
+ * 3. Atomic CAS:
+ *    - Used in the final filtering step to guarantee each node is added to the frontier exactly once.
+ * 
+ * 4. Static Memory:
+ *    - Use static arrays for the graph and distance to avoid allocation overhead and fragmentation.
+ *    - alignas(64) is used to prevent false sharing on cache lines.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Max N=100. Padded dimension D=102.
+// Total nodes = 102^3 ≈ 1,061,208.
+// Safe upper bound for static arrays.
+constexpr int MAX_NODES = 1100000;
+
+// Static Graph Storage
+// adj: Adjacency list (max 6 neighbors per node)
+// deg: Degree of each node
+// dist: Distance array (initialized to -1)
+// is_cloud: Wall/Cloud marker
+alignas(64) int adj[MAX_NODES][6];
+alignas(64) int deg[MAX_NODES];
+alignas(64) int dist[MAX_NODES];
+alignas(64) bool is_cloud[MAX_NODES];
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    // Valid coordinates are [1, N].
+    // Indices 0 and N+1 are walls/padding.
+    int dim = n + 2;
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Calculate flattened indices for start and end
+    int start_node = zs * stride_z + xs * stride_x + ys * stride_y;
+    int end_node = ze * stride_z + xe * stride_x + ye * stride_y;
+
+    // Edge case: Start and end are the same
+    if (start_node == end_node) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Initialize arrays in parallel
+    // Mark everything as cloud/wall initially (padding)
+    // Set dist to -1 (unvisited)
+    parlay::parallel_for(0, total_nodes, [&](size_t i) {
+        is_cloud[i] = true;
+        dist[i] = -1;
+    });
+
+    // Read Input
+    // Fill the valid inner region with actual cloud data
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    is_cloud[base + y] = false;
+                }
+            }
+        }
+    }
+
+    // Build Graph in Parallel
+    // Since we have padded walls, we don't need boundary checks (x<N etc).
+    // Just check is_cloud of neighbors.
+    parlay::parallel_for(0, total_nodes, [&](size_t u) {
+        if (is_cloud[u]) {
+            deg[u] = 0;
+            return;
+        }
+
+        int cnt = 0;
+        int* neighbors = adj[u];
+        
+        // Check 6 directions
+        // Using offsets directly allows compiler to optimize
+        int v;
+        
+        v = u + stride_y; if (!is_cloud[v]) neighbors[cnt++] = v;
+        v = u - stride_y; if (!is_cloud[v]) neighbors[cnt++] = v;
+        v = u + stride_x; if (!is_cloud[v]) neighbors[cnt++] = v;
+        v = u - stride_x; if (!is_cloud[v]) neighbors[cnt++] = v;
+        v = u + stride_z; if (!is_cloud[v]) neighbors[cnt++] = v;
+        v = u - stride_z; if (!is_cloud[v]) neighbors[cnt++] = v;
+
+        deg[u] = cnt;
+    });
+
+    // BFS Initialization
+    dist[start_node] = 0;
+    parlay::sequence<int> frontier;
+    frontier.reserve(total_nodes); // Pre-allocate to avoid reallocations
+    frontier.push_back(start_node);
+
+    int current_dist = 0;
+    
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached
+        if (dist[end_node] != -1) {
+            break;
+        }
+
+        // Pass 1: Count valid candidates
+        // We filter out neighbors that are definitely visited (dist != -1).
+        // This is an optimistic check to reduce memory bandwidth and size of candidates array.
+        auto counts = parlay::map(frontier, [&](int u) {
+            int d = deg[u];
+            int* neighbors = adj[u];
+            int c = 0;
+            for(int k=0; k<d; ++k) {
+                // Optimistic read of dist
+                if (dist[neighbors[k]] == -1) {
+                    c++;
+                }
+            }
+            return c;
+        });
+
+        // Scan to determine write positions
+        auto [write_offsets, total_candidates] = parlay::scan(counts);
+        
+        if (total_candidates == 0) break;
+
+        // Pass 2: Fill candidates array
+        parlay::sequence<int> candidates(total_candidates);
+        
+        parlay::parallel_for(0, frontier.size(), [&](size_t i) {
+            int u = frontier[i];
+            int offset = write_offsets[i];
+            int d = deg[u];
+            int* neighbors = adj[u];
+            
+            for(int k=0; k<d; ++k) {
+                int v = neighbors[k];
+                // Must match the condition in Pass 1
+                if (dist[v] == -1) {
+                    candidates[offset++] = v;
+                }
+            }
+        });
+
+        // Pass 3: Filter and Atomic Update
+        // Ensure each node is added to the next frontier exactly once
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Double-check dist to avoid expensive CAS if possible
+            if (dist[v] != -1) return false;
+            
+            // Atomic Compare-And-Swap
+            // Tries to update dist[v] from -1 to current_dist + 1
+            return __sync_bool_compare_and_swap(&dist[v], -1, current_dist + 1);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Output Result
+    if (dist[end_node] != -1) {
+        cout << dist[end_node] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:09:38.726843","10","133.24608138720757","True","32","32","0.007504911135765724","1.2191377563299175e-05","0.019742740783840418","0.24015715634450316","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Optimizations:
+ * 1. Padded Grid (N+2)^3 to avoid boundary checks.
+ * 2. Implicit Graph with constant expansion (8 neighbors) to avoid graph construction overhead.
+ * 3. Delayed Sequence generation to avoid intermediate memory allocation/writes for candidates.
+ * 4. Relaxed atomic loads for visited check to reduce cache contention.
+ * 5. Separate grid and distance arrays to avoid false sharing on read-only grid data.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // idx = z * stride_z + x * stride_x + y * stride_y
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    int start_idx = zs * stride_z + xs * stride_x + ys * stride_y;
+    int end_idx = ze * stride_z + xe * stride_x + ye * stride_y;
+
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid: 0 = free, 1 = blocked (cloud/wall)
+    // Initialize with 1 to create padded boundaries
+    parlay::sequence<char> grid(total_nodes, 1);
+
+    // Read Input
+    // Input coords are 1-based, matching our padded grid 1..N
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Distance array, initialized to -1
+    // We use a parlay sequence for memory management
+    parlay::sequence<int> dist(total_nodes, -1);
+    dist[start_idx] = 0;
+
+    // Frontier initialized with start node
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (shift/mask)
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached
+        if (dist[end_idx] != -1) {
+            cout << dist[end_idx] << endl;
+            return 0;
+        }
+
+        // Generate candidates lazily using delayed_seq
+        // This avoids allocating and writing a large candidates array
+        size_t num_candidates = frontier.size() * 8;
+        
+        auto candidates_delayed = parlay::delayed_seq<int>(num_candidates, [&](size_t i) {
+            // i >> 3 is i / 8; i & 7 is i % 8
+            int u = frontier[i >> 3];
+            int offset = offsets[i & 7];
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark them visited
+        auto next_frontier = parlay::filter(candidates_delayed, [&](int v) {
+            // 1. Check grid (Read-Only) - cheap
+            if (grid[v] != 0) return false;
+            
+            // 2. Optimistic Visited Check (Relaxed Read) - avoids cache contention
+            // We use __atomic_load_n for a relaxed atomic load
+            if (__atomic_load_n(&dist[v], __ATOMIC_RELAXED) != -1) return false;
+            
+            // 3. Atomic CAS - synchronization point
+            // Try to update dist[v] from -1 to current_dist + 1
+            // __sync_bool_compare_and_swap acts as a full barrier
+            return __sync_bool_compare_and_swap(&dist[v], -1, current_dist + 1);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check
+    if (dist[end_idx] != -1) {
+        cout << dist[end_idx] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:11:36.958572","11","130.3179479822794","True","32","32","0.007673540103132837","5.8658945729677066e-05","0.02069842629134655","0.24555328330025078","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Padded Grid: Size (N+2)^3 to avoid boundary checks inside the loop.
+ * 2. Fixed Expansion: Each node expands to exactly 6 candidates.
+ *    This allows efficient parallel filling of a flat candidates array without scanning first.
+ * 3. Atomic Updates: Compare-And-Swap (CAS) ensures thread-safe visitation and prevents duplicates.
+ * 4. Fast I/O and flattened 1D indexing.
+ * 
+ * Complexity:
+ * - Work: O(N^3)
+ * - Span: O(Diameter)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // idx = z * stride_z + x * stride_x + y
+    // stride_y is 1
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    int start_idx = zs * stride_z + xs * stride_x + ys;
+    int end_idx = ze * stride_z + xe * stride_x + ye;
+
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid: 0 = free, 1 = blocked (cloud/wall)
+    // Initialize with 1 to create padded boundaries
+    parlay::sequence<char> grid(total_nodes, 1);
+
+    // Read Input
+    // Input is given layer by layer (z), then row by row (x)
+    // ""All elements in the same row have the same x-coordinate"" implies x is the row index.
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Distance array, initialized to -1
+    // Access with atomic CAS
+    parlay::sequence<int> dist(total_nodes, -1);
+    dist[start_idx] = 0;
+
+    // Frontier initialized with start node
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors
+    int offsets[6] = {
+        1, -1,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached (it might have been set in the previous iteration)
+        if (dist[end_idx] != -1) {
+            cout << dist[end_idx] << endl;
+            return 0;
+        }
+
+        // Expand frontier: each node produces 6 candidates
+        size_t f_size = frontier.size();
+        size_t c_size = f_size * 6;
+        parlay::sequence<int> candidates(c_size);
+
+        // Fill candidates in parallel
+        // We parallelize over the frontier nodes. Each task writes 6 values.
+        parlay::parallel_for(0, f_size, [&](size_t i) {
+            int u = frontier[i];
+            int base = i * 6;
+            
+            for (int k = 0; k < 6; ++k) {
+                int v = u + offsets[k];
+                // Validity check:
+                // 1. grid[v] == 0 (not cloud/wall) - padding handles boundaries
+                // 2. dist[v] == -1 (optimistic unvisited check)
+                if (grid[v] == 0 && dist[v] == -1) {
+                    candidates[base + k] = v;
+                } else {
+                    candidates[base + k] = -1;
+                }
+            }
+        });
+
+        // Filter valid candidates and atomically mark them visited
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            if (v == -1) return false;
+            // Atomic Compare-And-Swap
+            // Try to update dist[v] from -1 to current_dist + 1
+            // Returns true only if this thread successfully updated it
+            return __sync_bool_compare_and_swap(&dist[v], -1, current_dist + 1);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check
+    if (dist[end_idx] != -1) {
+        cout << dist[end_idx] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:13:27.877112","12","109.17110296718772","True","32","32","0.009159933103364892","3.100686197341958e-05","0.03753687720745802","0.29311785930767653","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach:
+ * - Parallel BFS using ParlayLib.
+ * - Padded Grid: The grid is padded with walls to avoid boundary checks.
+ * - Implicit Graph: Neighbors are calculated on the fly using offsets.
+ * - Two-Pass Expansion:
+ *   1. Count valid neighbors for each node in the frontier.
+ *   2. Fill a candidates array with these neighbors.
+ * - Atomic Filtering:
+ *   - Use atomic Compare-And-Swap (CAS) to mark nodes as visited.
+ *   - Use parlay::pack with explicit flags to ensure each node is added to the next frontier exactly once.
+ *   - This avoids potential issues with parlay::filter evaluating predicates multiple times.
+ * 
+ * Complexity:
+ * - Work: O(V + E) = O(N^3)
+ * - Span: O(Diameter) = O(N)
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and N+1 are walls)
+    // Valid coordinates: 1 to N
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing: idx = z * stride_z + x * stride_x + y
+    // We match the input order (Z slices, X rows, Y cols) for cache locality
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    int start_idx = zs * stride_z + xs * stride_x + ys * stride_y;
+    int end_idx = ze * stride_z + xe * stride_x + ye * stride_y;
+
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid: 0 = free, 1 = blocked (cloud/wall)
+    // Initialize with 1 to create padded boundaries
+    parlay::sequence<char> grid(total_nodes, 1);
+
+    // Read Input
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Distance array, initialized to -1
+    // Using int for atomic operations
+    parlay::sequence<int> dist(total_nodes, -1);
+    dist[start_idx] = 0;
+
+    // Frontier
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n);
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Neighbor offsets
+    const int offsets[6] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    while (!frontier.empty()) {
+        // Check if destination reached
+        if (dist[end_idx] != -1) {
+            cout << dist[end_idx] << endl;
+            return 0;
+        }
+
+        // 1. Count valid neighbors (Optimistic check)
+        // Using delayed_seq to avoid intermediate storage for counts
+        auto degrees = parlay::delayed_seq<int>(frontier.size(), [&](size_t i) {
+            int u = frontier[i];
+            int count = 0;
+            for (int off : offsets) {
+                int v = u + off;
+                // Check grid (bounds implicit via padding) and optimistic dist check
+                if (grid[v] == 0 && dist[v] == -1) {
+                    count++;
+                }
+            }
+            return count;
+        });
+
+        auto [write_offsets, total_candidates] = parlay::scan(degrees);
+
+        if (total_candidates == 0) break;
+
+        // 2. Fill candidates array
+        parlay::sequence<int> candidates(total_candidates);
+        parlay::parallel_for(0, frontier.size(), [&](size_t i) {
+            int u = frontier[i];
+            int pos = write_offsets[i];
+            for (int off : offsets) {
+                int v = u + off;
+                if (grid[v] == 0 && dist[v] == -1) {
+                    candidates[pos++] = v;
+                }
+            }
+        });
+
+        // 3. Filter candidates using atomic CAS
+        // We use a flags array to determine which candidates successfully claimed a node
+        parlay::sequence<bool> flags(total_candidates);
+        
+        parlay::parallel_for(0, total_candidates, [&](size_t i) {
+            int v = candidates[i];
+            int expected = -1;
+            // Try to atomically update dist[v] from -1 to current_dist + 1
+            // Only returns true if THIS thread successfully updated it
+            bool success = __atomic_compare_exchange_n(&dist[v], &expected, current_dist + 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+            flags[i] = success;
+        });
+
+        // 4. Pack successful candidates into next frontier
+        frontier = parlay::pack(candidates, flags);
+        current_dist++;
+    }
+
+    // Final check
+    if (dist[end_idx] != -1) {
+        cout << dist[end_idx] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:15:47.343063","13","137.07888797314007","True","32","32","0.0072950693924212825","3.5631327730540966e-05","0.02262775134295225","0.23344222055748104","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Parallel Breadth-First Search (BFS) with Implicit Graph and Array-of-Structs (AoS) Layout.
+ * 
+ * Key Optimizations:
+ * 1. Padded Grid: The grid is padded to (N+2)^3 to eliminate boundary checks in the inner loop.
+ * 2. AoS Layout: We combine 'dist' (distance) and 'blocked' (cloud/wall status) into a single 
+ *    8-byte aligned struct 'Node'. This ensures that checking a neighbor's validity and 
+ *    visitation status incurs only a single cache miss, significantly improving memory performance.
+ * 3. Implicit Graph with Power-of-2 Expansion: We use 8 offsets (6 valid neighbors + 2 dummies)
+ *    to allow efficient bitwise arithmetic (shifts and masks) during neighbor generation, 
+ *    avoiding costly integer division/modulus.
+ * 4. Delayed Sequence + Filter: We generate and filter candidates in a single pass using 
+ *    `parlay::delayed_seq` and `parlay::filter`. This avoids materializing a large intermediate 
+ *    array of candidates, reducing memory bandwidth usage.
+ * 5. Relaxed Atomics: We use relaxed memory ordering for atomic operations where possible, 
+ *    as the BFS level synchronization is implicitly handled by the Parlay framework.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <atomic>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Node structure for Array-of-Structs layout.
+// Aligned to 8 bytes to ensure efficient memory access and cache line utilization.
+struct alignas(8) Node {
+    int dist;       // 4 bytes: Distance from start (-1 if unvisited)
+    int8_t blocked; // 1 byte: 0 if free, 1 if cloud/wall
+    // 3 bytes padding implicitly added by compiler
+    
+    // Default constructor
+    Node() : dist(-1), blocked(1) {}
+    
+    // Constructor for initialization
+    Node(int d, int8_t b) : dist(d), blocked(b) {}
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened 1D indexing
+    // y is the inner-most dimension (stride 1)
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Initialize nodes array
+    // Set all to blocked (1) and unvisited (-1) initially.
+    // This effectively creates the padded boundary walls.
+    parlay::sequence<Node> nodes(total_nodes, Node(-1, 1));
+
+    // Read Input
+    // Fill the valid inner region (1 to n) with actual cloud data.
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    nodes[base + y].blocked = 0;
+                }
+            }
+        }
+    }
+
+    // Set start distance
+    nodes[start_idx].dist = 0;
+
+    // Initialize frontier with the start node
+    parlay::sequence<int> frontier(1, start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached (early exit)
+        if (nodes[end_idx].dist != -1) {
+            cout << nodes[end_idx].dist << endl;
+            return 0;
+        }
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates.
+        // delayed_seq avoids allocating a large intermediate array.
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 8, [&](size_t i) {
+            int u = frontier[i >> 3];
+            return u + offsets[i & 7];
+        });
+
+        // Filter valid candidates and atomically update distances
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            Node& node = nodes[v];
+            
+            // 1. Check blocked status (Read-Only access)
+            if (node.blocked) return false;
+
+            // 2. Optimistic check for visited status (Relaxed Load)
+            // If already visited, dist != -1
+            if (__atomic_load_n(&node.dist, __ATOMIC_RELAXED) != -1) return false;
+
+            // 3. Atomic Compare-And-Swap to claim the node
+            // Tries to update dist from -1 to current_dist + 1.
+            // Returns true only if this thread successfully updated the value.
+            int expected = -1;
+            return __atomic_compare_exchange_n(&node.dist, &expected, current_dist + 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check
+    if (nodes[end_idx].dist != -1) {
+        cout << nodes[end_idx].dist << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:17:53.175248","14","129.5291913328698","True","32","32","0.007720267452532426","3.320817816380873e-06","0.02303927019238472","0.24704855848103763","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Features:
+ * 1. Implicit Graph: Neighbors calculated on-the-fly to reduce memory bandwidth.
+ * 2. Padded Grid: (N+2)^3 grid eliminates boundary checks.
+ * 3. Separate Visited Array: Uses a byte-sized 'visited' array for atomic synchronization,
+ *    reducing cache contention compared to using the 4-byte 'dist' array.
+ * 4. Bitwise Neighbor Generation: Generates 8 candidates (6 real + 2 dummy) to allow
+ *    fast bitwise operations (>> 3, & 7) instead of expensive division/modulus.
+ * 5. Atomic Operations: Uses __atomic_compare_exchange for thread-safe visitation.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // idx = z * stride_z + x * stride_x + y * stride_y
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    int start_idx = zs * stride_z + xs * stride_x + ys * stride_y;
+    int end_idx = ze * stride_z + xe * stride_x + ye * stride_y;
+
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid: 0 = free, 1 = blocked (cloud/wall)
+    // Initialize with 1 to create padded boundaries
+    parlay::sequence<char> grid(total_nodes, 1);
+
+    // Read Input
+    // Input coords are 1-based, matching our padded grid 1..N
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Visited array (byte-sized for efficiency)
+    // 0 = unvisited, 1 = visited
+    // Using char for atomic operations is supported on most platforms and gcc
+    parlay::sequence<char> visited(total_nodes, 0);
+    
+    // Distance array (store result)
+    // Initialized to -1
+    parlay::sequence<int> dist(total_nodes, -1);
+
+    // Initialize start
+    visited[start_idx] = 1;
+    dist[start_idx] = 0;
+
+    // Frontier initialized with start node
+    parlay::sequence<int> frontier;
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached
+        // We check visited status because dist might be updated in parallel
+        if (visited[end_idx]) {
+            break;
+        }
+
+        // Generate candidates lazily using delayed_seq
+        // This avoids allocating and writing a large candidates array
+        // We generate 8 candidates per node (bitwise optimization)
+        size_t num_candidates = frontier.size() * 8;
+        
+        auto candidates_delayed = parlay::delayed_seq<int>(num_candidates, [&](size_t i) {
+            // i >> 3 is i / 8; i & 7 is i % 8
+            int u = frontier[i >> 3];
+            int offset = offsets[i & 7];
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark them visited
+        auto next_frontier = parlay::filter(candidates_delayed, [&](int v) {
+            // 1. Check grid (Read-Only) - cheap check
+            if (grid[v] != 0) return false;
+            
+            // 2. Optimistic Visited Check (Relaxed Read)
+            // Avoids atomic operation overhead if already visited
+            if (__atomic_load_n(&visited[v], __ATOMIC_RELAXED)) return false;
+            
+            // 3. Atomic Compare-And-Exchange
+            // Try to atomically transition visited[v] from 0 to 1
+            char expected = 0;
+            if (__atomic_compare_exchange_n(&visited[v], &expected, 1, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+                // If successful, we claim this node and set its distance
+                dist[v] = current_dist + 1;
+                return true;
+            }
+            return false;
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check
+    if (visited[end_idx]) {
+        cout << dist[end_idx] << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:20:07.185281","15","138.27081352852602","True","32","32","0.0072321842511883","3.944303917392504e-05","0.01940368488430977","0.2314298960380256","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS using ParlayLib.
+ * 
+ * Key Optimizations:
+ * 1. Single Array for State: We use a single `int` array to store both grid blockage and distance.
+ *    - -2: Blocked (Cloud or Wall)
+ *    - -1: Free and Unvisited
+ *    - >= 0: Visited (stores distance)
+ *    This reduces memory footprint to 4 bytes per node (improving cache utilization) and 
+ *    combines ""is blocked"" and ""is visited"" checks into a single integer comparison.
+ * 
+ * 2. Padded Grid: The grid is padded to (N+2)^3. This eliminates boundary checks in the inner loop.
+ * 
+ * 3. Implicit Graph with Efficient Expansion:
+ *    - We use `parlay::delayed_seq` with a size of `frontier.size() * 6`.
+ *    - We use integer division/modulo by constant 6 (optimized by compiler) to map indices 
+ *      to nodes and directions. This avoids the overhead of dummy neighbors used in power-of-2 approaches.
+ * 
+ * 4. Relaxed Atomics:
+ *    - We use relaxed memory ordering for the CAS operation, relying on Parlay's internal 
+ *      synchronization barriers between BFS steps.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and N+1 are walls)
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Flattened indices
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid State Array
+    // -2: Blocked/Wall
+    // -1: Free/Unvisited
+    // >=0: Visited (distance)
+    // Initialize with -2 (walls)
+    parlay::sequence<int> grid(total_nodes, -2);
+
+    // Read Input
+    // Fill valid region. Input is 1-based.
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base + y] = -1;
+                }
+            }
+        }
+    }
+
+    // Initialize start
+    grid[start_idx] = 0;
+
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); 
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors
+    const int offsets[6] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check destination
+        int end_val = __atomic_load_n(&grid[end_idx], __ATOMIC_RELAXED);
+        if (end_val >= 0) {
+            cout << end_val << endl;
+            return 0;
+        }
+
+        // Generate candidates
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 6, [&](size_t i) {
+            int u = frontier[i / 6];
+            int off = offsets[i % 6];
+            return u + off;
+        });
+
+        // Filter valid candidates
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Optimistic check: must be -1 (Free & Unvisited)
+            int val = __atomic_load_n(&grid[v], __ATOMIC_RELAXED);
+            if (val != -1) return false;
+
+            // Atomic CAS
+            // Try to change from -1 to current_dist + 1
+            int expected = -1;
+            return __atomic_compare_exchange_n(&grid[v], &expected, current_dist + 1,
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check
+    int end_val = grid[end_idx];
+    if (end_val >= 0) {
+        cout << end_val << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:22:19.052824","16","139.82508294235993","True","32","32","0.00715179264661856","1.73626491669248e-05","0.0197384562343359","0.2288573646917939","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Single Array for State: We merge 'dist' and 'blocked' status into a single 4-byte integer array.
+ *    -2: Blocked (Cloud/Wall)
+ *    -1: Unvisited (Free)
+ *    >=0: Visited (Distance)
+ *    This reduces memory bandwidth by 50% compared to separate arrays or structs (4 bytes vs 8 bytes per node).
+ *    It significantly improves cache efficiency.
+ * 
+ * 2. Padded Grid: The grid is padded to (N+2)^3. Boundaries are initialized to -2 (Blocked).
+ *    This eliminates boundary checks (x>0, x<N, etc.) in the inner loop.
+ * 
+ * 3. Implicit Graph with Bitwise Neighbors: We use a virtual graph where neighbors are computed on-the-fly.
+ *    We generate 8 candidates (6 valid + 2 dummy) to use fast bitwise operations (>>3, &7) for indexing.
+ *    The dummy candidates (offset 0) are naturally filtered out because the self-node is already visited.
+ * 
+ * 4. Fused Generate-Filter: We use `parlay::delayed_seq` combined with `parlay::filter` to generate and 
+ *    process candidates in a stream, avoiding the allocation of a large intermediate buffer.
+ * 
+ * 5. Relaxed Atomics: We use relaxed atomic loads and CAS operations to minimize synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <atomic>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // idx = z * stride_z + x * stride_x + y * stride_y
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // -2: Blocked (Cloud or Boundary Wall)
+    // -1: Unvisited (Free space)
+    // >= 0: Visited (Distance from start)
+    // Initialize everything to -2 (Blocked) effectively creating the padded walls.
+    parlay::sequence<int> data(total_nodes, -2);
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            // Calculate base index for the start of the row (y=0 in padded grid terms, but valid y starts at 1)
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    // Mark as unvisited (free)
+                    data[base + y] = -1;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    data[start_idx] = 0;
+    parlay::sequence<int> frontier;
+    frontier.reserve(total_nodes); // Pre-allocate to avoid resizing
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Dummy offset 0 maps to the node itself, which is already visited, so it's safely filtered.
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached
+        // Using atomic load to ensure visibility, though relaxed is sufficient
+        int end_status = __atomic_load_n(&data[end_idx], __ATOMIC_RELAXED);
+        if (end_status >= 0) {
+            cout << end_status << endl;
+            return 0;
+        }
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates (6 neighbors + 2 dummies)
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 8, [&](size_t i) {
+            int u = frontier[i >> 3];       // i / 8
+            int offset = offsets[i & 7];    // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically update distances
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is -1 (Unvisited).
+            // If it is -2 (Blocked) or >=0 (Visited), this fails fast.
+            // This is a relaxed load, very cheap.
+            if (__atomic_load_n(&data[v], __ATOMIC_RELAXED) != -1) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update data[v] from -1 to current_dist + 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            // We use strong CAS (weak=false) to ensure we don't skip a node due to spurious failure.
+            int expected = -1;
+            return __atomic_compare_exchange_n(&data[v], &expected, current_dist + 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check in case the loop exited
+    int final_dist = data[end_idx];
+    if (final_dist >= 0) {
+        cout << final_dist << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:24:24.124756","17","139.0042794395309","True","32","32","0.007194023119518533","3.388223500577965e-05","0.02122088521718979","0.23020873982459306","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS using ParlayLib.
+ * 
+ * Key Optimizations:
+ * 1. Single Array for State: We use a single `int` array to store both grid blockage and distance.
+ *    - -2: Blocked (Cloud or Wall)
+ *    - -1: Free and Unvisited
+ *    - >= 0: Visited (stores distance)
+ *    This reduces memory footprint to 4 bytes per node (improving cache utilization) and 
+ *    combines ""is blocked"" and ""is visited"" checks into a single integer comparison.
+ * 
+ * 2. Padded Grid: The grid is padded to (N+2)^3. This eliminates boundary checks in the inner loop.
+ * 
+ * 3. Implicit Graph with Bitwise Expansion:
+ *    - We use `parlay::delayed_seq` with a size of `frontier.size() * 8`.
+ *    - We use bitwise operations (>> 3 and & 7) to map indices to nodes and directions.
+ *      This is generally faster than integer division/modulo.
+ *    - The 2 dummy neighbors (offset 0) are cheaply filtered out because `grid[u]` is already visited.
+ * 
+ * 4. Relaxed Atomics:
+ *    - We use relaxed memory ordering for the CAS operation, relying on Parlay's internal 
+ *      synchronization barriers between BFS steps.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and N+1 are walls)
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Flattened indices
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // Grid State Array
+    // -2: Blocked/Wall
+    // -1: Free/Unvisited
+    // >=0: Visited (distance)
+    // Initialize with -2 (walls)
+    parlay::sequence<int> grid(total_nodes, -2);
+
+    // Read Input
+    // Fill valid region. Input is 1-based.
+    // Input order: z levels, then x rows, then y cols.
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    grid[base + y] = -1;
+                }
+            }
+        }
+    }
+
+    // Initialize start
+    grid[start_idx] = 0;
+
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); 
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // BFS Loop
+    while (!frontier.empty()) {
+        // Check destination
+        // Relaxed load is sufficient
+        int end_val = __atomic_load_n(&grid[end_idx], __ATOMIC_RELAXED);
+        if (end_val >= 0) {
+            cout << end_val << endl;
+            return 0;
+        }
+
+        // Generate candidates
+        // Use *8 for bitwise optimization
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 8, [&](size_t i) {
+            int u = frontier[i >> 3];
+            int off = offsets[i & 7];
+            return u + off;
+        });
+
+        // Filter valid candidates
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // Optimistic check: must be -1 (Free & Unvisited)
+            // Filters out Walls (-2), Visited (>=0), and Dummies (Visited)
+            int val = __atomic_load_n(&grid[v], __ATOMIC_RELAXED);
+            if (val != -1) return false;
+
+            // Atomic CAS
+            // Try to change from -1 to current_dist + 1
+            int expected = -1;
+            return __atomic_compare_exchange_n(&grid[v], &expected, current_dist + 1,
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check
+    int end_val = grid[end_idx];
+    if (end_val >= 0) {
+        cout << end_val << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:26:32.826272","18","148.590833476112","True","32","32","0.006729890240239911","2.9808866787911622e-05","0.019963279832154512","0.21535648768767715","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Byte-sized State Array: Use `unsigned char` (1 byte) for visited/blocked status instead of `int` (4 bytes).
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ *    - This reduces memory bandwidth by 75% for the critical state check, fitting more of the grid in cache.
+ * 
+ * 2. Padded Grid: Size (N+2)^3. Boundaries initialized to 1 (Blocked).
+ *    - Eliminates boundary checks in the inner loop.
+ * 
+ * 3. Implicit Graph with Bitwise Neighbors:
+ *    - Generate 8 candidates (6 real + 2 dummy) using bitwise ops (>>3, &7).
+ *    - Dummies map to self (offset 0), which is already visited, so filtered out cheaply.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates without intermediate storage.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS for thread safety with minimal synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<unsigned char> visited(total_nodes, 1);
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Dummy offset 0 maps to the node itself, which is already visited (val=1), so it's safely filtered.
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates
+        // We capture offsets by reference (it's const)
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 8, [&](size_t i) {
+            int u = frontier[i >> 3];       // i / 8
+            int offset = offsets[i & 7];    // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            unsigned char expected = 0;
+            return __atomic_compare_exchange_n(&visited[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:28:27.994166","19","138.69607516892376","True","32","32","0.007210009358823299","1.1309455061338375e-05","0.01986115612089634","0.23072029948234557","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Single Array for State: Merged 'dist' and 'blocked' status into a single 4-byte integer array.
+ *    -2: Blocked (Cloud/Wall)
+ *    -1: Unvisited (Free)
+ *    >=0: Visited (Distance)
+ *    This reduces memory bandwidth and improves cache efficiency compared to separate arrays.
+ * 
+ * 2. Padded Grid: The grid is padded to (N+2)^3. Boundaries are initialized to -2.
+ *    This eliminates expensive boundary checks (x>0, x<N, etc.) in the inner BFS loop.
+ * 
+ * 3. Implicit Graph with Bitwise Neighbor Generation:
+ *    We use `parlay::delayed_seq` to generate candidates on-the-fly without allocating intermediate memory.
+ *    Each node generates 8 potential candidates (6 neighbors + 2 dummies).
+ *    We use bitwise operations (>>3, &7) for fast indexing instead of division/modulo.
+ * 
+ * 4. Atomic Operations: Use relaxed atomics for thread-safe state updates, ensuring each node is 
+ *    added to the frontier exactly once.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // idx = z * stride_z + x * stride_x + y * stride_y
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // -2: Blocked (Cloud or Boundary Wall)
+    // -1: Unvisited (Free space)
+    // >= 0: Visited (Distance from start)
+    // Initialize everything to -2 (Blocked) effectively creating the padded walls.
+    parlay::sequence<int> data(total_nodes, -2);
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    // Mark as unvisited (free)
+                    data[base + y] = -1;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    data[start_idx] = 0;
+    parlay::sequence<int> frontier;
+    frontier.reserve(total_nodes); // Pre-allocate to avoid resizing
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Dummy offset 0 maps to the node itself. Since node is visited (dist >= 0),
+    // it will be filtered out by the check (state == -1).
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Check if destination reached
+        // Using atomic load to ensure visibility, though relaxed is sufficient
+        int end_status = __atomic_load_n(&data[end_idx], __ATOMIC_RELAXED);
+        if (end_status >= 0) {
+            cout << end_status << endl;
+            return 0;
+        }
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates (6 neighbors + 2 dummies)
+        // parlay::delayed_seq creates a virtual sequence without allocation
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 8, [&](size_t i) {
+            int u = frontier[i >> 3];       // i / 8
+            int offset = offsets[i & 7];    // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically update distances
+        // parlay::filter executes in parallel and produces the next frontier
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is -1 (Unvisited).
+            // If it is -2 (Blocked) or >=0 (Visited), this fails fast.
+            // This is a relaxed load, very cheap.
+            if (__atomic_load_n(&data[v], __ATOMIC_RELAXED) != -1) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update data[v] from -1 to current_dist + 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            int expected = -1;
+            return __atomic_compare_exchange_n(&data[v], &expected, current_dist + 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+    }
+
+    // Final check in case the loop exited (e.g. queue empty)
+    int final_dist = data[end_idx];
+    if (final_dist >= 0) {
+        cout << final_dist << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"
+"2026-01-24T17:30:25.983381","20","153.83464377524788","True","32","32","0.006500486336881295","9.362465323651795e-06","0.016942940186709166","0.20801556278020145","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Byte-sized State Array: Use `uint8_t` (1 byte) for visited/blocked status.
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ *    - Reduces memory bandwidth and cache footprint.
+ * 
+ * 2. Padded Grid: Size (N+2)^3. Boundaries initialized to 1 (Blocked).
+ *    - Eliminates boundary checks in the inner loop (x>0, x<N etc).
+ * 
+ * 3. Implicit Graph with Bitwise Neighbors:
+ *    - Generate 8 candidates (6 real + 2 dummy) using bitwise ops (>>3, &7).
+ *    - Dummies map to self (offset 0), which is already visited, so filtered out cheaply.
+ *    - Avoids explicit graph construction overhead.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates without intermediate storage.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS for thread safety with minimal synchronization overhead.
+ *    - Correctness guaranteed by Parlay's implicit barriers.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Use a stack buffer to avoid heap allocation for strings
+    char buffer[105];
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            cin >> buffer;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (buffer[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Dummy offset 0 maps to the node itself, which is already visited (val=1), so it's safely filtered.
+    const int offsets[8] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates
+        // We capture offsets by reference (it's const)
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 8, [&](size_t i) {
+            int u = frontier[i >> 3];       // i / 8
+            int offset = offsets[i & 7];    // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:32:04.409988","21","149.90649726123303","True","32","32","0.006670824936009012","3.73244999200985e-05","0.02440212992951274","0.2134663979522884","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Features:
+ * 1. Byte-sized State Array: Use `unsigned char` (1 byte) for visited/blocked status.
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ *    - This maximizes cache efficiency by reducing the working set size.
+ * 
+ * 2. Padded Grid: Size (N+2)^3. Boundaries initialized to 1 (Blocked).
+ *    - Eliminates expensive boundary checks in the inner loop.
+ * 
+ * 3. Implicit Graph with 6 Neighbors:
+ *    - Use `parlay::delayed_seq` with size `frontier.size() * 6`.
+ *    - Compiler optimizes division/modulo by 6 into efficient multiplication/shift operations.
+ *    - Reduces overhead compared to generating dummy neighbors or building an explicit graph.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::filter` on the delayed sequence to process candidates in parallel without intermediate storage.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS for thread safety with minimal synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<unsigned char> visited(total_nodes, 1);
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // We read row by row. Since N is small, serial reading is fine.
+    // We update visited directly to optimize cache usage (write-combining).
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors
+    const int offsets[6] = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Generate candidates lazily
+        // Each node in the frontier generates 6 potential candidates
+        // Using 6 avoids dummy candidates. Compiler optimizes /6 and %6.
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 6, [&](size_t i) {
+            int u = frontier[i / 6];       
+            int offset = offsets[i % 6];    
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            unsigned char expected = 0;
+            return __atomic_compare_exchange_n(&visited[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:34:05.616354","22","158.42394308828622","True","32","32","0.006312177190557123","3.348046789026579e-05","0.017996838316321373","0.20198967009782792","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Byte-sized State Array: Use `uint8_t` (1 byte) for visited/blocked status.
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ *    - Reduces memory bandwidth and cache footprint.
+ * 
+ * 2. Padded Grid: Size (N+2)^3. Boundaries initialized to 1 (Blocked).
+ *    - Eliminates boundary checks in the inner loop (x>0, x<N etc).
+ * 
+ * 3. Implicit Graph with Bitwise Neighbors:
+ *    - Generate 8 candidates (6 real + 2 dummy) using bitwise ops (>>3, &7).
+ *    - Dummies map to self (offset 0), which is already visited, so filtered out cheaply.
+ *    - Avoids explicit graph construction overhead.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates without intermediate storage.
+ * 
+ * 5. Raw Pointer Access:
+ *    - Use raw pointers for `frontier` and `visited` inside the parallel loop to avoid 
+ *      container abstraction overhead.
+ * 
+ * 6. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS for thread safety with minimal synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Use a raw pointer for direct access
+    uint8_t* visited_ptr = visited.data();
+
+    // Buffer for reading rows (stack allocated)
+    char buffer[105];
+
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            cin >> buffer;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (buffer[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Dummy offset 0 maps to the node itself, which is already visited (val=1), so it's safely filtered.
+    // Use std::array to capture by value in lambda efficiently
+    std::array<int, 8> offsets = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Get raw pointer to frontier data for this iteration
+        const int* frontier_ptr = frontier.data();
+        size_t frontier_size = frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates
+        // We capture offsets by value and frontier_ptr by value
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 8, [frontier_ptr, offsets](size_t i) {
+            int u = frontier_ptr[i >> 3];       // i / 8
+            int offset = offsets[i & 7];        // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [visited_ptr](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited_ptr[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited_ptr[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:35:55.961182","23","151.5902939692821","True","32","32","0.006596728417207487","2.8219498483328388e-05","0.01814314629882574","0.21109530935063958","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Byte-sized State Array: Use `uint8_t` (1 byte) for visited/blocked status.
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ *    - Reduces memory bandwidth and cache footprint.
+ * 
+ * 2. Padded Grid: Size (N+2)^3. Boundaries initialized to 1 (Blocked).
+ *    - Eliminates boundary checks in the inner loop (x>0, x<N etc).
+ * 
+ * 3. Implicit Graph with Bitwise Neighbors:
+ *    - Generate 8 candidates (6 real + 2 dummy) using bitwise ops (>>3, &7).
+ *    - Dummies map to self (offset 0), which is already visited, so filtered out cheaply.
+ *    - Use `std::array` captured by value to keep offsets in registers/L1.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates without intermediate storage.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS for thread safety with minimal synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <cstdint>
+#include <array>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // We update visited directly to optimize cache usage.
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Captured by value in lambda for speed.
+    std::array<int, 8> offsets = {
+        1, -1,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates
+        // We capture offsets by value to keep it in registers
+        auto candidates = parlay::delayed_seq<int>(frontier.size() * 8, [offsets, &frontier](size_t i) {
+            int u = frontier[i >> 3];       // i / 8
+            int offset = offsets[i & 7];    // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [&](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:37:42.787538","24","153.32602898217354","True","32","32","0.006522049821796827","1.3355599012753079e-05","0.01994784316048026","0.20870559429749846","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Features:
+ * 1. Implicit Graph with Bitwise Neighbor Generation:
+ *    - Use `parlay::delayed_seq` with 8 virtual neighbors per node (6 real + 2 dummy).
+ *    - Bitwise ops (>>3, &7) replace division/modulo for speed.
+ *    - Dummy neighbors (offset 0) map to self, which is already visited, so they are filtered out cheaply.
+ * 
+ * 2. Compact State Array:
+ *    - Use `uint8_t` for visited/blocked state to maximize cache utilization.
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ * 
+ * 3. Padded Grid:
+ *    - Grid size (N+2)^3 initialized to 1 (Blocked).
+ *    - Eliminates boundary checks in the inner loop.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::filter` on the delayed sequence to process candidates in parallel without intermediate storage.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use `__atomic_compare_exchange_n` with `__ATOMIC_RELAXED` for thread-safe updates with minimal overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <array>
+#include <cstdint>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+    uint8_t* visited_ptr = visited.data();
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Dummy offset 0 maps to the node itself, which is already visited (val=1), so it's safely filtered.
+    std::array<int, 8> offsets = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        current_dist++;
+        
+        // Get raw pointer to frontier data for this iteration
+        const int* frontier_ptr = frontier.data();
+        size_t frontier_size = frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 8, [frontier_ptr, offsets](size_t i) {
+            int u = frontier_ptr[i >> 3];       // i / 8
+            int offset = offsets[i & 7];        // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [visited_ptr](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited_ptr[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited_ptr[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:40:00.320251","25","152.63482035823873","True","32","32","0.006551585003035143","6.667807995025133e-06","0.02203634474426508","0.20965072009712457","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Byte-sized State Array: Use `uint8_t` (1 byte) for visited/blocked status.
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ *    - Reduces memory bandwidth and cache footprint.
+ * 
+ * 2. Padded Grid: Size (N+2)^3. Boundaries initialized to 1 (Blocked).
+ *    - Eliminates boundary checks in the inner loop (x>0, x<N etc).
+ * 
+ * 3. Implicit Graph with 6 Neighbors:
+ *    - Generate exactly 6 candidates per node.
+ *    - Avoids processing dummy candidates which saves memory bandwidth.
+ *    - Compiler optimizes division/modulo by constant 6 into efficient instructions.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates without intermediate storage.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS for thread safety with minimal synchronization overhead.
+ *    - ""Test-and-Test-and-Set"" pattern to minimize cache invalidations.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+    uint8_t* visited_ptr = visited.data();
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Use a string buffer to read rows
+    string row_buf;
+    row_buf.reserve(n);
+
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            cin >> row_buf;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row_buf[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited_ptr[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors
+    // Captured by value in lambda for speed.
+    std::array<int, 6> offsets = {
+        1, -1,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        const int* frontier_ptr = frontier.data();
+        size_t frontier_size = frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 6 potential candidates
+        // We capture offsets by value
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 6, [frontier_ptr, offsets](size_t i) {
+            // Compiler optimizes division/modulo by constant 6
+            int u = frontier_ptr[i / 6];
+            int offset = offsets[i % 6];
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [visited_ptr](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited_ptr[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited_ptr[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited_ptr[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:41:49.980802","26","160.1125520407152","True","32","32","0.006245606526499614","2.0655570498558582e-05","0.015359133016318083","0.19985940884798764","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Exact Neighbor Expansion:
+ *    - Each node expands to exactly 6 neighbors (up, down, left, right, forward, backward).
+ *    - We use a `delayed_seq` of size `frontier.size() * 6` and integer arithmetic (`i/6`, `i%6`) 
+ *      to generate candidates on the fly.
+ *    - This avoids the 25% overhead of dummy candidates present in bitwise-optimized 8-neighbor approaches,
+ *      reducing random memory accesses to the `visited` array which is the primary bottleneck.
+ * 
+ * 2. Compact State Array:
+ *    - Use `uint8_t` (1 byte) for the `visited` array to maximize cache efficiency.
+ *    - 0: Free and Unvisited
+ *    - 1: Blocked (Cloud/Wall) or Visited
+ *    - Initializing the array to 1 handles the padded boundaries and clouds uniformly.
+ * 
+ * 3. Padded Grid:
+ *    - The grid is padded to size (N+2)^3, eliminating boundary checks in the inner loop.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates and update state 
+ *      without intermediate memory allocation for candidates.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use `__atomic_load_n` and `__atomic_compare_exchange_n` with `__ATOMIC_RELAXED` 
+ *      for thread-safe updates with minimal synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+    uint8_t* __restrict__ visited_ptr = visited.data();
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Buffer for reading rows (max N=100)
+    char buffer[105];
+
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            cin >> buffer;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (buffer[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n * 2); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors
+    // Captured by value in lambda for speed
+    const std::array<int, 6> offsets = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        const int* __restrict__ frontier_ptr = frontier.data();
+        size_t frontier_size = frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 6 potential candidates
+        // We use integer arithmetic (i/6, i%6) which is fast and avoids checking dummy neighbors
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 6, [frontier_ptr, offsets](size_t i) {
+            return frontier_ptr[i / 6] + offsets[i % 6];
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [visited_ptr](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited_ptr[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited_ptr[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:43:44.798284","27","156.9674825340893","True","32","32","0.006370746245374903","9.99465626945391e-06","0.016239614225924015","0.2038638798519969","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Byte-sized State Array: Use `uint8_t` (1 byte) for visited/blocked status.
+ *    - 0: Free/Unvisited
+ *    - 1: Blocked/Visited
+ *    - Reduces memory bandwidth and cache footprint.
+ * 
+ * 2. Padded Grid: Size (N+2)^3. Boundaries initialized to 1 (Blocked).
+ *    - Eliminates boundary checks in the inner loop (x>0, x<N etc).
+ * 
+ * 3. Implicit Graph with Bitwise Neighbors:
+ *    - Generate 8 candidates (6 real + 2 dummy) using bitwise ops (>>3, &7).
+ *    - Dummies map to self (offset 0), which is already visited, so filtered out cheaply.
+ *    - Avoids explicit graph construction overhead.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates without intermediate storage.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS for thread safety with minimal synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+    uint8_t* visited_ptr = visited.data();
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Use a raw pointer for direct access
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            string row;
+            cin >> row;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (row[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited_ptr[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors + 2 dummies (0)
+    // Using 8 allows efficient bitwise operations (i >> 3, i & 7)
+    // Dummy offset 0 maps to the node itself, which is already visited (val=1), so it's safely filtered.
+    // Use std::array to capture by value in lambda efficiently
+    std::array<int, 8> offsets = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z,
+        0, 0
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        // Get raw pointer to frontier data for this iteration
+        const int* frontier_ptr = frontier.data();
+        size_t frontier_size = frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 8 potential candidates
+        // We capture offsets by value and frontier_ptr by value
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 8, [frontier_ptr, offsets](size_t i) {
+            int u = frontier_ptr[i >> 3];       // i / 8
+            int offset = offsets[i & 7];        // i % 8
+            return u + offset;
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [visited_ptr](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited_ptr[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited_ptr[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited_ptr[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:45:49.341882","28","152.5005504741464","True","32","32","0.006557353379321285","1.6073472815558014e-05","0.018141118809580803","0.2098353081382811","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Implicit Graph with Exact 6 Neighbors:
+ *    - We use `parlay::delayed_seq` to generate neighbors on-the-fly.
+ *    - We generate exactly 6 neighbors per node to minimize memory accesses.
+ *    - Compiler optimizations (reciprocal multiplication) make division/modulo by 6 efficient.
+ * 
+ * 2. Compact Merged State:
+ *    - Use `uint8_t` for the grid state.
+ *    - 0: Free and Unvisited.
+ *    - 1: Blocked (Cloud/Wall) or Visited.
+ *    - This merges the ""is cloud"" and ""is visited"" checks into a single memory load.
+ *    - Initializing with 1 handles padded boundaries and clouds uniformly.
+ * 
+ * 3. Padded Grid:
+ *    - Grid size is (N+2)^3.
+ *    - Eliminates boundary checks in the inner loop, reducing branching.
+ * 
+ * 4. Fused Filter-Expansion:
+ *    - `parlay::filter` combined with `delayed_seq` performs expansion and filtering in parallel
+ *      without intermediate allocations for the raw candidate list.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use relaxed atomic loads and CAS operations for thread-safe visitation.
+ *    - ""Test-and-Test-and-Set"" pattern minimizes bus contention.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+    uint8_t* __restrict__ visited_ptr = visited.data();
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Buffer for reading rows (max N=100)
+    string buffer;
+    buffer.reserve(n + 5);
+
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            cin >> buffer;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (buffer[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n * 2); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors
+    // Captured by value in lambda for speed
+    const std::array<int, 6> offsets = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        const int* __restrict__ frontier_ptr = frontier.data();
+        size_t frontier_size = frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 6 potential candidates
+        // We use integer arithmetic (i/6, i%6) which is fast and avoids checking dummy neighbors
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 6, [frontier_ptr, offsets](size_t i) {
+            // Compiler optimizes division/modulo by constant 6 into multiplication
+            return frontier_ptr[i / 6] + offsets[i % 6];
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [visited_ptr](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient as we rely on the implicit barrier of the previous step.
+            if (__atomic_load_n(&visited_ptr[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited_ptr[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:47:53.493327","29","158.63785687986632","True","32","32","0.006303665591985919","2.27624652434112e-05","0.01661431696265936","0.2017172989435494","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Exact Neighbor Expansion:
+ *    - Each node expands to exactly 6 neighbors (up, down, left, right, forward, backward).
+ *    - We use a `delayed_seq` of size `frontier.size() * 6` and integer arithmetic (`i/6`, `i%6`) 
+ *      to generate candidates on the fly.
+ *    - This avoids the overhead of dummy candidates present in bitwise-optimized 8-neighbor approaches.
+ *    - The compiler optimizes division by constant 6 into efficient multiplication/shift instructions.
+ * 
+ * 2. Compact State Array:
+ *    - Use `uint8_t` (1 byte) for the `visited` array to maximize cache efficiency.
+ *    - 0: Free and Unvisited
+ *    - 1: Blocked (Cloud/Wall) or Visited
+ *    - Initializing the array to 1 handles the padded boundaries and clouds uniformly.
+ * 
+ * 3. Padded Grid:
+ *    - The grid is padded to size (N+2)^3, eliminating boundary checks in the inner loop.
+ * 
+ * 4. Fused Generate-Filter:
+ *    - Use `parlay::delayed_seq` + `parlay::filter` to stream candidates and update state 
+ *      without intermediate memory allocation for candidates.
+ * 
+ * 5. Relaxed Atomics:
+ *    - Use `__atomic_load_n` and `__atomic_compare_exchange_n` with `__ATOMIC_RELAXED` 
+ *      for thread-safe updates with minimal synchronization overhead.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    // Helper to calculate flattened index
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Free and Unvisited
+    // 1: Blocked (Cloud/Wall) or Visited
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<uint8_t> visited(total_nodes, 1);
+    uint8_t* __restrict__ visited_ptr = visited.data();
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Buffer for reading rows (max N=100)
+    char buffer[105];
+
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            cin >> buffer;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (buffer[y-1] == '0') {
+                    // Mark as free/unvisited
+                    visited_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize BFS
+    visited[start_idx] = 1; // Mark start as visited
+    parlay::sequence<int> frontier;
+    frontier.reserve(n * n * 2); // Pre-allocate heuristic size
+    frontier.push_back(start_idx);
+
+    int current_dist = 0;
+
+    // Offsets for 6 neighbors
+    // Captured by value in lambda for speed
+    const std::array<int, 6> offsets = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // Parallel BFS Loop
+    while (!frontier.empty()) {
+        const int* __restrict__ frontier_ptr = frontier.data();
+        size_t frontier_size = frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 6 potential candidates
+        // We use integer arithmetic (i/6, i%6) which is fast and avoids checking dummy neighbors
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 6, [frontier_ptr, offsets](size_t i) {
+            return frontier_ptr[i / 6] + offsets[i % 6];
+        });
+
+        // Filter valid candidates and atomically mark visited
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [visited_ptr](int v) {
+            // 1. Optimistic Check:
+            // Check if the node is 0 (Unvisited/Free).
+            // If it is 1 (Blocked/Visited), this fails fast.
+            // Relaxed load is sufficient.
+            if (__atomic_load_n(&visited_ptr[v], __ATOMIC_RELAXED)) return false;
+
+            // 2. Atomic Compare-And-Swap (CAS):
+            // Try to update visited[v] from 0 to 1.
+            // Returns true only if this thread successfully updated the value.
+            // This ensures each node is added to the next frontier exactly once.
+            uint8_t expected = 0;
+            return __atomic_compare_exchange_n(&visited_ptr[v], &expected, 1, 
+                                             false, __ATOMIC_RELAXED, __ATOMIC_RELAXED);
+        });
+
+        frontier = std::move(next_frontier);
+        current_dist++;
+
+        // Check if destination was reached in this step
+        // If end_idx was added to frontier, visited[end_idx] is now 1.
+        // We check this in the main thread which is safe due to Parlay's synchronization.
+        if (visited[end_idx]) {
+            cout << current_dist << endl;
+            return 0;
+        }
+    }
+
+    // If loop exits, destination is unreachable
+    cout << -1 << endl;
+
+    return 0;
+}"
+"2026-01-24T17:50:34.011460","30","152.62305802814515","True","32","32","0.006552089919568971","1.1654796287830124e-06","0.017738341353833675","0.20966687742620707","","/**
+ * Solution for Zrakoplović
+ * 
+ * Approach: Optimized Parallel Bidirectional BFS with ParlayLib
+ * 
+ * Key Optimizations:
+ * 1. Bidirectional Search:
+ *    - Simultaneously expands from Start and End, significantly reducing the search volume 
+ *      (O(b^(d/2)) vs O(b^d)).
+ *    - Always expands the smaller frontier to balance load and minimize work.
+ * 
+ * 2. Unified State Array:
+ *    - Uses a single `int` array to store state for both directions.
+ *    - 0: Unvisited (Free)
+ *    - 1: Blocked (Cloud/Wall)
+ *    - >= 2: Visited by Forward Search (value = dist + 2)
+ *    - <= -2: Visited by Backward Search (value = -(dist + 2))
+ *    - This allows O(1) intersection detection and distance calculation without extra lookups.
+ * 
+ * 3. Exact Neighbor Expansion:
+ *    - Each node generates exactly 6 neighbors on-the-fly using `delayed_seq`.
+ *    - Avoids the overhead of dummy neighbors found in bitwise approaches.
+ * 
+ * 4. Padded Grid:
+ *    - Grid size is (N+2)^3. Boundaries are initialized to 1 (Blocked).
+ *    - Eliminates expensive boundary checks in the inner loop.
+ * 
+ * 5. Fused Filter-Expand with Atomics:
+ *    - Uses `parlay::filter` to process candidates in parallel.
+ *    - A CAS (Compare-And-Swap) loop handles race conditions and detects intersections safely.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <atomic>
+#include <algorithm>
+#include <array>
+#include <climits>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Atomic min helper to safely update the shortest path found so far
+inline void atomic_min(std::atomic<int>& var, int val) {
+    int old = var.load(std::memory_order_relaxed);
+    while (val < old && !var.compare_exchange_weak(old, val, std::memory_order_relaxed));
+}
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    int xs, ys, zs;
+    cin >> xs >> ys >> zs;
+    int xe, ye, ze;
+    cin >> xe >> ye >> ze;
+
+    // Dimensions with padding (0 and n+1 are boundary walls)
+    // The grid is embedded in a (N+2)x(N+2)x(N+2) cube.
+    int dim = n + 2;
+    size_t total_nodes = (size_t)dim * dim * dim;
+
+    // Strides for flattened indexing
+    // y is the inner-most dimension (stride 1) for best locality with row-major input
+    int stride_y = 1;
+    int stride_x = dim;
+    int stride_z = dim * dim;
+
+    auto get_idx = [&](int x, int y, int z) {
+        return z * stride_z + x * stride_x + y * stride_y;
+    };
+
+    int start_idx = get_idx(xs, ys, zs);
+    int end_idx = get_idx(xe, ye, ze);
+
+    // Edge case: Start and end are the same
+    if (start_idx == end_idx) {
+        cout << 0 << endl;
+        return 0;
+    }
+
+    // State Array
+    // 0: Unvisited
+    // 1: Blocked (Cloud/Wall)
+    // >= 2: Visited by Fwd (val = dist + 2)
+    // <= -2: Visited by Bwd (val = -(dist + 2))
+    // Initialize everything to 1 (Blocked) effectively creating the padded walls.
+    parlay::sequence<int> grid(total_nodes, 1);
+    int* __restrict__ grid_ptr = grid.data();
+
+    // Read Input
+    // Fill the valid inner region (1 to n)
+    // Use a small buffer to avoid string allocation overhead
+    char buffer[105];
+    for (int z = 1; z <= n; ++z) {
+        for (int x = 1; x <= n; ++x) {
+            cin >> buffer;
+            // Calculate base index for the start of the row
+            int base = z * stride_z + x * stride_x;
+            for (int y = 1; y <= n; ++y) {
+                if (buffer[y-1] == '0') {
+                    // Mark as free/unvisited
+                    grid_ptr[base + y] = 0;
+                }
+            }
+        }
+    }
+
+    // Initialize Frontiers
+    grid[start_idx] = 2; // Dist 0 (Fwd)
+    grid[end_idx] = -2;  // Dist 0 (Bwd)
+
+    parlay::sequence<int> fwd_frontier;
+    fwd_frontier.reserve(n * n); // Heuristic reservation
+    fwd_frontier.push_back(start_idx);
+
+    parlay::sequence<int> bwd_frontier;
+    bwd_frontier.reserve(n * n);
+    bwd_frontier.push_back(end_idx);
+
+    int dist_fwd = 0;
+    int dist_bwd = 0;
+
+    std::atomic<int> shortest_path(INT_MAX);
+
+    // Offsets for 6 neighbors
+    // Captured by value in lambda for efficiency
+    const std::array<int, 6> offsets = {
+        stride_y, -stride_y,
+        stride_x, -stride_x,
+        stride_z, -stride_z
+    };
+
+    // Parallel Bidirectional BFS Loop
+    while (!fwd_frontier.empty() && !bwd_frontier.empty()) {
+        // Check if path found (global min updated)
+        if (shortest_path.load(std::memory_order_relaxed) != INT_MAX) {
+            cout << shortest_path << endl;
+            return 0;
+        }
+
+        // Expand smaller frontier to balance search
+        bool expanding_fwd = fwd_frontier.size() <= bwd_frontier.size();
+        
+        parlay::sequence<int>& current_frontier = expanding_fwd ? fwd_frontier : bwd_frontier;
+        int current_dist = expanding_fwd ? dist_fwd : dist_bwd;
+        
+        // Calculate target value for next visited state
+        // Fwd: 2, 3, 4... (dist 0 -> 2)
+        // Bwd: -2, -3, -4... (dist 0 -> -2)
+        int next_val = expanding_fwd ? (current_dist + 3) : -(current_dist + 3);
+        
+        const int* __restrict__ frontier_ptr = current_frontier.data();
+        size_t frontier_size = current_frontier.size();
+
+        // Generate candidates lazily
+        // Each node in the frontier generates 6 potential candidates
+        auto candidates = parlay::delayed_seq<int>(frontier_size * 6, [frontier_ptr, offsets](size_t i) {
+            return frontier_ptr[i / 6] + offsets[i % 6];
+        });
+
+        // Filter valid candidates and check for intersections
+        // parlay::filter executes in parallel
+        auto next_frontier = parlay::filter(candidates, [=, &shortest_path](int v) {
+            int val = __atomic_load_n(&grid_ptr[v], __ATOMIC_RELAXED);
+            
+            // Loop to handle race conditions (CAS)
+            while (true) {
+                if (val == 0) {
+                    // Try to mark as visited
+                    if (__atomic_compare_exchange_n(&grid_ptr[v], &val, next_val, 
+                                                  false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+                        return true; // Successfully claimed
+                    }
+                    // CAS failed, val updated to current value, loop to re-check
+                } else if (val == 1) {
+                    // Blocked (Cloud or Wall)
+                    return false;
+                } else {
+                    // Already visited
+                    // Check if visited by same direction or other
+                    bool visited_by_me = expanding_fwd ? (val > 1) : (val < -1);
+                    
+                    if (visited_by_me) {
+                        return false;
+                    } else {
+                        // Intersection with other direction!
+                        // Calculate total path length
+                        // If Fwd expanding: hit Bwd node (val < -1). dist_bwd = -val - 2.
+                        // If Bwd expanding: hit Fwd node (val > 1). dist_fwd = val - 2.
+                        int other_dist = expanding_fwd ? (-val - 2) : (val - 2);
+                        int total_dist = current_dist + 1 + other_dist;
+                        atomic_min(shortest_path, total_dist);
+                        return false; // Don't add to frontier, path found through this node
+                    }
+                }
+            }
+        });
+
+        if (expanding_fwd) {
+            fwd_frontier = std::move(next_frontier);
+            dist_fwd++;
+        } else {
+            bwd_frontier = std::move(next_frontier);
+            dist_bwd++;
+        }
+    }
+
+    // Final check
+    int ans = shortest_path.load(std::memory_order_relaxed);
+    if (ans != INT_MAX) {
+        cout << ans << endl;
+    } else {
+        cout << -1 << endl;
+    }
+
+    return 0;
+}"

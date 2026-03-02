@@ -1,0 +1,2171 @@
+"timestamp","iteration","combined_score","passed","tests_passed","tests_total","avg_time","variance_time","max_time","total_time","compile_error","code"
+"2026-01-24T19:02:25.009320","1","0.0","False","0","1","0.0","0.0","0.0","0.0","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+using namespace std;
+
+int main() {
+    // TODO: Implement solution to the problem
+    // Read input, process it, and output the result
+    return 0;
+}
+//EVOLVE-BLOCK-END"
+"2026-01-24T19:04:46.317376","1","0.0","False","0","0","0.0","0.0","0.0","0.0","ccc15s1cpp.cpp: In function ‘int main()’:
+ccc15s1cpp.cpp:64:38: error: ‘scan_exclusive’ is not a member of ‘parlay’
+     auto [prefixes, total] = parlay::scan_exclusive(states, combine, identity);
+                                      ^~~~~~~~~~~~~~
+ccc15s1cpp.cpp:64:38: note: suggested alternative: ‘scan_inclusive’
+     auto [prefixes, total] = parlay::scan_exclusive(states, combine, identity);
+                                      ^~~~~~~~~~~~~~
+                                      scan_inclusive
+","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the function f(x) = max(c, x + d)
+// This function tracks the 'needed_pops' count through the reversed sequence.
+struct State {
+    int c;
+    int d;
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a vector
+    vector<int> input_vec(K);
+    for (int i = 0; i < K; i++) {
+        cin >> input_vec[i];
+    }
+
+    // Create a sequence of States based on the reversed input
+    // We use tabulate to construct it in parallel
+    // The logic processes the sequence from the end (stack top) to the beginning (stack bottom)
+    auto states = parlay::tabulate(K, [&](size_t i) {
+        // Access element from the end (reversed)
+        int val = input_vec[K - 1 - i];
+        if (val == 0) {
+            // Corresponds to a 'pop' instruction (zero)
+            // Increases needed_pops by 1: f(x) = max(0, x + 1)
+            return State{0, 1};
+        } else {
+            // Corresponds to a pushed number
+            // Decreases needed_pops by 1 (consumes a pop requirement): f(x) = max(0, x - 1)
+            return State{0, -1};
+        }
+    });
+
+    // Associative binary operator for combining two States
+    // Corresponds to function composition: right(left(x))
+    // If left is f(x) = max(c1, x + d1) and right is g(x) = max(c2, x + d2)
+    // Then g(f(x)) = max(c2, max(c1, x + d1) + d2) = max(c2, c1 + d2, x + d1 + d2)
+    auto combine = [](const State& left, const State& right) {
+        int new_c = max(right.c, left.c + right.d);
+        int new_d = left.d + right.d;
+        return State{new_c, new_d};
+    };
+
+    // Identity element: f(x) = x = max(0, x + 0)
+    State identity = {0, 0};
+
+    // Perform exclusive scan to get the accumulated state before each element
+    // prefixes[i] will contain the composition of states from index 0 to i-1 in the 'states' sequence
+    auto [prefixes, total] = parlay::scan_exclusive(states, combine, identity);
+
+    // Calculate the sum of surviving numbers
+    // A number survives if the 'needed_pops' count is 0 when we reach it (in reverse processing)
+    // We use delayed_tabulate to compute this lazily and reduce to avoid extra memory allocation
+    auto survivors = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input_vec[K - 1 - i];
+        if (val > 0) {
+            // Calculate needed_pops by applying the prefix state to an initial value of 0
+            // f(0) = max(c, 0 + d) = max(c, d)
+            int needed_pops = max(prefixes[i].c, prefixes[i].d);
+            
+            // If needed_pops is 0, this number is not consumed by any future zero
+            if (needed_pops == 0) {
+                return (long long)val;
+            }
+        }
+        return (long long)0;
+    });
+
+    // Sum all survivors
+    long long total_sum = parlay::reduce(survivors);
+
+    cout << total_sum << endl;
+
+    return 0;
+}
+//EVOLVE-BLOCK-END"
+"2026-01-24T19:07:19.906722","2","129.6866427028646","True","5","5","0.007710894346237182","2.1152503818168237e-06","0.009706523269414902","0.03855447173118591","","#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <limits>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Represents the state of pending pop operations (zeros)
+// propagating from right to left.
+// The transformation is of the form f(x) = max(L, x + S)
+// where x is the number of pending pops required by the suffix.
+struct State {
+    long long S;
+    long long L;
+    
+    // A value representing negative infinity, safe for arithmetic operations
+    static constexpr long long MIN_VAL = -1e16; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(long long s, long long l) : S(s), L(l) {}
+};
+
+// Monoid composition function
+// Combines two states a and b (a applied first, then b)
+// Corresponds to function composition f_B(f_A(x))
+State combine(const State& a, const State& b) {
+    long long s_new = a.S + b.S;
+    // Calculate new L: max(L_B, f_B(L_A_effective))
+    // Effectively: max(L_B, L_A + S_B) taking care of MIN_VAL
+    long long term2 = (a.L == State::MIN_VAL) ? State::MIN_VAL : (a.L + b.S);
+    long long l_new = std::max(b.L, term2);
+    return State(s_new, l_new);
+}
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input sequence
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a reversed view of the input to process right-to-left
+    // This allows us to determine cancellation based on future '0's
+    auto reversed_input = parlay::tabulate(K, [&](size_t i) {
+        return input[K - 1 - i];
+    });
+
+    // Map each element to a State transformation
+    // If val == 0 (pop): increases demand by 1. x -> x + 1. S=1, L=MIN
+    // If val > 0 (push): consumes demand. x -> max(0, x - 1). S=-1, L=0
+    auto states = parlay::map(reversed_input, [&](int val) {
+        if (val == 0) {
+            return State(1, State::MIN_VAL);
+        } else {
+            return State(-1, 0);
+        }
+    });
+
+    // Perform exclusive scan to compute the cumulative state before each element
+    // parlay::binary_op creates a Monoid from the combine function and identity State()
+    auto [prefixes, total] = parlay::scan(states, parlay::binary_op(combine, State()));
+
+    // Determine which numbers survive and sum them up
+    // A number survives if the pending pop count 'cnt' from its right is 0
+    auto survivors = parlay::tabulate(K, [&](size_t i) -> long long {
+        int val = reversed_input[i];
+        if (val == 0) return 0;
+
+        // Apply the prefix state to the initial value 0
+        // cnt = f(0) = max(L, 0 + S)
+        State st = prefixes[i];
+        long long current_cnt = std::max(st.L, st.S); 
+        
+        if (current_cnt == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    });
+
+    // Reduce to get the final sum
+    long long result = parlay::reduce(survivors);
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2026-01-24T19:09:34.223298","3","0.0","False","0","0","0.0","0.0","0.0","0.0","ccc15s1cpp.cpp: In function ‘int main()’:
+ccc15s1cpp.cpp:85:59: error: no matching function for call to ‘scan_inclusive(parlay::sequence<State, parlay::allocator<State>, false>&, main()::<lambda(const State&, const State&)>&)’
+     auto prefixes = parlay::scan_inclusive(states, combine);
+                                                           ^
+In file included from ccc15s1cpp.cpp:30:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:124:6: note: candidate: ‘template<class R> auto parlay::scan_inclusive(R&&)’
+ auto scan_inclusive(R&& r) {
+      ^~~~~~~~~~~~~~
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:124:6: note:   template argument deduction/substitution failed:
+ccc15s1cpp.cpp:85:59: note:   candidate expects 1 argument, 2 provided
+     auto prefixes = parlay::scan_inclusive(states, combine);
+                                                           ^
+In file included from ccc15s1cpp.cpp:30:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:158:6: note: candidate: ‘template<class R, class Monoid, typename std::enable_if<is_monoid_v<Monoid>, int>::type <anonymous> > auto parlay::scan_inclusive(R&&, Monoid&&)’
+ auto scan_inclusive(R&& r, Monoid&& m) {
+      ^~~~~~~~~~~~~~
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:158:6: note:   template argument deduction/substitution failed:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:157:55: error: no type named ‘type’ in ‘struct std::enable_if<false, int>’
+          std::enable_if_t<is_monoid_v<Monoid>, int> = 0>
+                                                       ^
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:166:6: note: candidate: ‘template<class R, class LegacyMonoid, typename std::enable_if<((! is_monoid_v<LegacyMonoid>) && is_legacy_monoid_v<LegacyMonoid>), int>::type <anonymous> > auto parlay::scan_inclusive(R&&, LegacyMonoid)’
+ auto scan_inclusive(R&& r, LegacyMonoid m) {
+      ^~~~~~~~~~~~~~
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:166:6: note:   template argument deduction/substitution failed:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:165:98: error: no type named ‘type’ in ‘struct std::enable_if<false, int>’
+          std::enable_if_t<!is_monoid_v<LegacyMonoid> && is_legacy_monoid_v<LegacyMonoid>, int> = 0>
+                                                                                                  ^
+","/**
+ * Problem: CCC 2015 Stage 1, Senior #1
+ * Approach: Parallel solution using parlaylib.
+ * 
+ * We treat the problem as a stack simulation. Processing sequentially is trivial,
+ * but to do it in parallel, we can view the operations in reverse.
+ * 
+ * Let's process the input array from the end to the beginning (reversed).
+ * We maintain a state representing the ""needed pops"" propagating from the right.
+ * - If we encounter a '0' (pop instruction), it increases the needed pops by 1.
+ * - If we encounter a number (push instruction), it satisfies one needed pop (decreases count by 1), 
+ *   unless the count is already 0.
+ * 
+ * This transformation can be modeled by a function f(x) = max(c, x + d), where x is the 
+ * incoming needed pops from the right, and f(x) is the outgoing needed pops to the left.
+ * - For '0': f(x) = x + 1  => c=0, d=1
+ * - For 'num': f(x) = max(0, x - 1) => c=0, d=-1
+ * 
+ * These functions are closed under composition. We can use a parallel prefix scan (scan_inclusive)
+ * to compute the cumulative function composition for the suffix of the original array (prefix of reversed).
+ * 
+ * A number at index i survives if the cumulative state from all future operations (indices > i)
+ * results in 0 needed pops when applied to an initial requirement of 0.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the function f(x) = max(c, x + d)
+// This function tracks the 'needed_pops' count through the reversed sequence.
+struct State {
+    int c;
+    int d;
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a vector
+    vector<int> input_vec(K);
+    for (int i = 0; i < K; i++) {
+        cin >> input_vec[i];
+    }
+
+    // Create a sequence of States based on the reversed input
+    // We use tabulate to construct it in parallel
+    // The logic processes the sequence from the end (stack top) to the beginning (stack bottom)
+    auto states = parlay::tabulate(K, [&](size_t i) {
+        // Access element from the end (reversed)
+        int val = input_vec[K - 1 - i];
+        if (val == 0) {
+            // Corresponds to a 'pop' instruction (zero)
+            // Increases needed_pops by 1: f(x) = max(0, x + 1)
+            return State{0, 1};
+        } else {
+            // Corresponds to a pushed number
+            // Decreases needed_pops by 1 (consumes a pop requirement): f(x) = max(0, x - 1)
+            return State{0, -1};
+        }
+    });
+
+    // Associative binary operator for combining two States
+    // Corresponds to function composition: right(left(x))
+    // If left is f(x) = max(c1, x + d1) and right is g(x) = max(c2, x + d2)
+    // Then g(f(x)) = max(c2, max(c1, x + d1) + d2) = max(c2, c1 + d2, x + d1 + d2)
+    auto combine = [](const State& left, const State& right) {
+        int new_c = max(right.c, left.c + right.d);
+        int new_d = left.d + right.d;
+        return State{new_c, new_d};
+    };
+
+    // Perform inclusive scan to get the accumulated state up to each element
+    // prefixes[i] will contain the composition of states from index 0 to i in the 'states' sequence
+    auto prefixes = parlay::scan_inclusive(states, combine);
+
+    // Calculate the sum of surviving numbers
+    // A number survives if the 'needed_pops' count is 0 when we reach it (in reverse processing)
+    // We use delayed_tabulate to compute this lazily and reduce to avoid extra memory allocation
+    auto survivors = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input_vec[K - 1 - i];
+        if (val > 0) {
+            // Determine the state before this element
+            // Since we used inclusive scan, the state before i is prefixes[i-1]
+            // For i=0, the state is Identity {0, 0}
+            State s = {0, 0};
+            if (i > 0) {
+                s = prefixes[i - 1];
+            }
+            
+            // Calculate needed_pops by applying the prefix state to an initial value of 0
+            // f(0) = max(c, 0 + d) = max(c, d)
+            int needed_pops = max(s.c, s.d);
+            
+            // If needed_pops is 0, this number is not consumed by any future zero
+            if (needed_pops == 0) {
+                return (long long)val;
+            }
+        }
+        return (long long)0;
+    });
+
+    // Sum all survivors
+    long long total_sum = parlay::reduce(survivors);
+
+    cout << total_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:12:01.111429","4","133.9889147952319","True","5","5","0.0074633039720356465","7.737437158927309e-07","0.00892637437209487","0.037316519860178234","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Problem Analysis:
+ * We need to sum a sequence of numbers where '0' removes the previous number.
+ * This is equivalent to a stack simulation.
+ * Since we need a parallel solution, we can model this as a function composition problem.
+ * Processing from Right to Left:
+ * - A '0' (POP) increments the ""needed pops"" count.
+ * - A 'value' (PUSH) decrements the ""needed pops"" count (if > 0), or survives (if == 0).
+ * 
+ * We define a State struct representing the function f(x) = max(L, x + S).
+ * x is the number of pending pops required by the suffix to the right.
+ * f(x) is the number of pending pops required after processing the current segment.
+ * 
+ * Composition: f_B(f_A(x)) -> Apply A (right), then B (left).
+ * 
+ * We use parlay::scan to compute prefix sums (which are suffix sums of original array) of these States.
+ * Then for each number, we check if the pending pops required by its right suffix is 0.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <limits>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Represents the state of pending pop operations (zeros)
+// propagating from right to left.
+// The transformation is of the form f(x) = max(L, x + S)
+// where x is the number of pending pops required by the suffix.
+struct State {
+    long long S;
+    long long L;
+    
+    // A value representing negative infinity, safe for arithmetic operations
+    static constexpr long long MIN_VAL = -2e18; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(long long s, long long l) : S(s), L(l) {}
+};
+
+// Monoid composition function
+// Combines two states a and b (a applied first, then b)
+// Corresponds to function composition f_B(f_A(x))
+State combine(const State& a, const State& b) {
+    long long s_new = a.S + b.S;
+    // Calculate new L: max(L_B, f_B(L_A_effective))
+    // Effectively: max(L_B, L_A + S_B) taking care of MIN_VAL
+    long long term2 = (a.L == State::MIN_VAL) ? State::MIN_VAL : (a.L + b.S);
+    long long l_new = std::max(b.L, term2);
+    return State(s_new, l_new);
+}
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input sequence
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Map each element to a State transformation based on reversed order
+    // We process from right to left (stack top to bottom).
+    // Index i in 'states' corresponds to input[K - 1 - i].
+    auto states = parlay::tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // POP: Increases demand by 1. f(x) = x + 1.
+            return State(1, State::MIN_VAL);
+        } else {
+            // PUSH: Consumes demand. f(x) = max(0, x - 1).
+            return State(-1, 0);
+        }
+    });
+
+    // Perform exclusive scan to compute the cumulative state before each element
+    auto [prefixes, total] = parlay::scan(states, parlay::binary_op(combine, State()));
+
+    // Determine which numbers survive and sum them up
+    // A number survives if the pending pop count 'cnt' from its right is 0
+    auto survivors = parlay::tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        if (val == 0) return 0;
+
+        // Apply the prefix state to the initial value 0
+        State st = prefixes[i];
+        long long current_cnt = std::max(st.L, st.S); // st.S + 0
+        
+        if (current_cnt == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    });
+
+    // Reduce to get the final sum
+    long long result = parlay::reduce(survivors);
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2026-01-24T19:14:02.239265","5","132.3390161965751","True","5","5","0.007556350566446782","1.4745059152987752e-06","0.009229572024196386","0.03778175283223391","","#include <iostream>
+#include <algorithm>
+#include <vector>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the transformation of the 'pending pops' count.
+// We process the sequence from right to left (reverse of input order).
+// The transformation function is f(x) = max(L, x + S).
+// x is the number of pending pops required by the suffix (elements to the right).
+// f(x) is the number of pending pops passed to the prefix (elements to the left).
+struct State {
+    long long S;
+    long long L;
+    
+    // Represents negative infinity for our max operations.
+    // Must be small enough so that max(MIN_VAL, x) = x for any valid state x (x >= 0).
+    static constexpr long long MIN_VAL = -1e16; 
+
+    // Identity element: f(x) = x = max(MIN_VAL, x + 0)
+    State() : S(0), L(MIN_VAL) {}
+    
+    State(long long s, long long l) : S(s), L(l) {}
+};
+
+// Compose two states: f_B(f_A(x))
+// Corresponds to applying operation A then operation B.
+// Since we process right-to-left, A is the right operation (processed first), B is the left operation.
+// Derivation:
+// Let f_A(x) = max(L_A, x + S_A)
+// Let f_B(x) = max(L_B, x + S_B)
+// f_B(f_A(x)) = max(L_B, max(L_A, x + S_A) + S_B)
+//             = max(L_B, L_A + S_B, x + S_A + S_B)
+//             = max(max(L_B, L_A + S_B), x + (S_A + S_B))
+// So:
+// S_new = S_A + S_B
+// L_new = max(L_B, L_A + S_B)
+State combine(const State& a, const State& b) {
+    long long s_new = a.S + b.S;
+    // Calculate new L, handling MIN_VAL correctly to avoid underflow
+    long long l_term = (a.L == State::MIN_VAL) ? State::MIN_VAL : (a.L + b.S);
+    long long l_new = std::max(b.L, l_term);
+    return State(s_new, l_new);
+}
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a parlay sequence
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // We process the sequence in reverse order (right to left in original).
+    // This allows us to propagate the ""pop demand"" from future (right) to past (left).
+    // We construct the transformation states directly using tabulate.
+    auto states = parlay::tabulate(K, [&](size_t i) {
+        // Access element from the end (reversed)
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // '0' (pop): increases demand by 1. f(x) = x + 1.
+            // Corresponds to max(MIN_VAL, x + 1) -> S=1, L=MIN_VAL
+            return State(1, State::MIN_VAL);
+        } else {
+            // 'val' (push): consumes demand. f(x) = max(0, x - 1).
+            // Corresponds to max(0, x - 1) -> S=-1, L=0
+            return State(-1, 0);
+        }
+    });
+
+    // Perform exclusive scan to compute the cumulative state before each element.
+    // prefixes[i] contains the composition of all operations to the right of the element at reversed index i.
+    auto [prefixes, total] = parlay::scan(states, parlay::binary_op(combine, State()));
+
+    // Determine which numbers survive and sum them up.
+    // A number survives if the pending pop count 'req' from its right is 0.
+    auto survivors = parlay::tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        if (val == 0) return 0; // Zeros are operations, not values to sum
+
+        // Apply the prefix state to the initial demand 0.
+        // req = f(0) = max(L, 0 + S)
+        State st = prefixes[i];
+        long long req = std::max(st.L, st.S); 
+        
+        // If req == 0, no pending pops consume this number
+        if (req == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    });
+
+    // Reduce to get the final sum
+    long long result = parlay::reduce(survivors);
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2026-01-24T19:15:55.989117","6","145.81013970305207","True","5","5","0.006858233604580164","3.8585033315920177e-07","0.0084365364164114","0.03429116802290082","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Problem Analysis:
+ * The problem describes a stack process where '0' pops the most recent number.
+ * We need to find the sum of numbers remaining in the stack.
+ * 
+ * Parallel Algorithm:
+ * We can model the stack operations as function compositions.
+ * Processing the sequence from Right to Left (Reverse):
+ * - A '0' (Pop) generates a ""demand"" for a number.
+ * - A positive number (Push) satisfies a ""demand"".
+ * 
+ * Let x be the demand (number of unmatched pops) coming from the right.
+ * The transformation f(x) produces the remaining demand to the left.
+ * - For '0': f(x) = x + 1.
+ * - For 'num': f(x) = max(0, x - 1).
+ * 
+ * These functions are of the form f(x) = max(L, x + S).
+ * - '0': S = 1, L = -infinity (effectively, since x >= 0, x+1 >= 1)
+ * - 'num': S = -1, L = 0
+ * 
+ * We use a parallel prefix scan (exclusive) on these functions to determine
+ * the cumulative demand incoming to each element from its right.
+ * If the incoming demand is 0 for a number, it survives and is part of the sum.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <limits>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Structure to represent the state of demand for ""pop"" operations
+// propagating from right to left (future to past).
+// The function represented is f(x) = max(L, x + S), where x is the
+// number of pending pops required by the suffix.
+struct State {
+    long long S;
+    long long L;
+    
+    // A value effectively representing negative infinity.
+    // Must be small enough to handle subtractions but safe from underflow.
+    static constexpr long long MIN_VAL = -2e18; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(long long s, long long l) : S(s), L(l) {}
+};
+
+// Combines two states: effectively computes g(f(x))
+// a is the state from the right (applied first), b is from the left (applied second).
+// Composition logic:
+// f(x) = max(La, x + Sa)
+// g(y) = max(Lb, y + Sb)
+// g(f(x)) = max(Lb, max(La, x + Sa) + Sb)
+//         = max(Lb, La + Sb, x + Sa + Sb)
+// So: S_new = Sa + Sb, L_new = max(Lb, La + Sb)
+State combine(const State& a, const State& b) {
+    long long s_new = a.S + b.S;
+    long long term2 = (a.L == State::MIN_VAL) ? State::MIN_VAL : (a.L + b.S);
+    long long l_new = std::max(b.L, term2);
+    return State(s_new, l_new);
+}
+
+int main() {
+    // Optimize I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input sequence
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed view of states corresponding to the reversed input.
+    // Processing right-to-left allows us to propagate ""pop demand"".
+    // Index i in this view corresponds to input[K - 1 - i].
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        // Access input from the end
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // ""Zero"" (Pop): Increases demand by 1.
+            // f(x) = x + 1 => max(MIN_VAL, x + 1)
+            return State(1, State::MIN_VAL);
+        } else {
+            // Number (Push): Satisfies 1 demand, or stays 0.
+            // f(x) = max(0, x - 1)
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] contains the accumulated state of all operations to the right of input[K-1-i].
+    // parlay::scan is exclusive, so prefixes[0] is Identity.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate the sum of numbers that are not popped.
+    // A number survives if the cumulative demand from its right is 0.
+    auto survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        // Zeros don't contribute to sum
+        if (val == 0) return 0;
+
+        // Calculate incoming demand from the right
+        State st = prefixes[i];
+        // Demand = f(0) = max(L, 0 + S)
+        // Since initial demand from ""infinity"" (past the end of array) is 0.
+        long long demand = std::max(st.L, st.S);
+
+        // If demand is 0, the number survives
+        if (demand == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:18:17.500404","7","138.78317685735738","True","5","5","0.0072054842859506614","2.372914558813367e-07","0.008769713342189789","0.036027421429753306","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * We model the problem as processing a sequence of stack operations.
+ * Since we need a parallel solution, we process the sequence from Right to Left (reverse order).
+ * We track the ""demand"" for pop operations (zeros) propagating from the future (right) to the past (left).
+ * 
+ * We define a transformation function f(x) = max(L, x + S) where:
+ * - x is the incoming demand (number of pops required by elements to the right).
+ * - f(x) is the outgoing demand (passed to elements to the left).
+ * 
+ * For a '0' (Pop operation):
+ *   It generates a new demand of 1.
+ *   f(x) = x + 1.
+ *   Represented as State(S=1, L=MIN_VAL).
+ * 
+ * For a positive number (Push operation):
+ *   It consumes 1 unit of demand if available (i.e., it gets popped).
+ *   f(x) = max(0, x - 1).
+ *   Represented as State(S=-1, L=0).
+ * 
+ * We use parlay::scan to compute the cumulative composition of these functions from the right.
+ * A number survives if the demand 'req' arriving at it is 0.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <limits>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the function f(x) = max(L, x + S).
+// This tracks the propagation of pop requirements.
+struct State {
+    long long S;
+    long long L;
+    
+    // A sufficiently small value representing negative infinity.
+    // Must be safe for arithmetic with K (up to 100,000).
+    static constexpr long long MIN_VAL = -1e16; 
+
+    // Identity element: f(x) = x = max(MIN_VAL, x + 0)
+    State() : S(0), L(MIN_VAL) {}
+    
+    State(long long s, long long l) : S(s), L(l) {}
+};
+
+// Monoid composition function: combine(a, b)
+// Corresponds to function composition b(a(x)).
+// 'a' is the state from the right (processed first), 'b' is from the left (processed second).
+// Derivation:
+// Let f_A(x) = max(L_A, x + S_A)
+// Let f_B(x) = max(L_B, x + S_B)
+// f_B(f_A(x)) = max(L_B, max(L_A, x + S_A) + S_B)
+//             = max(L_B, L_A + S_B, x + S_A + S_B)
+// S_new = S_A + S_B
+// L_new = max(L_B, L_A + S_B)
+State combine(const State& a, const State& b) {
+    long long s_new = a.S + b.S;
+    // Calculate new L, handling MIN_VAL to avoid underflow/issues
+    long long l_term = (a.L == State::MIN_VAL) ? State::MIN_VAL : (a.L + b.S);
+    long long l_new = std::max(b.L, l_term);
+    return State(s_new, l_new);
+}
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input sequence
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Map input to States in reverse order (Right to Left processing).
+    // Index i in 'states' corresponds to input[K - 1 - i].
+    auto states = parlay::tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // '0' is a Pop operation: Increases demand. f(x) = x + 1.
+            return State(1, State::MIN_VAL);
+        } else {
+            // Positive number is a Push: Consumes demand. f(x) = max(0, x - 1).
+            return State(-1, 0);
+        }
+    });
+
+    // Perform exclusive scan to compute the cumulative state arriving at each element from the right.
+    // prefixes[i] contains the composition of states for elements at reversed indices 0 to i-1.
+    auto [prefixes, total] = parlay::scan(states, parlay::binary_op(combine, State()));
+
+    // Determine which numbers survive and sum them up.
+    // A number survives if the pending pop count 'req' arriving from its right is 0.
+    auto survivors = parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        // Zeros don't contribute to the sum
+        if (val == 0) return 0;
+
+        // Apply the accumulated prefix function to an initial demand of 0.
+        // req = f(0) = max(L, 0 + S)
+        State st = prefixes[i];
+        long long req = std::max(st.L, st.S); 
+        
+        // If req == 0, the number is not consumed by any future '0'.
+        if (req == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    });
+
+    // Reduce to get the final sum
+    long long result = parlay::reduce(survivors);
+
+    cout << result << endl;
+
+    return 0;
+}"
+"2026-01-24T19:20:09.695578","8","146.90570931608963","True","5","5","0.006807087380439043","5.893053728558279e-07","0.008499606978148222","0.03403543690219522","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Problem Analysis:
+ * We need to sum a sequence of numbers where '0' removes the previous number.
+ * This is a stack simulation.
+ * 
+ * Parallel Algorithm:
+ * We model the operations as functions f(x) transforming the ""pop demand"" x
+ * from the right side of the sequence to the left.
+ * The functions are of the form f(x) = S + max(K, x).
+ * - '0' (Pop): Increases demand. f(x) = x + 1 = 1 + max(-inf, x). S=1, K=-inf.
+ * - 'num' (Push): Satisfies demand. f(x) = max(0, x - 1) = -1 + max(1, x). S=-1, K=1.
+ * 
+ * We process the input in reverse (right-to-left) using a parallel prefix scan
+ * to compute the cumulative demand function for each position.
+ * A number survives if the demand from its right is 0.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Represents the function f(x) = S + max(K, x)
+struct State {
+    long long S;
+    long long K;
+    
+    // Effective negative infinity
+    // Must be small enough so K - S doesn't overflow, but acts as -inf.
+    static constexpr long long MIN_VAL = -2e18; 
+
+    // Identity: f(x) = x = 0 + max(MIN_VAL, x)
+    State() : S(0), K(MIN_VAL) {}
+    State(long long s, long long k) : S(s), K(k) {}
+};
+
+// Composition: f_B(f_A(x))
+// f_A(x) = S_A + max(K_A, x)
+// f_B(y) = S_B + max(K_B, y)
+// Result: S = S_A + S_B, K = max(K_A, K_B - S_A)
+State combine(const State& a, const State& b) {
+    return State(a.S + b.S, std::max(a.K, b.K - a.S));
+}
+
+int main() {
+    // Optimize I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into parlay sequence
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed view of states for the reversed input
+    // Index i corresponds to input[K - 1 - i]
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // Pop: f(x) = x + 1
+            return State(1, State::MIN_VAL);
+        } else {
+            // Push: f(x) = max(0, x - 1)
+            return State(-1, 1);
+        }
+    });
+
+    // Compute exclusive prefix sums (which are suffix sums of original input)
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate sum of surviving numbers
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        if (val == 0) return 0;
+
+        // Apply cumulative function to initial demand 0
+        // demand = f(0) = S + max(K, 0)
+        State st = prefixes[i];
+        long long demand = st.S + std::max(st.K, 0LL);
+
+        return (demand == 0) ? val : 0;
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:21:46.139523","9","155.22618905590176","True","5","5","0.006442211885005236","6.966172073714048e-07","0.007938305847346783","0.03221105942502618","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - Model the stack operations as function compositions.
+ * - Process from right to left (reverse order).
+ * - A '0' (pop) increases demand for elements to be popped.
+ * - A number (push) satisfies demand or survives.
+ * - Use parlay::scan to compute cumulative demand functions.
+ * - Use parlay::reduce to sum survivors.
+ * 
+ * Optimizations:
+ * - Use 'int' for State to minimize memory bandwidth (output fits in int, K <= 100,000).
+ * - Branchless combine function for the monoid.
+ * - Delayed sequences to avoid intermediate memory allocations.
+ * - Pass-by-value for small State struct.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the function f(x) = max(L, x + S).
+// Tracks the propagation of ""pop demand"" from right to left.
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough so max(MIN_VAL, x) = x for valid x >= 0.
+    // Must be large enough so MIN_VAL + S doesn't underflow.
+    static constexpr int MIN_VAL = -1000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition function: combine(a, b) -> f_B(f_A(x))
+// 'a' is the state from the right (applied first).
+// 'b' is the state from the left (applied second).
+inline State combine(State a, State b) {
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a standard vector
+    vector<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed sequence of States corresponding to the reversed input.
+    // Index i corresponds to input[K - 1 - i].
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // '0' (Pop): Increases demand by 1.
+            return State(1, State::MIN_VAL);
+        } else {
+            // Number (Push): Satisfies 1 demand unit.
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate the sum of surviving numbers.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        if (val == 0) return 0;
+
+        // Get the accumulated state from the right
+        State st = prefixes[i];
+        
+        // Calculate demand: f(0) = max(L, 0 + S)
+        int demand = std::max(st.L, st.S);
+
+        if (demand == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:23:40.436652","10","0.0","False","0","0","0.0","0.0","0.0","0.0","ccc15s1cpp.cpp: In function ‘int main()’:
+ccc15s1cpp.cpp:69:62: error: no matching function for call to ‘scan_inclusive(parlay::delayed_sequence<int, int, main()::<lambda(size_t)> >&, main()::<lambda(int, int)>&)’
+     auto min_scan = parlay::scan_inclusive(rev_depths, min_op);
+                                                              ^
+In file included from ccc15s1cpp.cpp:32:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:124:6: note: candidate: ‘template<class R> auto parlay::scan_inclusive(R&&)’
+ auto scan_inclusive(R&& r) {
+      ^~~~~~~~~~~~~~
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:124:6: note:   template argument deduction/substitution failed:
+ccc15s1cpp.cpp:69:62: note:   candidate expects 1 argument, 2 provided
+     auto min_scan = parlay::scan_inclusive(rev_depths, min_op);
+                                                              ^
+In file included from ccc15s1cpp.cpp:32:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:158:6: note: candidate: ‘template<class R, class Monoid, typename std::enable_if<is_monoid_v<Monoid>, int>::type <anonymous> > auto parlay::scan_inclusive(R&&, Monoid&&)’
+ auto scan_inclusive(R&& r, Monoid&& m) {
+      ^~~~~~~~~~~~~~
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:158:6: note:   template argument deduction/substitution failed:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:157:55: error: no type named ‘type’ in ‘struct std::enable_if<false, int>’
+          std::enable_if_t<is_monoid_v<Monoid>, int> = 0>
+                                                       ^
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:166:6: note: candidate: ‘template<class R, class LegacyMonoid, typename std::enable_if<((! is_monoid_v<LegacyMonoid>) && is_legacy_monoid_v<LegacyMonoid>), int>::type <anonymous> > auto parlay::scan_inclusive(R&&, LegacyMonoid)’
+ auto scan_inclusive(R&& r, LegacyMonoid m) {
+      ^~~~~~~~~~~~~~
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:166:6: note:   template argument deduction/substitution failed:
+/nfs/roberts/project/pi_ql324/zn53/gemini/code_contest_dataset/parlaylib/include/parlay/primitives.h:165:98: error: no type named ‘type’ in ‘struct std::enable_if<false, int>’
+          std::enable_if_t<!is_monoid_v<LegacyMonoid> && is_legacy_monoid_v<LegacyMonoid>, int> = 0>
+                                                                                                  ^
+ccc15s1cpp.cpp: In lambda function:
+ccc15s1cpp.cpp:83:15: warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘int’ [-Wsign-compare]
+         if (i == K - 1) return val;
+             ~~^~~~~~~~
+","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Problem Analysis:
+ * The problem asks to maintain a sum of numbers where '0' acts as a pop operation.
+ * This is equivalent to a stack.
+ * 
+ * Parallel Algorithm (Stack Depth Method):
+ * Instead of simulating the stack sequentially, we can determine the fate of each number
+ * by analyzing the ""stack depth"" over time.
+ * 
+ * 1. Define 'depth' as the number of elements in the stack.
+ *    - A number (+ve) increments depth (+1).
+ *    - A zero (0) decrements depth (-1).
+ * 2. Compute the prefix sums of these changes to get the depth at each step.
+ * 3. A number at index i (which pushes to depth D[i]) is removed if the stack depth
+ *    ever drops below D[i] in the future.
+ *    That is, if min(D[i+1...K-1]) < D[i].
+ * 
+ * Steps:
+ * 1. Calculate depth array D using prefix sum.
+ * 2. Calculate suffix minimums of D.
+ * 3. Filter numbers that satisfy the survival condition and sum them.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // 1. Compute depths
+    // Map input to depth changes: +1 for number, -1 for zero
+    auto changes = parlay::delayed_tabulate(K, [&](size_t i) {
+        return (input[i] == 0) ? -1 : 1;
+    });
+
+    // Inclusive scan to get depths after each operation
+    auto depths = parlay::scan_inclusive(changes);
+
+    // 2. Compute suffix minimums
+    // Create a reversed view of depths to use scan_inclusive for suffix calculation
+    auto rev_depths = parlay::delayed_tabulate(K, [&](size_t i) {
+        return depths[K - 1 - i];
+    });
+
+    // Compute prefix minimums on the reversed sequence (equivalent to suffix minimums)
+    // Use a lambda for min to ensure compatibility
+    auto min_op = [](int a, int b) { return (a < b) ? a : b; };
+    auto min_scan = parlay::scan_inclusive(rev_depths, min_op);
+
+    // 3. Sum survivors
+    long long total_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[i];
+        
+        // Zeros are not summed
+        if (val == 0) return 0;
+
+        // Current depth D[i]
+        int current_depth = depths[i];
+
+        // Check future depths
+        // If i is the last element, it definitely survives
+        if (i == K - 1) return val;
+
+        // The minimum depth in the future (indices > i)
+        // Corresponds to index (K - i - 2) in min_scan
+        // Explanation: min_scan[j] covers depths[K-1] down to depths[K-1-j]
+        // We want range depths[K-1] down to depths[i+1]
+        // So K - 1 - j = i + 1  => j = K - i - 2
+        int future_min_depth = min_scan[K - i - 2];
+
+        // If the stack depth ever drops below current_depth, the element is popped.
+        // That implies future_min_depth <= current_depth - 1
+        // Equivalently future_min_depth < current_depth
+        if (future_min_depth < current_depth) {
+            return 0;
+        } else {
+            return val;
+        }
+    }));
+
+    cout << total_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:25:39.653891","11","149.6659811784762","True","5","5","0.006681545078754425","1.343496239751031e-06","0.008230509236454964","0.033407725393772125","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - Process the sequence of operations from right to left (reverse order).
+ * - Maintain a ""demand"" function f(x) = max(L, x + S) representing pending pops.
+ * - '0' (Pop) adds 1 to demand: f(x) = x + 1.
+ * - 'Number' (Push) satisfies 1 demand: f(x) = max(0, x - 1).
+ * - Use parlay::scan to compute cumulative demand functions.
+ * - A number survives if the incoming demand from its right is 0.
+ * 
+ * Improvements:
+ * - Optimized State struct using int (sufficient for constraints).
+ * - Branchless combine function.
+ * - Minimal memory footprint.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the function f(x) = max(L, x + S).
+// Tracks the propagation of ""pop demand"" from right to left.
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be smaller than any valid L (which can be 0) minus max possible S.
+    // K <= 100,000, so -200,000 is safe.
+    static constexpr int MIN_VAL = -200000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition function: combine(a, b) -> f_B(f_A(x))
+// 'a' is the state from the right (applied first).
+// 'b' is the state from the left (applied second).
+// Logic: f_B(f_A(x)) = max(L_B, max(L_A, x + S_A) + S_B)
+//                    = max(L_B, L_A + S_B, x + S_A + S_B)
+// Result: S = S_A + S_B, L = max(L_B, L_A + S_B)
+inline State combine(State a, State b) {
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a standard vector
+    vector<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed sequence of States corresponding to the reversed input.
+    // Index i corresponds to input[K - 1 - i].
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // '0' (Pop): Increases demand by 1.
+            // f(x) = x + 1 => max(MIN_VAL, x + 1)
+            return State(1, State::MIN_VAL);
+        } else {
+            // Number (Push): Satisfies 1 demand unit.
+            // f(x) = max(0, x - 1)
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] is the composition of states for input[K-1]...input[K-i].
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate the sum of surviving numbers.
+    // A number survives if the cumulative demand from its right is 0.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        if (val == 0) return 0;
+
+        // Get the accumulated state from the right
+        State st = prefixes[i];
+        
+        // Calculate demand: f(0) = max(L, 0 + S)
+        // Since initial demand from ""infinity"" is 0.
+        int demand = std::max(st.L, st.S);
+
+        // If demand is 0, the number survives.
+        return (demand == 0) ? val : 0;
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:27:17.769065","12","154.85544340880213","True","5","5","0.0064576354436576364","8.283048255228013e-07","0.0076627181842923164","0.03228817721828818","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - Model the stack operations as function compositions.
+ * - Process from right to left (reverse order).
+ * - A '0' (pop) increases demand for elements to be popped.
+ * - A number (push) satisfies demand or survives.
+ * - Use parlay::scan to compute cumulative demand functions.
+ * - Use parlay::reduce to sum survivors.
+ * 
+ * Optimizations:
+ * - Use 'int' for State to minimize memory bandwidth (output fits in int, K <= 100,000).
+ * - Branchless combine function for the monoid.
+ * - Delayed sequences to avoid intermediate memory allocations.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the function f(x) = max(L, x + S).
+// Tracks the propagation of ""pop demand"" from right to left.
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough so max(MIN_VAL, x) = x for valid x >= 0.
+    // Must be large enough so MIN_VAL + S doesn't underflow.
+    static constexpr int MIN_VAL = -2000000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition function: combine(a, b) -> f_B(f_A(x))
+// 'a' is the state from the right (applied first).
+// 'b' is the state from the left (applied second).
+inline State combine(State a, State b) {
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a standard vector
+    vector<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed sequence of States corresponding to the reversed input.
+    // Index i corresponds to input[K - 1 - i].
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // '0' (Pop): Increases demand by 1.
+            return State(1, State::MIN_VAL);
+        } else {
+            // Number (Push): Satisfies 1 demand unit.
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate the sum of surviving numbers.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        if (val == 0) return 0;
+
+        // Get the accumulated state from the right
+        State st = prefixes[i];
+        
+        // Calculate demand: f(0) = max(L, 0 + S)
+        int demand = std::max(st.L, st.S);
+
+        if (demand == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:29:11.644700","13","152.04736669443875","True","5","5","0.006576897855848074","9.088582218301326e-07","0.008681625127792358","0.03288448927924037","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - We model the stack operations as function compositions.
+ * - We process the sequence from Right to Left (reverse order) to propagate ""pop demand"".
+ * - A '0' (pop) generates a demand of 1.
+ * - A number (push) satisfies a demand of 1.
+ * - We use a custom State struct to represent the demand function f(x) = max(L, x + S).
+ * - parlay::scan computes the cumulative demand incoming to each element from the right.
+ * - parlay::reduce sums up the surviving numbers (those with 0 incoming demand).
+ * 
+ * Optimizations:
+ * - Efficient State representation (2 ints).
+ * - Branchless logic in critical paths.
+ * - Early exit in reduce to minimize memory bandwidth usage.
+ * - Fast I/O.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the function f(x) = max(L, x + S).
+// Tracks the propagation of ""pop demand"" from right to left.
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough so max(MIN_VAL, x) = x for valid x >= 0.
+    // Safe value: -10^9 (avoids underflow with S ~ 10^5).
+    static constexpr int MIN_VAL = -1000000000; 
+
+    // Default constructor is Identity: f(x) = x = max(MIN_VAL, x + 0)
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition function: combine(a, b) -> f_B(f_A(x))
+// 'a' is the state from the right (applied first).
+// 'b' is the state from the left (applied second).
+inline State combine(State a, State b) {
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a standard vector.
+    // std::vector is contiguous and efficient.
+    vector<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed sequence of States corresponding to the reversed input.
+    // Index i corresponds to input[K - 1 - i].
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        // Branchless state construction
+        bool is_pop = (val == 0);
+        // If pop: S=1, L=MIN_VAL. If push: S=-1, L=0.
+        return State(is_pop ? 1 : -1, is_pop ? State::MIN_VAL : 0);
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] holds the composition of operations to the right of input[K-1-i].
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate the sum of surviving numbers.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        // Optimization: If val is 0, it contributes nothing.
+        // Checking this first avoids accessing prefixes[i], saving memory bandwidth.
+        if (val == 0) return 0;
+
+        // Get the accumulated state from the right
+        State st = prefixes[i];
+        
+        // Calculate demand: f(0) = max(L, 0 + S)
+        int demand = std::max(st.L, st.S);
+
+        // If demand is 0, the number survives.
+        // Branchless return.
+        return (demand == 0) * (long long)val;
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:30:49.959741","14","154.61742719042672","True","5","5","0.006467576250433922","3.871760211106995e-07","0.008210462052375078","0.03233788125216961","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - We model the problem as a sequence of stack operations.
+ * - To solve in parallel, we process the operations in reverse order (Right to Left).
+ * - We track the ""demand"" for pops propagating from the future (right) to the past (left).
+ * - Transformation function: f(x) = max(L, x + S).
+ *   - '0' (Pop) -> Increases demand: f(x) = x + 1.
+ *   - 'Num' (Push) -> Consumes demand: f(x) = max(0, x - 1).
+ * - We compute the prefix sums (exclusive) of these transformations.
+ * - A number survives if the cumulative demand from its right is 0.
+ * 
+ * Optimizations:
+ * - Read input directly in reverse order to align memory access patterns with the scan direction.
+ * - Use 'int' for State (sufficient for K <= 100,000) to maximize cache efficiency.
+ * - Branchless 'combine' function.
+ * - Use parlay::delayed_tabulate to avoid intermediate allocations.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the demand transformation f(x) = max(L, x + S).
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough such that MIN_VAL + S_max < 0.
+    // K <= 100,000, so -1,000,000 is safe.
+    static constexpr int MIN_VAL = -1000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition: f_B(f_A(x)).
+// A is the state from the right (applied first).
+// B is the state from the left (applied second).
+inline State combine(State a, State b) {
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Optimize standard I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input in reverse order.
+    // input[0] is the last operation (top of stack).
+    // input[K-1] is the first operation (bottom of stack).
+    // This allows sequential forward scanning in the logic below.
+    vector<int> input(K);
+    for (int i = K - 1; i >= 0; --i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed view of States.
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        if (input[i] == 0) {
+            // Pop: f(x) = x + 1 -> max(MIN_VAL, x + 1)
+            return State(1, State::MIN_VAL);
+        } else {
+            // Push: f(x) = max(0, x - 1)
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] is the composition of states for input[0]...input[i-1].
+    // This effectively aggregates the ""pop demand"" from all future operations.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Sum the surviving numbers.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[i];
+        
+        if (val == 0) return 0;
+
+        // Calculate incoming demand from the future.
+        // Demand = f(0) = max(L, 0 + S).
+        State st = prefixes[i];
+        int demand = std::max(st.L, st.S);
+
+        // If demand is 0, the number is not popped.
+        if (demand == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:32:47.921104","15","154.13786393626415","True","5","5","0.006487698573619127","6.122712040916578e-07","0.00850739423185587","0.032438492868095636","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - We model the problem as a sequence of stack operations.
+ * - To solve in parallel, we view the operations as functions transforming ""pop demand"".
+ * - We process the sequence in reverse (Right-to-Left).
+ * - A '0' (Pop) increases demand (needs a number to pop).
+ * - A Number (Push) satisfies demand (gets popped) or survives.
+ * - We use a custom State struct and a monoid to compose these demand functions.
+ * - parlay::scan computes the cumulative demand from the right for each position.
+ * - A number survives if the incoming demand is 0.
+ * 
+ * Complexity:
+ * - Work: O(K)
+ * - Span: O(log K)
+ * - Space: O(K)
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the demand transformation function f(x) = max(L, x + S).
+// x: incoming demand from the right (future).
+// f(x): outgoing demand to the left (past).
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough so max(MIN_VAL, x) = x for x >= 0.
+    // -1e9 is safe for K <= 100,000 without overflow in int.
+    static constexpr int MIN_VAL = -1000000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition: combine(a, b) computes f_b(f_a(x)).
+// 'a' is the state from the right (applied first).
+// 'b' is the state from the left (applied second).
+inline State combine(State a, State b) {
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a vector.
+    // Standard vector is efficient and compatible with parlay.
+    vector<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed view of States corresponding to the reversed input.
+    // We process from the end of the input (stack top) to the beginning.
+    // Index i in this view corresponds to input[K - 1 - i].
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // '0' (Pop): Increases demand by 1.
+            // Function: f(x) = x + 1 = max(MIN_VAL, x + 1)
+            return State(1, State::MIN_VAL);
+        } else {
+            // Number (Push): Satisfies 1 unit of demand.
+            // Function: f(x) = max(0, x - 1)
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] accumulates the transformations for states_view[0...i-1].
+    // This corresponds to all operations to the 'right' of input[K-1-i].
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate the sum of surviving numbers.
+    // A number survives if the demand from its right is 0.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        // Zero values don't contribute to the sum.
+        if (val == 0) return 0;
+
+        // Get the accumulated state from the right.
+        State st = prefixes[i];
+        
+        // Calculate the demand arriving at this element.
+        // Initial demand from ""infinity"" is 0.
+        // demand = f(0) = max(L, 0 + S).
+        int demand = std::max(st.L, st.S);
+
+        // If demand is 0, the number is not popped.
+        if (demand == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:34:52.063722","16","150.70407952221416","True","5","5","0.006635520439594984","3.1074879744108153e-07","0.007885990664362907","0.03317760219797492","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - We model the problem as a sequence of stack operations.
+ * - To solve in parallel, we process the operations in reverse order (Right to Left).
+ * - We track the ""demand"" for pops propagating from the future (right) to the past (left).
+ * - Transformation function: f(x) = max(L, x + S).
+ *   - '0' (Pop) -> Increases demand: f(x) = x + 1.
+ *   - 'Num' (Push) -> Consumes demand: f(x) = max(0, x - 1).
+ * - We compute the prefix sums (exclusive) of these transformations.
+ * - A number survives if the cumulative demand from its right is 0.
+ * 
+ * Optimizations:
+ * - Use 'int' for State (sufficient for K <= 100,000) to maximize cache efficiency.
+ * - Branchless 'combine' function.
+ * - Use parlay::delayed_tabulate to avoid intermediate allocations during state creation.
+ * - Use parlay::sequence for input storage.
+ */
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the demand transformation f(x) = max(L, x + S).
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough such that MIN_VAL + S_max < 0.
+    // K <= 100,000, so -1,000,000 is safe.
+    static constexpr int MIN_VAL = -1000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition: f_B(f_A(x)).
+// A is the state from the right (applied first).
+// B is the state from the left (applied second).
+inline State combine(State a, State b) {
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Optimize standard I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a parlay sequence.
+    parlay::sequence<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed view of States in reverse order.
+    // Index i corresponds to input[K - 1 - i].
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[K - 1 - i];
+        if (val == 0) {
+            // Pop: f(x) = x + 1 -> max(MIN_VAL, x + 1)
+            return State(1, State::MIN_VAL);
+        } else {
+            // Push: f(x) = max(0, x - 1)
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] is the composition of states for input[0]...input[i-1] (in reverse view).
+    // This effectively aggregates the ""pop demand"" from all future operations.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Sum the surviving numbers.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[K - 1 - i];
+        
+        if (val == 0) return 0;
+
+        // Calculate incoming demand from the future.
+        // Demand = f(0) = max(L, 0 + S).
+        State st = prefixes[i];
+        
+        // If demand is 0, the number is not popped.
+        if (std::max(st.L, st.S) == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:36:42.799644","17","150.2783510752944","True","5","5","0.006654318422079086","1.0861716247642823e-06","0.008749906904995441","0.03327159211039543","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - We model the problem as a sequence of stack operations.
+ * - To solve in parallel, we view the operations as functions transforming ""pop demand"".
+ * - We process the sequence in reverse (Right-to-Left).
+ * - A '0' (Pop) increases demand (needs a number to pop).
+ * - A Number (Push) satisfies demand (gets popped) or survives.
+ * - We use a custom State struct and a monoid to compose these demand functions.
+ * - parlay::scan computes the cumulative demand from the right for each position.
+ * - A number survives if the incoming demand is 0.
+ * 
+ * Complexity:
+ * - Work: O(K)
+ * - Span: O(log K)
+ * - Space: O(K)
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the demand transformation function f(x) = max(L, x + S).
+// x: incoming demand from the right (future).
+// f(x): outgoing demand to the left (past).
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough so max(MIN_VAL, x) = x for x >= 0.
+    // -1e6 is safe for K <= 100,000.
+    static constexpr int MIN_VAL = -1000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition: combine(a, b) computes f_b(f_a(x)).
+// 'a' is the state from the right (applied first).
+// 'b' is the state from the left (applied second).
+inline State combine(State a, State b) {
+    int s_new = a.S + b.S;
+    int l_term = a.L + b.S;
+    // Branchless max for performance
+    int l_new = (b.L > l_term) ? b.L : l_term;
+    return State(s_new, l_new);
+}
+
+int main() {
+    // Optimize I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input into a vector in reverse order.
+    // This aligns the data with our scan direction (Right-to-Left propagation).
+    // input[0] corresponds to the last operation (top of stack).
+    vector<int> input(K);
+    for (int i = K - 1; i >= 0; --i) {
+        cin >> input[i];
+    }
+
+    // Create a delayed view of States corresponding to the reversed input.
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[i];
+        if (val == 0) {
+            // '0' (Pop): Increases demand by 1.
+            // Function: f(x) = x + 1 = max(MIN_VAL, x + 1)
+            return State(1, State::MIN_VAL);
+        } else {
+            // Number (Push): Satisfies 1 unit of demand.
+            // Function: f(x) = max(0, x - 1)
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] accumulates the transformations for states_view[0...i-1].
+    // This corresponds to all operations to the 'right' of the current element.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Calculate the sum of surviving numbers.
+    // A number survives if the demand from its right is 0.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[i];
+        
+        // Zero values don't contribute to the sum.
+        if (val == 0) return 0;
+
+        // Get the accumulated state from the right.
+        State st = prefixes[i];
+        
+        // Calculate the demand arriving at this element.
+        // Initial demand from ""infinity"" is 0.
+        // demand = f(0) = max(L, 0 + S).
+        int demand = (st.L > st.S) ? st.L : st.S;
+
+        // If demand is 0, the number is not popped.
+        return (demand == 0) ? (long long)val : 0;
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:38:29.413046","18","154.53779085190797","True","5","5","0.0064709091186523435","5.389149076239463e-07","0.007697362918406725","0.032354545593261716","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - We reverse the problem perspective: process from the last operation (stack top) to the first.
+ * - This allows us to calculate the ""demand"" (needed pops) propagating from future to past.
+ * - We model the demand transformation as a function f(x) = max(L, x + S).
+ *   - '0' (Pop) increases demand: f(x) = x + 1.
+ *   - 'Num' (Push) consumes demand: f(x) = max(0, x - 1).
+ * - We compute the exclusive prefix composition of these functions.
+ * - A number survives if the incoming demand from the future is 0.
+ * 
+ * Optimizations:
+ * - Read input in reverse order to align memory access patterns for the parallel scan.
+ * - Use 'int' for State to minimize memory bandwidth and cache footprint.
+ * - Use parlay::delayed_tabulate to generate states on-the-fly, avoiding intermediate storage.
+ * - Use branchless logic where possible.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the linear function f(x) = max(L, x + S).
+// This tracks the ""pop demand"" count.
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // -1e9 is safe for K <= 100,000.
+    static constexpr int MIN_VAL = -1000000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Composition of two states: f_B(f_A(x)).
+// A is applied first (from the right/future), B is applied second (from the left/past).
+inline State combine(const State& a, const State& b) {
+    // S_new = S_A + S_B
+    // L_new = max(L_B, L_A + S_B)
+    return State(a.S + b.S, std::max(b.L, a.L + b.S));
+}
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input such that input[0] corresponds to the last operation.
+    // This physically reverses the data so subsequent parallel passes scan forward.
+    vector<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[K - 1 - i];
+    }
+
+    // Create a delayed view of States.
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[i];
+        if (val == 0) {
+            // Pop operation: f(x) = x + 1 -> S=1, L=MIN_VAL
+            return State(1, State::MIN_VAL);
+        } else {
+            // Push operation: f(x) = max(0, x - 1) -> S=-1, L=0
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums (scan) of the states.
+    // prefixes[i] is the composition of states from index 0 to i-1.
+    // This represents the cumulative effect of all operations ""after"" the current one.
+    // We use parlay::binary_op to create a monoid from the combine function and identity.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Sum the numbers that are not popped.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[i];
+        
+        // Zeros are operations, not values.
+        if (val == 0) return 0;
+
+        // Calculate incoming demand from the future.
+        // demand = f(0) = max(L, 0 + S)
+        State st = prefixes[i];
+        int demand = std::max(st.L, st.S);
+
+        // If demand is 0, the number survives.
+        if (demand == 0) {
+            return val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"
+"2026-01-24T19:40:48.671031","19","155.01223577376734","True","5","5","0.006451103650033474","2.468291419028927e-07","0.00848979502916336","0.03225551825016737","","/*
+ * Canadian Computing Competition: 2015 Stage 1, Senior #1
+ * Solution using parlaylib for parallel computation.
+ * 
+ * Approach:
+ * - We model the problem as a sequence of stack operations.
+ * - To solve in parallel, we process the operations in reverse order (Right to Left).
+ * - We track the ""demand"" for pops propagating from the future (right) to the past (left).
+ * - Transformation function: f(x) = max(L, x + S).
+ *   - '0' (Pop) -> Increases demand: f(x) = x + 1.
+ *   - 'Num' (Push) -> Consumes demand: f(x) = max(0, x - 1).
+ * - We compute the prefix sums (exclusive) of these transformations.
+ * - A number survives if the cumulative demand from its right is 0.
+ * 
+ * Optimizations:
+ * - Read input in forward order for optimal I/O performance.
+ * - Reverse input in-memory to align access patterns for subsequent phases.
+ * - Use 'int' for State to maximize cache efficiency.
+ * - Branchless 'combine' function.
+ * - Use parlay::delayed_tabulate to avoid intermediate allocations.
+ */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// State representing the demand transformation f(x) = max(L, x + S).
+struct State {
+    int S;
+    int L;
+    
+    // Sentinel for negative infinity.
+    // Must be small enough such that MIN_VAL + S_max < 0.
+    // K <= 100,000, so -1,000,000 is safe.
+    static constexpr int MIN_VAL = -1000000; 
+
+    State() : S(0), L(MIN_VAL) {}
+    State(int s, int l) : S(s), L(l) {}
+};
+
+// Monoid composition: f_B(f_A(x)).
+// A is the state from the right (applied first).
+// B is the state from the left (applied second).
+inline State combine(State a, State b) {
+    int s_new = a.S + b.S;
+    int l_term = a.L + b.S;
+    // Branchless max for performance
+    int l_new = (b.L > l_term) ? b.L : l_term;
+    return State(s_new, l_new);
+}
+
+int main() {
+    // Optimize standard I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int K;
+    if (!(cin >> K)) return 0;
+
+    // Read input in forward order (fastest for cin).
+    vector<int> input(K);
+    for (int i = 0; i < K; ++i) {
+        cin >> input[i];
+    }
+
+    // Reverse the input to process from stack top to bottom (right to left).
+    // This allows subsequent operations to access memory sequentially forward,
+    // which is friendlier to hardware prefetchers.
+    std::reverse(input.begin(), input.end());
+
+    // Create a delayed view of States.
+    auto states_view = parlay::delayed_tabulate(K, [&](size_t i) {
+        int val = input[i];
+        if (val == 0) {
+            // Pop: f(x) = x + 1 -> max(MIN_VAL, x + 1)
+            return State(1, State::MIN_VAL);
+        } else {
+            // Push: f(x) = max(0, x - 1)
+            return State(-1, 0);
+        }
+    });
+
+    // Compute exclusive prefix sums of the states.
+    // prefixes[i] is the composition of states for input[0]...input[i-1].
+    // This effectively aggregates the ""pop demand"" from all future operations.
+    auto [prefixes, total] = parlay::scan(states_view, parlay::binary_op(combine, State()));
+
+    // Sum the surviving numbers.
+    long long survivor_sum = parlay::reduce(parlay::delayed_tabulate(K, [&](size_t i) -> long long {
+        int val = input[i];
+        
+        if (val == 0) return 0;
+
+        // Calculate incoming demand from the future.
+        // Demand = f(0) = max(L, 0 + S).
+        State st = prefixes[i];
+        int demand = (st.L > st.S) ? st.L : st.S;
+
+        // If demand is 0, the number is not popped.
+        if (demand == 0) {
+            return (long long)val;
+        } else {
+            return 0;
+        }
+    }));
+
+    cout << survivor_sum << endl;
+
+    return 0;
+}"

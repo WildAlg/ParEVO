@@ -1,0 +1,4727 @@
+"timestamp","iteration","combined_score","passed","tests_passed","tests_total","avg_time","variance_time","max_time","total_time","compile_error","code"
+"2025-12-31T23:10:46.035834","1","0.0","False","0","1","0.0","0.0","0.0","0.0","","//EVOLVE-BLOCK-START
+#include <iostream>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+using namespace std;
+
+int main() {
+    // TODO: Implement solution to the problem
+    // Read input, process it, and output the result
+    return 0;
+}
+//EVOLVE-BLOCK-END
+"
+"2025-12-31T23:13:06.434877","1","48.91551079406939","True","21","21","0.020443413219375844","0.0013823922127904182","0.11462609500449616","0.42931167760689276","","#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) with parity to track relative orientations.
+// parent[i] stores the parent of node i.
+// rel[i] stores the relationship of i relative to parent[i]: 0 for parallel, 1 for perpendicular.
+struct DSU {
+    vector<int> parent;
+    vector<int> rel;
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression.
+    // Returns {root, parity relative to root}.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if a contradiction is found.
+    // type: 0 for parallel, 1 for intersect.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int pi = root_i.second;
+        int pj = root_j.second;
+
+        if (ri != rj) {
+            // Merge tree rooted at ri into rj.
+            // We need: orientation(i) ^ orientation(j) = type
+            // (orientation(ri) ^ pi) ^ (orientation(rj) ^ pj) = type
+            // orientation(ri) ^ orientation(rj) = type ^ pi ^ pj
+            parent[ri] = rj;
+            rel[ri] = pi ^ pj ^ type;
+            return true;
+        } else {
+            // Already in the same component, check for consistency.
+            return (pi ^ pj) == type;
+        }
+    }
+};
+
+struct QueryID {
+    int u, v;
+};
+
+int main() {
+    // Optimize I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int m, n;
+    if (!(cin >> m >> n)) return 0;
+
+    // Map street names to integer IDs
+    unordered_map<string, int> name_to_id;
+    name_to_id.reserve((m + n) * 2);
+    int id_counter = 0;
+
+    auto get_id = [&](const string& s) {
+        auto it = name_to_id.find(s);
+        if (it == name_to_id.end()) {
+            name_to_id[s] = id_counter;
+            return id_counter++;
+        }
+        return it->second;
+    };
+
+    // Read and store observations
+    struct Obs { int u, v, type; };
+    vector<Obs> observations(m);
+
+    for(int i = 0; i < m; ++i) {
+        string u, v, t;
+        cin >> u >> v >> t;
+        observations[i] = {get_id(u), get_id(v), (t == ""intersect"" ? 1 : 0)};
+    }
+
+    // Read queries into a parlay sequence for parallel processing
+    parlay::sequence<QueryID> queries(n);
+    for(int i = 0; i < n; ++i) {
+        string u, v;
+        cin >> u >> v;
+        queries[i] = {get_id(u), get_id(v)};
+    }
+
+    // Process observations using DSU
+    DSU dsu(id_counter);
+    for(const auto& obs : observations) {
+        if (!dsu.unite(obs.u, obs.v, obs.type)) {
+            cout << ""Waterloo"" << endl;
+            return 0;
+        }
+    }
+
+    // Flatten the DSU structure so that all nodes point directly to their root.
+    // This allows O(1) read-only access during the parallel query phase.
+    for(int i = 0; i < id_counter; ++i) {
+        dsu.find(i);
+    }
+
+    // Process queries in parallel using parlay::map
+    // Results: 0 -> parallel, 1 -> unknown, 2 -> intersect
+    auto results = parlay::map(queries, [&](const QueryID& q) {
+        int root_u = dsu.parent[q.u];
+        int root_v = dsu.parent[q.v];
+
+        // If roots are different, streets are in disconnected components.
+        // Their relative orientation is not fixed.
+        if (root_u != root_v) return 1;
+
+        // If roots are same, check relative parity.
+        int par_u = dsu.rel[q.u];
+        int par_v = dsu.rel[q.v];
+
+        if (par_u == par_v) return 0; // Same orientation -> parallel
+        else return 2; // Different orientation -> intersect
+    });
+
+    // Output results
+    const char* answers[] = {""parallel"", ""unknown"", ""intersect""};
+    for(int r : results) {
+        cout << answers[r] << ""\n"";
+    }
+
+    return 0;
+}"
+"2025-12-31T23:15:13.698129","2","34.57372096788883","True","21","21","0.028923701933291295","7.4072102272561546e-06","0.06841787000303157","0.6073977405991172","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution using ParlayLib for parallel processing.
+ * The solution models the streets as nodes in a graph where edges represent
+ * 'parallel' (0) or 'intersect' (1) relationships.
+ * 
+ * We use Disjoint Set Union (conceptually) or BFS/DFS to determine connected components
+ * and relative orientations (bipartition with edge weights).
+ * 
+ * Steps:
+ * 1. Read input observations and queries.
+ * 2. Collect all street names and map them to unique integer IDs using parallel sorting.
+ * 3. Construct the graph.
+ * 4. Use BFS to check for consistency (""Waterloo"") and assign component IDs and relative orientations.
+ * 5. Process queries in parallel to determine relationships.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <tuple>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+struct Observation {
+    string u, v;
+    int type; // 0: parallel, 1: intersect
+};
+
+struct Query {
+    string u, v;
+};
+
+int main() {
+    // Optimize standard I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int m, n;
+    if (!(cin >> m >> n)) return 0;
+
+    // Store observations
+    vector<Observation> obs(m);
+    // Collect all street names to build a mapping to integer IDs
+    // We reserve space to avoid reallocations
+    vector<string> raw_names;
+    raw_names.reserve((size_t)(2 * m + 2 * n));
+
+    for (int i = 0; i < m; ++i) {
+        string t_str;
+        cin >> obs[i].u >> obs[i].v >> t_str;
+        obs[i].type = (t_str == ""intersect"" ? 1 : 0);
+        raw_names.push_back(obs[i].u);
+        raw_names.push_back(obs[i].v);
+    }
+
+    // Store queries
+    vector<Query> queries(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> queries[i].u >> queries[i].v;
+        raw_names.push_back(queries[i].u);
+        raw_names.push_back(queries[i].v);
+    }
+
+    // Use parlay::sequence for parallel operations
+    parlay::sequence<string> names(raw_names.begin(), raw_names.end());
+    
+    // Sort names in parallel to prepare for unique and binary search
+    parlay::sort_inplace(names);
+    
+    // Remove duplicates to get unique street names
+    // std::unique is efficient enough here (linear scan)
+    auto it = std::unique(names.begin(), names.end());
+    names.resize(std::distance(names.begin(), it));
+    
+    // Lambda to find the ID of a street name using binary search
+    // Since names is sorted, this is O(log V)
+    auto get_id = [&](const string& s) {
+        auto it = std::lower_bound(names.begin(), names.end(), s);
+        return (int)std::distance(names.begin(), it);
+    };
+
+    // Convert observations to integer-based edges in parallel
+    struct Edge {
+        int u, v, w;
+    };
+    
+    parlay::sequence<Edge> edges(m);
+    parlay::parallel_for(0, m, [&](size_t i) {
+        edges[i].u = get_id(obs[i].u);
+        edges[i].v = get_id(obs[i].v);
+        edges[i].w = obs[i].type;
+    });
+
+    // Build the graph using adjacency list
+    // Sequential construction is efficient for M=100,000
+    int num_streets = names.size();
+    vector<vector<pair<int, int>>> adj(num_streets);
+    for (const auto& e : edges) {
+        adj[e.u].push_back({e.v, e.w});
+        adj[e.v].push_back({e.u, e.w});
+    }
+
+    // BFS to find connected components and check for consistency (bipartiteness with weights)
+    // comp[i]: Component ID of street i
+    // rel[i]: Relative orientation (0 or 1) with respect to the component root
+    vector<int> comp(num_streets, -1);
+    vector<int> rel(num_streets, 0);
+    int comp_counter = 0;
+    bool consistent = true;
+
+    // Queue for BFS
+    vector<int> q;
+    q.reserve(num_streets);
+
+    for (int i = 0; i < num_streets; ++i) {
+        if (comp[i] == -1) {
+            // Start a new component
+            int current_comp = comp_counter++;
+            comp[i] = current_comp;
+            rel[i] = 0;
+            
+            q.clear();
+            q.push_back(i);
+            
+            size_t head = 0;
+            while(head < q.size()) {
+                int u = q[head++];
+                
+                for (const auto& edge : adj[u]) {
+                    int v = edge.first;
+                    int w = edge.second;
+                    
+                    if (comp[v] == -1) {
+                        // Visit new node in component
+                        comp[v] = current_comp;
+                        rel[v] = rel[u] ^ w; // XOR to accumulate relation
+                        q.push_back(v);
+                    } else {
+                        // Check for consistency in existing node
+                        // If path u->v implies a different relation than existing, it's a contradiction
+                        if (rel[v] != (rel[u] ^ w)) {
+                            consistent = false;
+                            break;
+                        }
+                    }
+                }
+                if (!consistent) break;
+            }
+        }
+        if (!consistent) break;
+    }
+
+    // If contradiction found, output Waterloo
+    if (!consistent) {
+        cout << ""Waterloo"" << endl;
+        return 0;
+    }
+
+    // Process queries in parallel
+    // 0: parallel, 1: intersect, 2: unknown
+    parlay::sequence<int> results(n);
+    
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = get_id(queries[i].u);
+        int v = get_id(queries[i].v);
+        
+        if (comp[u] != comp[v]) {
+            // Different components imply no fixed relationship
+            results[i] = 2; 
+        } else {
+            // Same component: check relative orientation
+            // if rel[u] == rel[v], they are parallel (0)
+            // if rel[u] != rel[v], they are perpendicular (1)
+            results[i] = rel[u] ^ rel[v];
+        }
+    });
+
+    // Output results sequentially
+    for (int i = 0; i < n; ++i) {
+        if (results[i] == 0) cout << ""parallel\n"";
+        else if (results[i] == 1) cout << ""intersect\n"";
+        else cout << ""unknown\n"";
+    }
+
+    return 0;
+}"
+"2025-12-31T23:17:11.289388","3","54.566360578505396","True","21","21","0.018326309275497416","5.1810439878084756e-05","0.06506388699926902","0.38485249478544575","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: King and Weber
+ * 
+ * Solution Approach:
+ * We model the problem using a Disjoint Set Union (DSU) data structure augmented with parity tracking.
+ * Each set in the DSU represents a connected component of streets where the relative orientation
+ * between any two streets is known.
+ * 
+ * We maintain for each node `i`:
+ * - `parent[i]`: The parent of node `i` in the DSU tree.
+ * - `rel[i]`: The orientation of `i` relative to `parent[i]` (0 for parallel, 1 for perpendicular).
+ * 
+ * When uniting two sets (streets u and v with relationship type t):
+ * - If they are in different sets, we merge the roots. The relationship between the two roots
+ *   is derived from the path u -> root_u and v -> root_v and the edge (u, v).
+ * - If they are in the same set, we check for consistency. If the derived relationship contradicts
+ *   the observation, we output ""Waterloo"".
+ * 
+ * After processing all observations, we flatten the DSU structure so that every node points directly
+ * to its root. This allows O(1) read-only access to the DSU during the query phase.
+ * 
+ * The queries are then processed in parallel using `parlay::map`.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) structure to manage street orientations.
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel to parent, 1: perpendicular to parent
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find the representative of the set containing i, with path compression.
+    // Returns {root, parity}, where parity is the relationship of i relative to root.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite the sets containing i and j with a given relationship type.
+    // type: 0 for parallel, 1 for intersect.
+    // Returns true if the observation is consistent, false otherwise.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int pi = root_i.second;
+        int pj = root_j.second;
+
+        if (ri != rj) {
+            // Merge tree rooted at ri into rj.
+            // We establish the relationship between ri and rj such that rel(i, j) == type.
+            // path: i -> ri -> rj <- j
+            // rel(i, j) = rel(i, ri) ^ rel(ri, rj) ^ rel(j, rj)
+            // type = pi ^ rel(ri, rj) ^ pj
+            // rel(ri, rj) = pi ^ pj ^ type
+            parent[ri] = rj;
+            rel[ri] = pi ^ pj ^ type;
+            return true;
+        } else {
+            // Already in the same component.
+            // Consistency check: rel(i, j) should equal type.
+            // rel(i, j) = rel(i, root) ^ rel(j, root) = pi ^ pj
+            return (pi ^ pj) == type;
+        }
+    }
+};
+
+struct Observation {
+    int u, v, type;
+};
+
+struct Query {
+    int u, v;
+};
+
+int main() {
+    // Optimize I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int m, n;
+    if (!(cin >> m >> n)) return 0;
+
+    // Map street names to unique integer IDs
+    // Reserve space to avoid rehashing overhead
+    unordered_map<string, int> name_to_id;
+    name_to_id.reserve((m + n) * 2);
+    int id_counter = 0;
+
+    auto get_id = [&](const string& s) {
+        auto it = name_to_id.find(s);
+        if (it == name_to_id.end()) {
+            name_to_id.emplace(s, id_counter);
+            return id_counter++;
+        }
+        return it->second;
+    };
+
+    // Store observations to process after mapping all IDs
+    vector<Observation> observations(m);
+    for(int i = 0; i < m; ++i) {
+        string u_str, v_str, type_str;
+        cin >> u_str >> v_str >> type_str;
+        observations[i] = {get_id(u_str), get_id(v_str), (type_str == ""intersect"" ? 1 : 0)};
+    }
+
+    // Store queries to process after building the graph
+    // We use parlay::sequence to enable parallel processing later
+    parlay::sequence<Query> queries(n);
+    for(int i = 0; i < n; ++i) {
+        string u_str, v_str;
+        cin >> u_str >> v_str;
+        queries[i] = {get_id(u_str), get_id(v_str)};
+    }
+
+    // Initialize DSU with the total number of unique streets found (from both obs and queries)
+    DSU dsu(id_counter);
+
+    // Process observations
+    for(const auto& obs : observations) {
+        if (!dsu.unite(obs.u, obs.v, obs.type)) {
+            cout << ""Waterloo"" << ""\n"";
+            return 0;
+        }
+    }
+
+    // Flatten the DSU structure so that all nodes point directly to their root.
+    // This allows O(1) read-only access during the parallel query phase, ensuring thread safety.
+    for(int i = 0; i < id_counter; ++i) {
+        dsu.find(i);
+    }
+
+    // Process queries in parallel using parlay::map
+    // Returns 0 for parallel, 1 for intersect, 2 for unknown
+    auto results = parlay::map(queries, [&](const Query& q) {
+        int root_u = dsu.parent[q.u];
+        int root_v = dsu.parent[q.v];
+
+        // If roots are different, streets are in disconnected components, so relationship is unknown
+        if (root_u != root_v) return 2;
+
+        int rel_u = dsu.rel[q.u];
+        int rel_v = dsu.rel[q.v];
+
+        // If relative parities are same, they are parallel (XOR sum is 0)
+        // If different, they are perpendicular (XOR sum is 1)
+        return (rel_u == rel_v) ? 0 : 1;
+    });
+
+    // Output results sequentially
+    const char* answers[] = {""parallel"", ""intersect"", ""unknown""};
+    for(int r : results) {
+        cout << answers[r] << ""\n"";
+    }
+
+    return 0;
+}"
+"2025-12-31T23:19:10.414596","4","57.55394983149318","True","21","21","0.017375002114152136","0.00021654036082687953","0.06422340800054371","0.36487504439719487","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Efficient I/O: Reads the entire input into a memory buffer to minimize system call overhead.
+ *    Uses `std::string_view` to reference street names without string copying/allocation.
+ * 2. Parallel Processing (ParlayLib):
+ *    - Sorts and deduplicates street names in parallel to create a mapping from names to integer IDs.
+ *    - Maps observations and queries to IDs in parallel.
+ *    - Processes queries in parallel after building the connectivity graph.
+ * 3. Algorithm:
+ *    - Uses Disjoint Set Union (DSU) with parity tracking (path compression and union by rank/index)
+ *      to manage connected components and relative street orientations (parallel vs perpendicular).
+ *    - DSU build is sequential (due to dependencies), but extremely fast (inverse Ackermann).
+ *    - DSU is flattened before query processing to allow O(1) lookups during the parallel query phase.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <iterator>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) with parity to track relative orientations.
+// parent[i]: Parent of node i.
+// rel[i]: Relationship of i relative to parent[i] (0: parallel, 1: perpendicular).
+struct DSU {
+    vector<int> parent;
+    vector<int> rel;
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression.
+    // Returns {root, parity relative to root}.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if a contradiction is found.
+    // type: 0 for parallel, 1 for intersect.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int pi = root_i.second;
+        int pj = root_j.second;
+
+        if (ri != rj) {
+            // Merge tree rooted at ri into rj.
+            // We need: orientation(i) ^ orientation(j) = type
+            // derived: rel(ri) = type ^ pi ^ pj
+            parent[ri] = rj;
+            rel[ri] = pi ^ pj ^ type;
+            return true;
+        } else {
+            // Already in the same component, check for consistency.
+            return (pi ^ pj) == type;
+        }
+    }
+};
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    // Read entire input into a buffer to avoid repetitive I/O and string allocations
+    string buffer;
+    // Reserve memory to reduce reallocations (heuristic size)
+    buffer.reserve(1 << 21); 
+    buffer.assign(istreambuf_iterator<char>(cin), istreambuf_iterator<char>());
+
+    // Tokenizer setup
+    const char* str = buffer.data();
+    size_t len = buffer.size();
+    size_t pos = 0;
+
+    // Fast token extraction using string_view
+    auto next_token = [&]() -> string_view {
+        while (pos < len && isspace(str[pos])) pos++;
+        if (pos == len) return string_view();
+        size_t start = pos;
+        while (pos < len && !isspace(str[pos])) pos++;
+        return string_view(str + start, pos - start);
+    };
+
+    // Fast integer parsing
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    string_view m_sv = next_token();
+    string_view n_sv = next_token();
+    
+    if (m_sv.empty()) return 0;
+
+    int m = to_int(m_sv);
+    int n = to_int(n_sv);
+
+    // Structures to hold parsed but unmapped data
+    struct RawObs { string_view u, v; int type; };
+    vector<RawObs> raw_obs(m);
+    
+    // Collect all street names for mapping
+    vector<string_view> all_names;
+    all_names.reserve(2 * m + 2 * n);
+
+    for(int i = 0; i < m; ++i) {
+        raw_obs[i].u = next_token();
+        raw_obs[i].v = next_token();
+        string_view t = next_token();
+        // ""intersect"" starts with 'i', ""parallel"" with 'p'
+        raw_obs[i].type = (t[0] == 'i' ? 1 : 0);
+        all_names.push_back(raw_obs[i].u);
+        all_names.push_back(raw_obs[i].v);
+    }
+
+    struct RawQuery { string_view u, v; };
+    vector<RawQuery> raw_queries(n);
+    for(int i = 0; i < n; ++i) {
+        raw_queries[i].u = next_token();
+        raw_queries[i].v = next_token();
+        all_names.push_back(raw_queries[i].u);
+        all_names.push_back(raw_queries[i].v);
+    }
+
+    // Convert to parlay sequence for parallel sorting
+    parlay::sequence<string_view> names(all_names.begin(), all_names.end());
+    
+    // Sort names in parallel
+    parlay::sort_inplace(names);
+    
+    // Remove duplicates to get unique names (parallel pack)
+    parlay::sequence<bool> flags(names.size());
+    if (names.size() > 0) {
+        flags[0] = true;
+        parlay::parallel_for(1, names.size(), [&](size_t i) {
+            flags[i] = (names[i] != names[i-1]);
+        });
+    }
+    auto distinct_names = parlay::pack(names, flags);
+
+    // Lambda to find ID of a name using binary search
+    auto get_id = [&](string_view s) -> int {
+        auto it = std::lower_bound(distinct_names.begin(), distinct_names.end(), s);
+        return (int)(it - distinct_names.begin());
+    };
+
+    // Convert observations to IDs in parallel
+    struct Obs { int u, v, type; };
+    parlay::sequence<Obs> obs(m);
+    parlay::parallel_for(0, m, [&](size_t i) {
+        obs[i] = {get_id(raw_obs[i].u), get_id(raw_obs[i].v), raw_obs[i].type};
+    });
+
+    // Process observations using DSU (sequential due to dependencies)
+    DSU dsu(distinct_names.size());
+    for(int i = 0; i < m; ++i) {
+        if (!dsu.unite(obs[i].u, obs[i].v, obs[i].type)) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten the DSU structure so that all nodes point directly to their root.
+    // This enables safe, read-only O(1) access during the parallel query phase.
+    for(int i = 0; i < (int)distinct_names.size(); ++i) {
+        dsu.find(i);
+    }
+
+    // Process queries in parallel
+    // Results: 0 -> parallel, 1 -> unknown, 2 -> intersect
+    parlay::sequence<int> results(n);
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = get_id(raw_queries[i].u);
+        int v = get_id(raw_queries[i].v);
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 1; // unknown (different components)
+        } else {
+            // Same component: check relative orientation
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = (rel == 0 ? 0 : 2);
+        }
+    });
+
+    // Output results
+    const char* answers[] = {""parallel"", ""unknown"", ""intersect""};
+    for(int i = 0; i < n; ++i) {
+        cout << answers[results[i]] << ""\n"";
+    }
+
+    return 0;
+}"
+"2025-12-31T23:21:00.360762","5","51.30733368008733","True","21","21","0.019490391105396805","0.0005686773426018928","0.06457482698897365","0.40929821321333293","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: King and Weber
+ * 
+ * Solution Approach:
+ * We model the problem using a Disjoint Set Union (DSU) data structure augmented with parity tracking.
+ * Each set in the DSU represents a connected component of streets where the relative orientation
+ * between any two streets is known.
+ * 
+ * We maintain for each node `i`:
+ * - `parent[i]`: The parent of node `i` in the DSU tree.
+ * - `rel[i]`: The orientation of `i` relative to `parent[i]` (0 for parallel, 1 for perpendicular).
+ * - `rank[i]`: Approximate depth of the tree rooted at `i` for union-by-rank optimization.
+ * 
+ * When uniting two sets (streets u and v with relationship type t):
+ * - If they are in different sets, we merge the roots using union-by-rank. The relationship between 
+ *   the two roots is derived from the path u -> root_u and v -> root_v and the edge (u, v).
+ * - If they are in the same set, we check for consistency. If the derived relationship contradicts
+ *   the observation, we output ""Waterloo"".
+ * 
+ * After processing all observations, we flatten the DSU structure so that every node points directly
+ * to its root. This allows O(1) read-only access to the DSU during the query phase, ensuring thread safety.
+ * 
+ * The queries are then processed in parallel using `parlay::map`.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) structure to manage street orientations.
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel to parent, 1: perpendicular to parent
+    vector<int> rank; // For union by rank
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        rank.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find the representative of the set containing i, with path compression.
+    // Returns {root, parity}, where parity is the relationship of i relative to root.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite the sets containing i and j with a given relationship type.
+    // type: 0 for parallel, 1 for intersect.
+    // Returns true if the observation is consistent, false otherwise.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int pi = root_i.second;
+        int pj = root_j.second;
+
+        if (ri != rj) {
+            // Merge tree rooted at ri into rj (or vice versa).
+            // We establish the relationship between ri and rj such that rel(i, j) == type.
+            // path: i -> ri -> rj <- j (assuming ri attached to rj)
+            // rel(i, j) = rel(i, ri) ^ rel(ri, rj) ^ rel(j, rj)
+            // type = pi ^ rel(ri, rj) ^ pj
+            // rel(ri, rj) = pi ^ pj ^ type
+            
+            int connection_rel = pi ^ pj ^ type;
+            
+            if (rank[ri] < rank[rj]) {
+                parent[ri] = rj;
+                rel[ri] = connection_rel;
+            } else {
+                parent[rj] = ri;
+                rel[rj] = connection_rel;
+                if (rank[ri] == rank[rj]) rank[ri]++;
+            }
+            return true;
+        } else {
+            // Already in the same component.
+            // Consistency check: rel(i, j) should equal type.
+            // rel(i, j) = rel(i, root) ^ rel(j, root) = pi ^ pj
+            return (pi ^ pj) == type;
+        }
+    }
+    
+    // Flatten the DSU structure so that all nodes point directly to their root.
+    // This allows O(1) read-only access during the parallel query phase, ensuring thread safety.
+    void flatten() {
+        for(size_t i = 0; i < parent.size(); ++i) {
+            find((int)i);
+        }
+    }
+};
+
+struct Observation {
+    int u, v, type;
+};
+
+struct Query {
+    int u, v;
+};
+
+int main() {
+    // Optimize I/O operations for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int m, n;
+    if (!(cin >> m >> n)) return 0;
+
+    // Map street names to unique integer IDs
+    // Reserve space to avoid rehashing overhead
+    unordered_map<string, int> name_to_id;
+    name_to_id.reserve((m + n) * 2);
+    int id_counter = 0;
+
+    auto get_id = [&](const string& s) {
+        auto it = name_to_id.find(s);
+        if (it == name_to_id.end()) {
+            name_to_id.emplace(s, id_counter);
+            return id_counter++;
+        }
+        return it->second;
+    };
+
+    // Store observations to process after mapping all IDs
+    vector<Observation> observations;
+    observations.reserve(m);
+    for(int i = 0; i < m; ++i) {
+        string u_str, v_str, type_str;
+        cin >> u_str >> v_str >> type_str;
+        observations.push_back({get_id(u_str), get_id(v_str), (type_str == ""intersect"" ? 1 : 0)});
+    }
+
+    // Store queries to process after building the graph
+    // We use parlay::sequence to enable parallel processing later
+    parlay::sequence<Query> queries(n);
+    for(int i = 0; i < n; ++i) {
+        string u_str, v_str;
+        cin >> u_str >> v_str;
+        queries[i] = {get_id(u_str), get_id(v_str)};
+    }
+
+    // Initialize DSU with the total number of unique streets found (from both obs and queries)
+    DSU dsu(id_counter);
+
+    // Process observations
+    for(const auto& obs : observations) {
+        if (!dsu.unite(obs.u, obs.v, obs.type)) {
+            cout << ""Waterloo"" << ""\n"";
+            return 0;
+        }
+    }
+
+    // Flatten the DSU structure for parallel access
+    dsu.flatten();
+
+    // Process queries in parallel using parlay::map
+    // Returns 0 for parallel, 1 for intersect, 2 for unknown
+    auto results = parlay::map(queries, [&](const Query& q) {
+        // Access DSU internals directly as they are now static/flattened
+        int root_u = dsu.parent[q.u];
+        int root_v = dsu.parent[q.v];
+
+        // If roots are different, streets are in disconnected components, so relationship is unknown
+        if (root_u != root_v) return 2;
+
+        int rel_u = dsu.rel[q.u];
+        int rel_v = dsu.rel[q.v];
+
+        // If relative parities are same, they are parallel (XOR sum is 0)
+        // If different, they are perpendicular (XOR sum is 1)
+        return (rel_u == rel_v) ? 0 : 1;
+    });
+
+    // Output results sequentially
+    const char* answers[] = {""parallel"", ""intersect"", ""unknown""};
+    for(int r : results) {
+        cout << answers[r] << ""\n"";
+    }
+
+    return 0;
+}"
+"2025-12-31T23:22:42.519815","6","60.56962202756152","True","21","21","0.01650992637109344","4.311647627707611e-05","0.03513572600786574","0.3467084537929622","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Efficient I/O: Reads the entire input into a large memory buffer to minimize I/O syscall overhead.
+ *    Uses `std::string_view` to reference street names directly from the buffer, avoiding string copies.
+ * 2. Parallel Processing (ParlayLib):
+ *    - Sorts and deduplicates street names in parallel to map them to unique integer IDs.
+ *    - Maps observations and queries to IDs in parallel using binary search on the sorted names.
+ *    - Processes queries in parallel after building the connectivity graph.
+ * 3. Algorithm:
+ *    - Uses Disjoint Set Union (DSU) with parity tracking (path compression and union by rank/index)
+ *      to manage connected components and relative street orientations.
+ *    - DSU state tracks the relationship of each node to its parent (0: parallel, 1: perpendicular).
+ *    - If a contradiction is found during observation processing, outputs ""Waterloo"".
+ *    - Before query processing, the DSU is flattened to ensure O(1) read-only access during the parallel query phase.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <iterator>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) with parity tracking.
+// parent[i]: Parent of node i.
+// rel[i]: Relationship of i relative to parent[i] (0: parallel, 1: perpendicular).
+struct DSU {
+    vector<int> parent;
+    vector<int> rel;
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression.
+    // Returns {root, parity relative to root}.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if a contradiction is found.
+    // type: 0 for parallel, 1 for intersect.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        
+        // We need: orientation(i) ^ orientation(j) = type
+        // Derived: rel(ri, rj) = type ^ rel(i) ^ rel(j)
+        int needed_rel = type ^ root_i.second ^ root_j.second;
+
+        if (ri != rj) {
+            // Merge tree rooted at ri into rj.
+            parent[ri] = rj;
+            rel[ri] = needed_rel;
+            return true;
+        } else {
+            // Already in the same component, check for consistency.
+            // If roots are same, relative relation must be 0 (identity).
+            return (needed_rel == 0);
+        }
+    }
+};
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    // Read entire input into a buffer to avoid repetitive I/O and string allocations
+    string buffer;
+    // Reserve memory to reduce reallocations (heuristic size for large inputs)
+    buffer.reserve(1 << 24); 
+    buffer.assign(istreambuf_iterator<char>(cin), istreambuf_iterator<char>());
+
+    if (buffer.empty()) return 0;
+
+    // Tokenizer setup
+    const char* str = buffer.data();
+    size_t len = buffer.size();
+    size_t pos = 0;
+
+    // Fast token extraction using string_view
+    auto skip_ws = [&]() {
+        while (pos < len && str[pos] <= 32) pos++;
+    };
+
+    auto read_token = [&]() -> string_view {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && str[pos] > 32) pos++;
+        return string_view(str + start, pos - start);
+    };
+
+    // Fast integer parsing
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    string_view m_sv = read_token();
+    string_view n_sv = read_token();
+    
+    if (m_sv.empty()) return 0;
+
+    int m = to_int(m_sv);
+    int n = to_int(n_sv);
+
+    // Structures to hold parsed but unmapped data
+    struct RawObs { string_view u, v; int type; };
+    vector<RawObs> raw_obs(m);
+    
+    // Collect all street names for mapping
+    vector<string_view> all_names;
+    all_names.reserve(2 * m + 2 * n);
+
+    for(int i = 0; i < m; ++i) {
+        raw_obs[i].u = read_token();
+        raw_obs[i].v = read_token();
+        string_view t = read_token();
+        // ""intersect"" starts with 'i', ""parallel"" with 'p'
+        raw_obs[i].type = (t[0] == 'i' ? 1 : 0);
+        all_names.push_back(raw_obs[i].u);
+        all_names.push_back(raw_obs[i].v);
+    }
+
+    struct RawQuery { string_view u, v; };
+    vector<RawQuery> raw_queries(n);
+    for(int i = 0; i < n; ++i) {
+        raw_queries[i].u = read_token();
+        raw_queries[i].v = read_token();
+        all_names.push_back(raw_queries[i].u);
+        all_names.push_back(raw_queries[i].v);
+    }
+
+    // Convert to parlay sequence for parallel sorting
+    parlay::sequence<string_view> names(all_names.begin(), all_names.end());
+    
+    // Sort names in parallel
+    parlay::sort_inplace(names);
+    
+    // Create distinct names sequence using parlay::pack
+    // Identify boundaries where names[i] != names[i-1]
+    auto flags = parlay::delayed_seq<bool>(names.size(), [&](size_t i) {
+        return (i == 0) || (names[i] != names[i-1]);
+    });
+    auto distinct_names = parlay::pack(names, flags);
+
+    // Lambda to find ID of a name using binary search
+    auto get_id = [&](string_view s) -> int {
+        auto it = std::lower_bound(distinct_names.begin(), distinct_names.end(), s);
+        return (int)(it - distinct_names.begin());
+    };
+
+    // Convert observations to IDs in parallel
+    struct Obs { int u, v, type; };
+    parlay::sequence<Obs> obs(m);
+    parlay::parallel_for(0, m, [&](size_t i) {
+        obs[i] = {get_id(raw_obs[i].u), get_id(raw_obs[i].v), raw_obs[i].type};
+    });
+
+    // Process observations using DSU (sequential due to dependencies)
+    DSU dsu(distinct_names.size());
+    for(int i = 0; i < m; ++i) {
+        if (!dsu.unite(obs[i].u, obs[i].v, obs[i].type)) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten the DSU structure so that all nodes point directly to their root.
+    // This enables safe, read-only O(1) access during the parallel query phase.
+    for(int i = 0; i < (int)distinct_names.size(); ++i) {
+        dsu.find(i);
+    }
+
+    // Process queries in parallel
+    // Results: 0 -> parallel, 1 -> intersect, 2 -> unknown
+    parlay::sequence<int> results(n);
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = get_id(raw_queries[i].u);
+        int v = get_id(raw_queries[i].v);
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown (different components)
+        } else {
+            // Same component: check relative orientation
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = (rel == 0 ? 0 : 1);
+        }
+    });
+
+    // Output results
+    const char* answers[] = {""parallel"", ""intersect"", ""unknown""};
+    for(int i = 0; i < n; ++i) {
+        cout << answers[results[i]] << ""\n"";
+    }
+
+    return 0;
+}"
+"2025-12-31T23:24:38.538642","7","23.73372369925439","True","21","21","0.04213413843826856","0.00013622811770051536","0.06715749499562662","0.8848169072036398","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Efficient I/O: Reads stdin into a large buffer using fread for maximum speed.
+ *    Uses `std::string_view` to reference street names without string copying/allocation.
+ * 2. Parallel Processing (ParlayLib):
+ *    - Sorts and deduplicates street names in parallel to create a mapping from names to integer IDs.
+ *    - Maps observations and queries to IDs in parallel using binary search.
+ *    - Processes queries in parallel after building the connectivity graph.
+ * 3. Algorithm:
+ *    - Uses Weighted Disjoint Set Union (DSU) with path compression to manage connected components 
+ *      and relative street orientations (parallel vs perpendicular).
+ *    - DSU is flattened before query processing to allow O(1) concurrent lookups.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Weighted DSU to track relative orientations.
+// parent[i]: Parent of node i.
+// rel[i]: Relationship of i relative to parent[i] (0: parallel, 1: perpendicular).
+struct DSU {
+    vector<int> parent;
+    vector<int> rel;
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find root with path compression.
+    // Returns {root, parity relative to root}.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if a contradiction is found.
+    // type: 0 for parallel, 1 for intersect.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int pi = root_i.second;
+        int pj = root_j.second;
+
+        if (ri != rj) {
+            // Merge tree rooted at ri into rj.
+            // rel(ri, rj) = pi ^ pj ^ type
+            parent[ri] = rj;
+            rel[ri] = pi ^ pj ^ type;
+            return true;
+        } else {
+            // Already in the same component, check for consistency.
+            return (pi ^ pj) == type;
+        }
+    }
+
+    // Flatten the structure for O(1) concurrent read access.
+    void flatten_all() {
+        for(int i = 0; i < (int)parent.size(); ++i) {
+            find(i);
+        }
+    }
+};
+
+// Fast Input Reader using a large buffer and fread
+struct FastInput {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastInput() {
+        // Allocate 64MB buffer (sufficient for max constraints)
+        buffer.resize(64 * 1024 * 1024); 
+        len = 0;
+        size_t n;
+        // Read until EOF
+        while ((n = fread(buffer.data() + len, 1, buffer.size() - len, stdin)) > 0) {
+            len += n;
+        }
+        pos = 0;
+    }
+
+    // Get next whitespace-delimited token
+    string_view next_token() {
+        while (pos < len && isspace(buffer[pos])) pos++;
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && !isspace(buffer[pos])) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+    
+    // Parse integer from next token
+    int next_int() {
+        string_view sv = next_token();
+        int res = 0;
+        for (char c : sv) res = res * 10 + (c - '0');
+        return res;
+    }
+};
+
+int main() {
+    // Disable sync for standard streams
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastInput scanner;
+
+    string_view m_sv = scanner.next_token();
+    string_view n_sv = scanner.next_token();
+    
+    if (m_sv.empty()) return 0;
+
+    auto parse_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    int m = parse_int(m_sv);
+    int n = parse_int(n_sv);
+
+    struct RawObs { string_view u, v; int type; };
+    vector<RawObs> raw_obs(m);
+    
+    // Collect all names for mapping
+    // Use parlay::sequence for parallel operations
+    parlay::sequence<string_view> all_names(2 * m + 2 * n);
+    size_t name_idx = 0;
+
+    for(int i = 0; i < m; ++i) {
+        string_view u = scanner.next_token();
+        string_view v = scanner.next_token();
+        string_view t = scanner.next_token();
+        // ""intersect"" starts with 'i', ""parallel"" with 'p'
+        int type = (t[0] == 'i' ? 1 : 0);
+        raw_obs[i] = {u, v, type};
+        all_names[name_idx++] = u;
+        all_names[name_idx++] = v;
+    }
+
+    struct RawQuery { string_view u, v; };
+    vector<RawQuery> raw_queries(n);
+    for(int i = 0; i < n; ++i) {
+        raw_queries[i].u = scanner.next_token();
+        raw_queries[i].v = scanner.next_token();
+        all_names[name_idx++] = raw_queries[i].u;
+        all_names[name_idx++] = raw_queries[i].v;
+    }
+
+    // Sort names in parallel
+    parlay::sort_inplace(all_names);
+    
+    // Remove duplicates to get unique names
+    // Create a boolean flag array marking the start of each unique sequence
+    auto flags = parlay::tabulate(all_names.size(), [&](size_t i) {
+        return (i == 0) || (all_names[i] != all_names[i-1]);
+    });
+    auto distinct_names = parlay::pack(all_names, flags);
+
+    // Lambda to find ID of a name using binary search
+    auto get_id = [&](string_view s) -> int {
+        auto it = std::lower_bound(distinct_names.begin(), distinct_names.end(), s);
+        return (int)(it - distinct_names.begin());
+    };
+
+    // Convert observations to IDs in parallel
+    struct Obs { int u, v, type; };
+    parlay::sequence<Obs> obs(m);
+    parlay::parallel_for(0, m, [&](size_t i) {
+        obs[i] = {get_id(raw_obs[i].u), get_id(raw_obs[i].v), raw_obs[i].type};
+    });
+
+    // Process observations using DSU (sequential)
+    DSU dsu(distinct_names.size());
+    for(int i = 0; i < m; ++i) {
+        if (!dsu.unite(obs[i].u, obs[i].v, obs[i].type)) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU for parallel query processing
+    dsu.flatten_all();
+
+    // Process queries in parallel
+    // Results: 0 -> parallel, 1 -> intersect, 2 -> unknown
+    parlay::sequence<int> results(n);
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = get_id(raw_queries[i].u);
+        int v = get_id(raw_queries[i].v);
+        
+        // Safe read-only access
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            // Same component: check relative orientation
+            // rel(u, v) = rel(u, root) ^ rel(v, root)
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = rel;
+        }
+    });
+
+    // Output results
+    const char* answers[] = {""parallel"", ""intersect"", ""unknown""};
+    for(int i = 0; i < n; ++i) {
+        cout << answers[results[i]] << ""\n"";
+    }
+
+    return 0;
+}"
+"2025-12-31T23:26:34.591235","8","58.332813363382044","True","21","21","0.017143009951715135","3.1886859133486805e-05","0.034189997997600585","0.36000320898601784","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads entire stdin into a single buffer to minimize syscalls.
+ * 2. String Interning: 
+ *    - Instead of hash maps or binary search, we collect all street name occurrences (observations + queries) into a list.
+ *    - We store a reference to the string and its original position (index).
+ *    - We sort this list in parallel. Identical names end up adjacent.
+ *    - A single linear scan assigns unique IDs to names and populates a direct lookup table (`mapped_ids`).
+ *    - This avoids repeated O(log N) lookups or hashing overhead.
+ * 3. DSU (Disjoint Set Union):
+ *    - Maintains connected components and relative parity (parallel/perpendicular).
+ *    - Sequential build for observations to detect conflicts early (""Waterloo"").
+ *    - Flattened (path compression on all nodes) before queries to allow lock-free O(1) access.
+ * 4. Parallel Query Processing:
+ *    - Uses `parlay::parallel_for` to process queries using the flattened DSU.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Class to handle buffered reading from stdin
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        buffer.resize(1 << 24); // Reserve 16MB initially
+        size_t total_read = 0;
+        while (true) {
+            if (total_read == buffer.size()) buffer.resize(buffer.size() * 2);
+            cin.read(buffer.data() + total_read, buffer.size() - total_read);
+            size_t count = cin.gcount();
+            total_read += count;
+            if (count == 0 || !cin) break;
+        }
+        buffer.resize(total_read);
+        len = total_read;
+        pos = 0;
+    }
+
+    void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    string_view read_token() {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+};
+
+// Helper struct for string interning/mapping
+struct NameRef {
+    string_view name;
+    int index; // Original index in the flattened request list
+    
+    // Comparison for sorting
+    bool operator<(const NameRef& other) const {
+        return name < other.name;
+    }
+    bool operator==(const NameRef& other) const {
+        return name == other.name;
+    }
+};
+
+// DSU with parity tracking
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel, 1: perpendicular relative to parent
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.resize(n, 0);
+        for(int i=0; i<n; ++i) parent[i] = i;
+    }
+
+    // Find root and parity relative to root
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] = rel[i] ^ root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets with relationship type (0: parallel, 1: intersect)
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        
+        // derived relation: rel(ri, rj) = type ^ rel(i, ri) ^ rel(j, rj)
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            // Consistency check
+            return (needed == 0);
+        }
+    }
+    
+    // Flatten the tree for O(1) access
+    void flatten() {
+        for(int i=0; i<(int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastIO io;
+
+    string_view m_sv = io.read_token();
+    string_view n_sv = io.read_token();
+    
+    if (m_sv.empty()) return 0;
+    
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    int m = to_int(m_sv);
+    int n = to_int(n_sv);
+
+    // Flatten all street references into a single list
+    // 2 references per observation, 2 per query
+    size_t total_refs = 2ULL * (m + n);
+    parlay::sequence<NameRef> refs(total_refs);
+    
+    // Store observation types to process later
+    vector<int> obs_types(m);
+    
+    size_t idx = 0;
+    // Read Observations
+    for(int i=0; i<m; ++i) {
+        refs[idx].name = io.read_token();
+        refs[idx].index = idx;
+        idx++;
+        
+        refs[idx].name = io.read_token();
+        refs[idx].index = idx;
+        idx++;
+        
+        string_view t = io.read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+    
+    // Read Queries
+    for(int i=0; i<n; ++i) {
+        refs[idx].name = io.read_token();
+        refs[idx].index = idx;
+        idx++;
+        
+        refs[idx].name = io.read_token();
+        refs[idx].index = idx;
+        idx++;
+    }
+
+    // Sort references by name in parallel
+    parlay::sort_inplace(refs);
+    
+    // Map names to IDs
+    // mapped_ids[k] will store the ID for the k-th street reference in input order
+    vector<int> mapped_ids(total_refs);
+    int current_id = 0;
+    
+    if (total_refs > 0) {
+        mapped_ids[refs[0].index] = 0;
+        for(size_t i = 1; i < total_refs; ++i) {
+            if (refs[i].name != refs[i-1].name) {
+                current_id++;
+            }
+            mapped_ids[refs[i].index] = current_id;
+        }
+    }
+    
+    int num_unique = (total_refs > 0) ? current_id + 1 : 0;
+    DSU dsu(num_unique);
+    
+    // Process observations
+    for(int i=0; i<m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        int t = obs_types[i];
+        
+        if (!dsu.unite(u, v, t)) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+    
+    // Flatten DSU for parallel read-only access
+    dsu.flatten();
+    
+    // Process queries in parallel
+    // 0: parallel, 1: intersect, 2: unknown
+    parlay::sequence<int> results(n);
+    size_t query_offset = 2ULL * m;
+    
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i + 1];
+        
+        // Direct array access (safe after flatten)
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = (rel == 0 ? 0 : 1);
+        }
+    });
+    
+    // Output buffering
+    string out;
+    out.reserve(n * 10);
+    const char* s_res[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    
+    for(int r : results) {
+        out.append(s_res[r]);
+    }
+    cout << out;
+
+    return 0;
+}"
+"2025-12-31T23:28:47.960205","9","43.97271749090572","True","21","21","0.022741373675775584","3.0948437404859507e-06","0.03549481899244711","0.4775688471912872","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Efficient I/O: Reads the entire input into a large memory buffer to minimize system calls.
+ *    Uses `std::string_view` for zero-copy string handling.
+ * 2. Parallel Processing (ParlayLib):
+ *    - Instead of using hash maps or binary search for street name to ID mapping (which can be slow or cache-unfriendly),
+ *      we use a ""sort-and-scan"" approach:
+ *      a. Collect all street name references (observations and queries) into a flat array, tagging them with their original indices.
+ *      b. Sort this array in parallel so identical names are grouped together.
+ *      c. Use a parallel prefix sum (scan) to assign unique IDs to each group of identical names.
+ *      d. Scatter the assigned IDs back to their original positions to form the mapped observations and queries.
+ * 3. Algorithm:
+ *    - Disjoint Set Union (DSU) with parity tracking is used to model street relationships.
+ *    - Observations are processed sequentially to build the graph and check for contradictions (""Waterloo"").
+ *    - The DSU is flattened (all nodes point to root) before query processing to allow safe O(1) concurrent access.
+ *    - Queries are processed in parallel against the flattened DSU structure.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <utility>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) with parity tracking.
+// parent[i]: Parent of node i.
+// rel[i]: Relationship of i relative to parent[i] (0: parallel, 1: perpendicular).
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; 
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression.
+    // Returns {root, parity relative to root}.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if a contradiction is found.
+    // type: 0 for parallel, 1 for intersect.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        
+        // derived: rel(i, j) = rel(i, ri) ^ rel(ri, rj) ^ rel(j, rj)
+        // we want rel(i, j) == type
+        // therefore: rel(ri, rj) = type ^ rel(i, ri) ^ rel(j, rj)
+        int needed_rel = type ^ root_i.second ^ root_j.second;
+
+        if (ri != rj) {
+            // Merge tree rooted at ri into rj.
+            parent[ri] = rj;
+            rel[ri] = needed_rel;
+            return true;
+        } else {
+            // Already in the same component, check for consistency.
+            return (needed_rel == 0);
+        }
+    }
+};
+
+int main() {
+    // Optimize standard I/O operations
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    // Read entire input into a buffer to avoid repetitive I/O and string allocations
+    string buffer;
+    // Reserve memory: 100k lines * ~50 chars = ~5MB. 32MB is a safe upper bound.
+    buffer.resize(32 * 1024 * 1024); 
+    cin.read(&buffer[0], buffer.size());
+    size_t bytes_read = cin.gcount();
+    buffer.resize(bytes_read);
+
+    if (buffer.empty()) return 0;
+
+    // Tokenizer setup
+    const char* str = buffer.data();
+    size_t len = buffer.size();
+    size_t pos = 0;
+
+    auto skip_ws = [&]() {
+        while (pos < len && str[pos] <= 32) pos++;
+    };
+
+    auto read_token = [&]() -> string_view {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && str[pos] > 32) pos++;
+        return string_view(str + start, pos - start);
+    };
+
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    string_view m_sv = read_token();
+    string_view n_sv = read_token();
+    
+    if (m_sv.empty()) return 0;
+
+    int m = to_int(m_sv);
+    int n = to_int(n_sv);
+
+    // We need to map all street names to unique IDs.
+    // We collect all occurrences (observations + queries) into a flat array.
+    size_t total_names = 2 * (size_t)m + 2 * (size_t)n;
+    
+    // Store pairs of {name, original_index}
+    // original_index maps to: 0..2m-1 (obs), 2m..2m+2n-1 (queries)
+    parlay::sequence<pair<string_view, int>> name_refs(total_names);
+    vector<int> obs_types(m);
+
+    // Parse Observations
+    for(int i = 0; i < m; ++i) {
+        name_refs[2*i] = {read_token(), 2*i};
+        name_refs[2*i+1] = {read_token(), 2*i+1};
+        string_view t = read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Parse Queries
+    size_t query_offset = 2 * m;
+    for(int i = 0; i < n; ++i) {
+        name_refs[query_offset + 2*i] = {read_token(), (int)(query_offset + 2*i)};
+        name_refs[query_offset + 2*i+1] = {read_token(), (int)(query_offset + 2*i+1)};
+    }
+
+    // Parallel Sort to group identical street names
+    parlay::sort_inplace(name_refs);
+
+    // Assign IDs using parallel scan
+    vector<int> mapped_ids(total_names);
+    int unique_count = 0;
+
+    if (total_names > 0) {
+        parlay::sequence<int> flags(total_names);
+        flags[0] = 0;
+        
+        // Mark boundaries where names change
+        parlay::parallel_for(1, total_names, [&](size_t i) {
+            flags[i] = (name_refs[i].first != name_refs[i-1].first) ? 1 : 0;
+        });
+        
+        // Prefix sum to generate IDs
+        auto [prefixes, sum] = parlay::scan(flags);
+        unique_count = sum + 1;
+        
+        // Scatter IDs back to their original positions
+        parlay::parallel_for(0, total_names, [&](size_t i) {
+            mapped_ids[name_refs[i].second] = prefixes[i] + flags[i];
+        });
+    }
+
+    // Process Observations using DSU
+    // Must be sequential to correctly detect the first contradiction
+    DSU dsu(unique_count);
+    for(int i = 0; i < m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU structure so all nodes point directly to root
+    // This allows O(1) read-only access during the parallel query phase
+    for(int i = 0; i < unique_count; ++i) {
+        dsu.find(i);
+    }
+
+    // Process Queries in Parallel
+    parlay::sequence<int> results(n);
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u_idx = query_offset + 2 * i;
+        int v_idx = query_offset + 2 * i + 1;
+        int u = mapped_ids[u_idx];
+        int v = mapped_ids[v_idx];
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown (different components)
+        } else {
+            // Same component: check relative orientation
+            results[i] = dsu.rel[u] ^ dsu.rel[v]; // 0: parallel, 1: intersect
+        }
+    });
+
+    // Output Results
+    // Construct a single output buffer to minimize I/O overhead
+    string out_buffer;
+    out_buffer.reserve(n * 10);
+    const char* answers[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    
+    for(int i = 0; i < n; ++i) {
+        out_buffer.append(answers[results[i]]);
+    }
+    cout << out_buffer;
+
+    return 0;
+}"
+"2025-12-31T23:30:54.158684","10","44.26001046033777","True","21","21","0.022593758781329683","5.581261414626904e-06","0.035726309011806734","0.47446893440792337","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads stdin into a single large buffer (32MB) using fread to minimize syscalls.
+ * 2. Parallel String Mapping (Sort-and-Scan): 
+ *    - Instead of binary search or hash maps, we use a global sorting approach.
+ *    - All street name occurrences (observations + queries) are stored as (string_view, original_index) pairs.
+ *    - We sort these pairs in parallel. Identical names become adjacent in the sorted array.
+ *    - We use a parallel scan (prefix sum) on a ""change flag"" array to assign unique IDs to each group of identical names.
+ *    - IDs are scattered back to an `id_map` array using the original indices.
+ *    - This maps all N strings to integer IDs in O(N log N) sorting time + O(N) scanning time, avoiding O(N log U) lookups.
+ * 3. DSU (Disjoint Set Union):
+ *    - Manages connected components and relative parities (parallel vs perpendicular).
+ *    - Observations are processed sequentially to detect inconsistencies (""Waterloo"").
+ *    - The DSU is flattened (full path compression) before queries to enable safe O(1) read-only access.
+ * 4. Parallel Queries:
+ *    - Queries are processed in parallel using the flattened DSU state.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <utility>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// --- DSU Implementation ---
+// Manages set operations and relative orientation (parity)
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel to parent, 1: perpendicular to parent
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find root with path compression, updating relative parity
+    // Returns {root, parity from node to root}
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] = rel[i] ^ root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets given a relationship type (0: parallel, 1: intersect)
+    // Returns false if a contradiction is found
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        // The required relationship between roots is:
+        // rel(ri, rj) = type ^ rel(i, ri) ^ rel(j, rj)
+        int needed = type ^ root_i.second ^ root_j.second;
+
+        if (ri != rj) {
+            // Attach tree rooted at ri to rj
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            // Already in same component, check consistency
+            return (needed == 0);
+        }
+    }
+
+    // Flatten the tree so all nodes point directly to their root
+    // This allows O(1) read-only access during the parallel query phase
+    void flatten() {
+        for(int i = 0; i < (int)parent.size(); ++i) find(i);
+    }
+};
+
+// --- Fast I/O ---
+// buffered reading using fread for maximum performance
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        // Allocate a large buffer. 32MB covers max constraints easily.
+        buffer.resize(32 * 1024 * 1024);
+        len = fread(buffer.data(), 1, buffer.size(), stdin);
+        pos = 0;
+    }
+
+    void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    string_view read_token() {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+
+    int read_int() {
+        string_view sv = read_token();
+        int res = 0;
+        for (char c : sv) res = res * 10 + (c - '0');
+        return res;
+    }
+};
+
+int main() {
+    // Disable standard C++ stream synchronization for speed
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastIO io;
+
+    string_view m_sv = io.read_token();
+    if (m_sv.empty()) return 0;
+    
+    // Parse m and n
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+    int m = to_int(m_sv);
+    int n = io.read_int();
+
+    // We have 2 references per obs and 2 per query
+    size_t total_names = 2ULL * (m + n);
+    
+    // Element stores {string, original_index}
+    // We sort these elements to group identical strings
+    using Element = pair<string_view, int>;
+    parlay::sequence<Element> elements(total_names);
+    
+    vector<int> obs_types(m);
+
+    // Read Observations
+    size_t idx = 0;
+    for(int i = 0; i < m; ++i) {
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+        string_view t = io.read_token();
+        // 'i' for intersect (1), 'p' for parallel (0)
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Read Queries
+    for(int i = 0; i < n; ++i) {
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+    }
+
+    // Parallel Sort by street name
+    parlay::sort_inplace(elements);
+
+    // Assign IDs in parallel
+    // 1. Identify boundaries where name changes (flags[i] = 1 if elements[i] != elements[i-1])
+    auto flags = parlay::tabulate(total_names, [&](size_t i) -> int {
+        if (i == 0) return 0;
+        return (elements[i].first != elements[i-1].first) ? 1 : 0;
+    });
+    
+    // 2. Prefix sum (scan) to generate IDs
+    // The ID for a group is the cumulative number of changes before it
+    auto [ids, total_sum] = parlay::scan(flags);
+    int num_unique = total_sum + 1;
+
+    // 3. Scatter IDs back to id_map based on original index
+    vector<int> id_map(total_names);
+    parlay::parallel_for(0, total_names, [&](size_t i) {
+        // id[i] from scan is exclusive sum. 
+        // We use id[i] + flags[i] to correctly label the start of a new group.
+        id_map[elements[i].second] = ids[i] + flags[i];
+    });
+
+    // DSU Processing (Sequential due to dependencies)
+    DSU dsu(num_unique);
+    for(int i = 0; i < m; ++i) {
+        int u = id_map[2*i];
+        int v = id_map[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU for safe parallel read access
+    dsu.flatten();
+
+    // Process Queries (Parallel)
+    // 0: parallel, 1: intersect, 2: unknown
+    parlay::sequence<int> results(n);
+    size_t query_offset = 2ULL * m;
+
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = id_map[query_offset + 2*i];
+        int v = id_map[query_offset + 2*i+1];
+        
+        // Direct access to parent/rel is safe after flatten
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+
+        if (root_u != root_v) {
+            results[i] = 2; // Different components -> unknown
+        } else {
+            // Same component -> check XOR sum of relative parities
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = rel;
+        }
+    });
+
+    // Output results
+    const string_view answers[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    
+    // Using fwrite for speed
+    for(int i = 0; i < n; ++i) {
+        string_view sv = answers[results[i]];
+        fwrite(sv.data(), 1, sv.size(), stdout);
+    }
+
+    return 0;
+}"
+"2025-12-31T23:33:18.079492","11","45.945059202772875","True","21","21","0.02176512594284889","7.812632233895001e-05","0.033441286999732256","0.45706764479982664","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Efficient I/O: Reads stdin into a large buffer.
+ * 2. Optimized Mapping (Sort-and-Scan):
+ *    - Stores references to street names as CompactRef {offset, index, len}.
+ *      This structure is small (10-12 bytes) to minimize memory bandwidth during sorting.
+ *    - Sorts all references (observations + queries) using parlay::sort_inplace with a custom comparator
+ *      that compares strings directly from the input buffer using memcmp.
+ *    - Uses parlay::scan (prefix sum) to assign unique IDs in parallel.
+ *    - This avoids binary search and minimizes memory bandwidth compared to storing full string_views.
+ * 3. DSU with Parity:
+ *    - Standard DSU to track connected components and relative orientations.
+ *    - ""Waterloo"" check during sequential observation processing.
+ *    - Flattened DSU for O(1) parallel query processing.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstring>
+#include <utility>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O handler
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        // Read everything from stdin
+        // Heuristic size: 100k lines * 60 chars ~ 6MB. 
+        // 32MB is safe.
+        buffer.resize(32 * 1024 * 1024); 
+        cin.read(buffer.data(), buffer.size());
+        len = cin.gcount();
+        buffer.resize(len);
+        pos = 0;
+    }
+
+    void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    // Returns {offset, length} for the next token
+    pair<uint32_t, uint16_t> read_token_ref() {
+        skip_ws();
+        if (pos == len) return {0, 0};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return {(uint32_t)start, (uint16_t)(pos - start)};
+    }
+    
+    // Returns string_view for the next token
+    string_view read_token_sv() {
+        auto [off, l] = read_token_ref();
+        if (l == 0) return {};
+        return string_view(buffer.data() + off, l);
+    }
+};
+
+// Compact reference to a string in the buffer to minimize memory traffic during sort
+struct CompactRef {
+    uint32_t offset;
+    uint32_t index; // Original index in the flattened request list
+    uint16_t len;
+};
+
+// Disjoint Set Union with parity tracking
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel, 1: perpendicular relative to parent
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.resize(n, 0);
+        for(int i=0; i<n; ++i) parent[i] = i;
+    }
+
+    // Find root and parity relative to root (Path Compression)
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if contradiction.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            return (needed == 0);
+        }
+    }
+    
+    // Flatten for O(1) access
+    void flatten() {
+        for(int i=0; i<(int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastIO io;
+
+    string_view m_sv = io.read_token_sv();
+    string_view n_sv = io.read_token_sv();
+    
+    if (m_sv.empty()) return 0;
+    
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    int m = to_int(m_sv);
+    int n = to_int(n_sv);
+
+    size_t total_refs = 2ULL * (m + n);
+    parlay::sequence<CompactRef> refs(total_refs);
+    vector<uint8_t> obs_types(m);
+    
+    // Parse Observations
+    size_t idx = 0;
+    for(int i=0; i<m; ++i) {
+        auto [off1, len1] = io.read_token_ref();
+        refs[idx] = {off1, (uint32_t)idx, len1};
+        idx++;
+        
+        auto [off2, len2] = io.read_token_ref();
+        refs[idx] = {off2, (uint32_t)idx, len2};
+        idx++;
+        
+        string_view t = io.read_token_sv();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+    
+    // Parse Queries
+    for(int i=0; i<n; ++i) {
+        auto [off1, len1] = io.read_token_ref();
+        refs[idx] = {off1, (uint32_t)idx, len1};
+        idx++;
+        
+        auto [off2, len2] = io.read_token_ref();
+        refs[idx] = {off2, (uint32_t)idx, len2};
+        idx++;
+    }
+
+    // Sort references
+    const char* base_ptr = io.buffer.data();
+    auto comp = [base_ptr](const CompactRef& a, const CompactRef& b) {
+        size_t min_len = (a.len < b.len) ? a.len : b.len;
+        int cmp = memcmp(base_ptr + a.offset, base_ptr + b.offset, min_len);
+        if (cmp != 0) return cmp < 0;
+        return a.len < b.len;
+    };
+    
+    parlay::sort_inplace(refs, comp);
+    
+    // Map to IDs
+    vector<int> mapped_ids(total_refs);
+    int num_unique = 0;
+    
+    if (total_refs > 0) {
+        parlay::sequence<int> flags(total_refs);
+        flags[0] = 0;
+        
+        // Parallel neighbor check to identify unique strings
+        parlay::parallel_for(1, total_refs, [&](size_t i) {
+            bool diff = false;
+            if (refs[i].len != refs[i-1].len) {
+                diff = true;
+            } else {
+                diff = (memcmp(base_ptr + refs[i].offset, base_ptr + refs[i-1].offset, refs[i].len) != 0);
+            }
+            flags[i] = diff ? 1 : 0;
+        });
+        
+        auto [prefixes, sum] = parlay::scan(flags);
+        num_unique = sum + 1;
+        
+        // Scatter IDs back to original positions
+        parlay::parallel_for(0, total_refs, [&](size_t i) {
+            mapped_ids[refs[i].index] = prefixes[i] + flags[i];
+        });
+    }
+    
+    // Process observations
+    DSU dsu(num_unique);
+    for(int i=0; i<m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+    
+    dsu.flatten();
+    
+    // Process queries
+    parlay::sequence<int> results(n);
+    size_t q_off = 2ULL * m;
+    
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[q_off + 2*i];
+        int v = mapped_ids[q_off + 2*i + 1];
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            results[i] = (dsu.rel[u] ^ dsu.rel[v]); // 0: parallel, 1: intersect
+        }
+    });
+    
+    // Output
+    string out;
+    out.reserve(n * 10);
+    const char* ans[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    for(int r : results) out.append(ans[r]);
+    cout << out;
+
+    return 0;
+}"
+"2025-12-31T23:35:39.370898","12","31.684619875337255","True","21","21","0.03156105403613765","0.00028106642641557826","0.03447224300180096","0.6627821347588906","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads stdin into a single large buffer using fread to minimize syscall overhead.
+ * 2. Parallel String Mapping (Sort-and-Scan): 
+ *    - Stores all street name occurrences as (string_view, original_index) pairs.
+ *    - Sorts these pairs in parallel. Identical names become adjacent.
+ *    - Uses parallel scan (prefix sum) on a ""change flag"" array to assign unique IDs.
+ *    - Scatters IDs back to an `id_map` array for O(1) access later.
+ * 3. DSU (Disjoint Set Union):
+ *    - Manages connected components and relative parities (parallel vs perpendicular).
+ *    - Observations are processed sequentially to detect inconsistencies (""Waterloo"").
+ *    - The DSU is flattened (full path compression) before queries to enable safe O(1) read-only access.
+ * 4. Parallel Queries:
+ *    - Queries are processed in parallel using the flattened DSU state.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// --- Fast I/O ---
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        buffer.resize(1 << 26); // 64MB initial size to cover most cases
+        len = fread(buffer.data(), 1, buffer.size(), stdin);
+        
+        // Handle input larger than initial buffer
+        if (len == buffer.size()) {
+            while (true) {
+                size_t old_size = buffer.size();
+                buffer.resize(old_size * 2);
+                size_t read_n = fread(buffer.data() + old_size, 1, old_size, stdin);
+                len += read_n;
+                if (read_n < old_size) break;
+            }
+            buffer.resize(len);
+        }
+        pos = 0;
+    }
+
+    inline void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    inline string_view read_token() {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+
+    inline int read_int() {
+        skip_ws();
+        int res = 0;
+        while (pos < len && buffer[pos] > 32) {
+            res = res * 10 + (buffer[pos] - '0');
+            pos++;
+        }
+        return res;
+    }
+};
+
+// --- DSU ---
+// Manages set operations and relative orientation (parity)
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel to parent, 1: perpendicular to parent
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find root with path compression, updating relative parity
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] = rel[i] ^ root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets given a relationship type (0: parallel, 1: intersect)
+    // Returns false if a contradiction is found
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        int ri = root_i.first;
+        int rj = root_j.first;
+        
+        // The required relationship between roots is:
+        // rel(ri, rj) = type ^ rel(i, ri) ^ rel(j, rj)
+        int needed = type ^ root_i.second ^ root_j.second;
+
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            // Already in same component, check consistency
+            return (needed == 0);
+        }
+    }
+    
+    // Flatten the tree so all nodes point directly to their root
+    void flatten() {
+        for(int i = 0; i < (int)parent.size(); ++i) find(i);
+    }
+};
+
+// Helper struct for sorting
+struct Element {
+    string_view name;
+    int index;
+    // Overload < for sorting
+    bool operator<(const Element& other) const {
+        return name < other.name;
+    }
+    // Overload != for adjacent check
+    bool operator!=(const Element& other) const {
+        return name != other.name;
+    }
+};
+
+int main() {
+    FastIO io;
+
+    string_view m_sv = io.read_token();
+    if (m_sv.empty()) return 0;
+
+    auto parse_int = [](string_view s) {
+        int res = 0;
+        for(char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    int m = parse_int(m_sv);
+    int n = io.read_int();
+
+    // Total references: 2 per obs, 2 per query
+    size_t total_refs = 2ULL * (m + n);
+    parlay::sequence<Element> elements(total_refs);
+    vector<int> obs_types(m);
+
+    size_t idx = 0;
+    // Read Observations
+    for(int i = 0; i < m; ++i) {
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+        string_view t = io.read_token();
+        // 'i' for intersect (1), 'p' for parallel (0)
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Read Queries
+    for(int i = 0; i < n; ++i) {
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+        elements[idx] = {io.read_token(), (int)idx};
+        idx++;
+    }
+
+    // Parallel Sort by street name
+    parlay::sort_inplace(elements);
+
+    // Identify boundaries where name changes
+    auto flags = parlay::tabulate(total_refs, [&](size_t i) -> int {
+        return (i > 0 && elements[i] != elements[i-1]) ? 1 : 0;
+    });
+
+    // Prefix sum (scan) to generate IDs
+    // The ID for a group is the cumulative number of changes before it
+    auto [ids, total_unique_minus_one] = parlay::scan(flags);
+    int num_unique = total_unique_minus_one + 1;
+
+    // Scatter IDs back to id_map based on original index
+    vector<int> mapped_ids(total_refs);
+    parlay::parallel_for(0, total_refs, [&](size_t i) {
+        mapped_ids[elements[i].index] = ids[i] + flags[i];
+    });
+
+    // DSU Processing (Sequential due to dependencies)
+    DSU dsu(num_unique);
+    for(int i = 0; i < m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            printf(""Waterloo\n"");
+            return 0;
+        }
+    }
+
+    // Flatten DSU for safe parallel read access
+    dsu.flatten();
+
+    // Process Queries (Parallel)
+    // Results: 0 -> parallel, 1 -> intersect, 2 -> unknown
+    parlay::sequence<int> results(n);
+    size_t query_offset = 2ULL * m;
+
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i+1];
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown (different components)
+        } else {
+            // Same component: check relative orientation
+            results[i] = dsu.rel[u] ^ dsu.rel[v];
+        }
+    });
+
+    // Output buffering
+    string out_buffer;
+    out_buffer.reserve(n * 10);
+    const char* strs[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    
+    for(int i = 0; i < n; ++i) {
+        out_buffer.append(strs[results[i]]);
+    }
+    
+    fwrite(out_buffer.data(), 1, out_buffer.size(), stdout);
+
+    return 0;
+}"
+"2025-12-31T23:37:53.725485","13","54.98594512549328","True","21","21","0.018186465608942808","4.2944154035038394e-05","0.03506963800464291","0.381915777787799","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Efficient I/O: 
+ *    - Reads entire input into a `vector<char>` buffer using `cin.read` to minimize syscalls.
+ *    - Uses `string_view` for zero-copy string handling.
+ *    - Outputs results using a single large buffer write.
+ * 2. Parallel Processing (ParlayLib):
+ *    - Sorts all street names (from both observations and queries) in parallel.
+ *    - Removes duplicates in parallel to create a sorted unique list (`distinct_names`).
+ *    - Maps street names to integer IDs using binary search (`lower_bound`) in parallel.
+ * 3. Algorithm (DSU):
+ *    - Uses Disjoint Set Union with parity tracking to manage street components and orientations.
+ *    - `parent[i]` stores the parent, `rel[i]` stores orientation relative to parent (0: parallel, 1: perpendicular).
+ *    - Observations are processed sequentially to build the DSU and detect conflicts (""Waterloo"").
+ *    - DSU is flattened (full path compression) before queries to allow lock-free O(1) access.
+ *    - Queries are answered in parallel by checking component membership and relative parity.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <iterator>
+
+#include <parlay/sequence.h>
+#include <parlay/primitives.h>
+#include <parlay/parallel.h>
+
+using namespace std;
+
+// Disjoint Set Union (DSU) with parity tracking.
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel, 1: perpendicular relative to parent
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression.
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root_info = find(parent[i]);
+            parent[i] = root_info.first;
+            rel[i] = rel[i] ^ root_info.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if contradiction.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+
+        int ri = root_i.first;
+        int rj = root_j.first;
+        // Required relation between roots: rel(ri, rj) = type ^ rel(i, ri) ^ rel(j, rj)
+        int needed = type ^ root_i.second ^ root_j.second;
+
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            return (needed == 0);
+        }
+    }
+
+    // Flatten for O(1) access
+    void flatten() {
+        for(int i = 0; i < (int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    // Optimize standard I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    // Read entire input into a buffer
+    vector<char> buffer;
+    buffer.reserve(1 << 24); // Reserve 16MB
+    
+    while (cin) {
+        size_t old_sz = buffer.size();
+        if (buffer.capacity() <= old_sz) buffer.reserve(max((size_t)1, old_sz * 2));
+        buffer.resize(buffer.capacity());
+        cin.read(buffer.data() + old_sz, buffer.size() - old_sz);
+        buffer.resize(old_sz + cin.gcount());
+        if (cin.gcount() == 0) break;
+    }
+
+    if (buffer.empty()) return 0;
+
+    // Tokenizer setup
+    const char* str = buffer.data();
+    size_t len = buffer.size();
+    size_t pos = 0;
+
+    auto skip_ws = [&]() {
+        while (pos < len && str[pos] <= 32) pos++;
+    };
+
+    auto read_token = [&]() -> string_view {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && str[pos] > 32) pos++;
+        return string_view(str + start, pos - start);
+    };
+
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    string_view m_sv = read_token();
+    string_view n_sv = read_token();
+    
+    if (m_sv.empty()) return 0;
+
+    int m = to_int(m_sv);
+    int n = to_int(n_sv);
+
+    // Store raw data
+    struct RawObs { string_view u, v; int type; };
+    vector<RawObs> raw_obs(m);
+    
+    // Collect all names to map them to IDs
+    vector<string_view> all_names;
+    all_names.reserve(2 * m + 2 * n);
+
+    for(int i = 0; i < m; ++i) {
+        string_view u = read_token();
+        string_view v = read_token();
+        string_view t = read_token();
+        int type = (t[0] == 'i' ? 1 : 0);
+        raw_obs[i] = {u, v, type};
+        all_names.push_back(u);
+        all_names.push_back(v);
+    }
+
+    struct RawQuery { string_view u, v; };
+    vector<RawQuery> raw_queries(n);
+    for(int i = 0; i < n; ++i) {
+        raw_queries[i].u = read_token();
+        raw_queries[i].v = read_token();
+        all_names.push_back(raw_queries[i].u);
+        all_names.push_back(raw_queries[i].v);
+    }
+
+    // Parallel Sort and Unique
+    parlay::sequence<string_view> names(all_names.begin(), all_names.end());
+    parlay::sort_inplace(names);
+    
+    parlay::sequence<bool> flags(names.size());
+    if (names.size() > 0) {
+        flags[0] = true;
+        parlay::parallel_for(1, names.size(), [&](size_t i) {
+            flags[i] = (names[i] != names[i-1]);
+        });
+    }
+    auto distinct_names = parlay::pack(names, flags);
+
+    // Helper to get ID
+    auto get_id = [&](string_view s) -> int {
+        auto it = std::lower_bound(distinct_names.begin(), distinct_names.end(), s);
+        return (int)(it - distinct_names.begin());
+    };
+
+    // Map Observations to IDs in parallel
+    struct Obs { int u, v, type; };
+    parlay::sequence<Obs> obs(m);
+    parlay::parallel_for(0, m, [&](size_t i) {
+        obs[i] = {get_id(raw_obs[i].u), get_id(raw_obs[i].v), raw_obs[i].type};
+    });
+
+    // Build DSU (Sequential)
+    DSU dsu(distinct_names.size());
+    for(int i = 0; i < m; ++i) {
+        if (!dsu.unite(obs[i].u, obs[i].v, obs[i].type)) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU for parallel queries
+    dsu.flatten();
+
+    // Process Queries in parallel
+    parlay::sequence<int> results(n);
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = get_id(raw_queries[i].u);
+        int v = get_id(raw_queries[i].v);
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            results[i] = (dsu.rel[u] ^ dsu.rel[v]);
+        }
+    });
+
+    // Output results
+    string out_buffer;
+    out_buffer.reserve(n * 10);
+    const char* answers[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    for(int r : results) {
+        out_buffer.append(answers[r]);
+    }
+    cout.write(out_buffer.data(), out_buffer.size());
+
+    return 0;
+}"
+"2025-12-31T23:39:58.736278","14","45.70090610058213","True","21","21","0.02188140422859717","6.16167003577304e-05","0.032955472997855395","0.45950948880054054","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Efficient I/O: Reads the entire input into a large memory buffer to minimize I/O syscall overhead.
+ * 2. Parallel Processing (ParlayLib):
+ *    - Uses a ""sort all references"" strategy for ID mapping. Instead of using a hash map or binary search,
+ *      we collect all street name references (from observations and queries) into a flat array.
+ *    - We sort this array in parallel. Identical names become adjacent.
+ *    - A linear scan assigns unique IDs, avoiding expensive lookups.
+ * 3. Algorithm:
+ *    - Uses Disjoint Set Union (DSU) with parity tracking to manage connected components and street orientations.
+ *    - DSU tracks relative orientation (0: parallel, 1: perpendicular).
+ *    - If a contradiction is found during observation processing, outputs ""Waterloo"".
+ *    - Before query processing, the DSU is flattened to ensure O(1) read-only access during the parallel query phase.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Buffer for fast input reading
+struct InputBuffer {
+    vector<char> buffer;
+    char* data;
+    size_t size;
+    size_t pos;
+
+    InputBuffer() {
+        // Reserve 32MB initially to handle large inputs without reallocation
+        buffer.resize(1 << 25); 
+        size_t total = 0;
+        while (true) {
+            // Resize if buffer is full
+            if (total >= buffer.size()) buffer.resize(buffer.size() * 2);
+            cin.read(buffer.data() + total, buffer.size() - total);
+            size_t count = cin.gcount();
+            if (count == 0) break;
+            total += count;
+        }
+        size = total;
+        data = buffer.data();
+        pos = 0;
+    }
+
+    inline void skip_ws() {
+        while (pos < size && data[pos] <= 32) pos++;
+    }
+
+    inline string_view read_token() {
+        skip_ws();
+        if (pos >= size) return {};
+        size_t start = pos;
+        while (pos < size && data[pos] > 32) pos++;
+        return string_view(data + start, pos - start);
+    }
+
+    inline int read_int() {
+        string_view sv = read_token();
+        int res = 0;
+        for (char c : sv) res = res * 10 + (c - '0');
+        return res;
+    }
+};
+
+// Structure to hold street name references for sorting
+struct Item {
+    string_view name;
+    int index; // The index in the sequence of all mentioned streets
+
+    // Comparison for sorting
+    bool operator<(const Item& other) const {
+        return name < other.name;
+    }
+    bool operator==(const Item& other) const {
+        return name == other.name;
+    }
+    bool operator!=(const Item& other) const {
+        return name != other.name;
+    }
+};
+
+// Disjoint Set Union with parity tracking
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel to parent, 1: perpendicular
+
+    DSU(int n) {
+        parent.resize(n);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+        rel.assign(n, 0);
+    }
+
+    // Find root with path compression
+    // Returns {root, parity relative to root}
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] = rel[i] ^ root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if contradiction found.
+    // type: 0 (parallel), 1 (intersect)
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        
+        // Relationship between roots required to satisfy the observation
+        // rel(ri, rj) = type ^ rel(i, ri) ^ rel(j, rj)
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            // If already in same component, check consistency
+            return (needed == 0);
+        }
+    }
+    
+    // Flatten the tree so all nodes point directly to root
+    // Enables O(1) access for parallel queries
+    void flatten() {
+        for(int i = 0; i < (int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    InputBuffer in;
+    if (in.size == 0) return 0;
+
+    int m = in.read_int();
+    int n = in.read_int();
+
+    // Collect all street references
+    // 2 per observation, 2 per query
+    int total_refs = 2 * (m + n);
+    parlay::sequence<Item> items(total_refs);
+    vector<int> obs_types(m);
+
+    int idx = 0;
+    // Read Observations
+    for(int i = 0; i < m; ++i) {
+        items[idx].name = in.read_token();
+        items[idx].index = idx;
+        idx++;
+
+        items[idx].name = in.read_token();
+        items[idx].index = idx;
+        idx++;
+
+        string_view t = in.read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Read Queries
+    for(int i = 0; i < n; ++i) {
+        items[idx].name = in.read_token();
+        items[idx].index = idx;
+        idx++;
+
+        items[idx].name = in.read_token();
+        items[idx].index = idx;
+        idx++;
+    }
+
+    // Sort references by name in parallel
+    parlay::sort_inplace(items);
+
+    // Map original indices to unique IDs
+    // map_to_id[k] stores the unique ID for the k-th street mentioned in input
+    vector<int> map_to_id(total_refs);
+    int unique_count = 0;
+    if (total_refs > 0) {
+        map_to_id[items[0].index] = 0;
+        for(int i = 1; i < total_refs; ++i) {
+            if (items[i] != items[i-1]) {
+                unique_count++;
+            }
+            map_to_id[items[i].index] = unique_count;
+        }
+        unique_count++;
+    }
+
+    DSU dsu(unique_count);
+
+    // Process observations (Sequential)
+    for(int i = 0; i < m; ++i) {
+        int u = map_to_id[2*i];
+        int v = map_to_id[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU for read-only access
+    dsu.flatten();
+
+    // Process queries (Parallel)
+    parlay::sequence<int> results(n);
+    int query_base = 2 * m;
+
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = map_to_id[query_base + 2*i];
+        int v = map_to_id[query_base + 2*i + 1];
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            // Same component, check relative orientation
+            // If rel[u] == rel[v], they are parallel (xor is 0)
+            // If rel[u] != rel[v], they are perpendicular (xor is 1)
+            int r = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = (r == 0 ? 0 : 1);
+        }
+    });
+
+    // Output results
+    string out;
+    out.reserve(n * 10);
+    const char* answers[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    for(int r : results) {
+        out.append(answers[r]);
+    }
+    cout.write(out.data(), out.size());
+
+    return 0;
+}"
+"2025-12-31T23:42:07.591333","15","59.663420607993956","True","21","21","0.016760688371695802","1.3244014469787589e-05","0.03435321900178678","0.3519744558056118","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads entire stdin into a buffer. Computes string hashes on the fly during tokenization.
+ * 2. Parallel Sort with Hashing:
+ *    - Stores (hash, string_view, original_index) for each street occurrence.
+ *    - Sorts using hash as primary key, string_view as secondary. 
+ *    - This minimizes expensive string comparisons (only needed for collisions/identical hashes).
+ * 3. ID Mapping:
+ *    - Assigns unique IDs by iterating the sorted sequence.
+ *    - Populates a direct lookup array `mapped_ids` for O(1) access.
+ * 4. DSU with Parity:
+ *    - Manages connected components and relative orientations.
+ *    - Uses Union-By-Rank and Path Compression.
+ *    - Flattens the DSU before queries for O(1) read access.
+ * 5. Parallel Queries:
+ *    - Processes queries in parallel using the flattened DSU.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O with integrated hashing
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        // Allocate a large buffer to minimize reallocations
+        buffer.resize(1 << 24); 
+        size_t total_read = 0;
+        while (true) {
+            if (total_read == buffer.size()) buffer.resize(buffer.size() * 2);
+            cin.read(buffer.data() + total_read, buffer.size() - total_read);
+            size_t count = cin.gcount();
+            total_read += count;
+            if (count == 0 || !cin) break;
+        }
+        buffer.resize(total_read);
+        len = total_read;
+        pos = 0;
+    }
+
+    void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    // Returns token and its FNV-1a hash
+    pair<string_view, size_t> read_token_with_hash() {
+        skip_ws();
+        if (pos == len) return {{}, 0};
+        size_t start = pos;
+        size_t h = 14695981039346656037ULL; // FNV-1a offset basis
+        
+        while (pos < len && buffer[pos] > 32) {
+            h ^= (unsigned char)buffer[pos];
+            h *= 1099511628211ULL; // FNV-1a prime
+            pos++;
+        }
+        return {string_view(buffer.data() + start, pos - start), h};
+    }
+
+    // Read token without hash (for keywords)
+    string_view read_token() {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+};
+
+struct NameRef {
+    size_t hash;
+    string_view name;
+    int index; // Original index in the input sequence
+    
+    // Optimized comparator: checks hash first, then string
+    bool operator<(const NameRef& other) const {
+        if (hash != other.hash) return hash < other.hash;
+        return name < other.name;
+    }
+    bool operator==(const NameRef& other) const {
+        return hash == other.hash && name == other.name;
+    }
+    bool operator!=(const NameRef& other) const {
+        return !(*this == other);
+    }
+};
+
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel, 1: perpendicular
+    vector<int> rank;
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        rank.assign(n, 0);
+        for(int i=0; i<n; ++i) parent[i] = i;
+    }
+
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] = rel[i] ^ root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Returns true if consistent, false if contradiction
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            // Union by rank
+            if (rank[ri] < rank[rj]) {
+                parent[ri] = rj;
+                rel[ri] = needed;
+            } else {
+                parent[rj] = ri;
+                rel[rj] = needed;
+                if (rank[ri] == rank[rj]) rank[ri]++;
+            }
+            return true;
+        } else {
+            return (needed == 0);
+        }
+    }
+    
+    // Flatten for O(1) access
+    void flatten() {
+        for(int i=0; i<(int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastIO io;
+
+    string_view m_sv = io.read_token();
+    string_view n_sv = io.read_token();
+    
+    if (m_sv.empty()) return 0;
+    
+    auto to_int = [](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    int m = to_int(m_sv);
+    int n = to_int(n_sv);
+
+    size_t total_refs = 2ULL * (m + n);
+    parlay::sequence<NameRef> refs(total_refs);
+    vector<uint8_t> obs_types(m); // Use uint8_t to save space
+    
+    size_t idx = 0;
+    
+    // Read Observations
+    for(int i=0; i<m; ++i) {
+        auto t1 = io.read_token_with_hash();
+        refs[idx] = {t1.second, t1.first, (int)idx};
+        idx++;
+        
+        auto t2 = io.read_token_with_hash();
+        refs[idx] = {t2.second, t2.first, (int)idx};
+        idx++;
+        
+        string_view t = io.read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+    
+    // Read Queries
+    for(int i=0; i<n; ++i) {
+        auto t1 = io.read_token_with_hash();
+        refs[idx] = {t1.second, t1.first, (int)idx};
+        idx++;
+        
+        auto t2 = io.read_token_with_hash();
+        refs[idx] = {t2.second, t2.first, (int)idx};
+        idx++;
+    }
+
+    // Parallel sort based on hash then name
+    parlay::sort_inplace(refs);
+    
+    // Map names to unique IDs
+    vector<int> mapped_ids(total_refs);
+    int current_id = 0;
+    
+    if (total_refs > 0) {
+        mapped_ids[refs[0].index] = 0;
+        for(size_t i = 1; i < total_refs; ++i) {
+            if (refs[i] != refs[i-1]) {
+                current_id++;
+            }
+            mapped_ids[refs[i].index] = current_id;
+        }
+    }
+    
+    int num_unique = (total_refs > 0) ? current_id + 1 : 0;
+    DSU dsu(num_unique);
+    
+    // Process observations
+    for(int i=0; i<m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        int t = obs_types[i];
+        
+        if (!dsu.unite(u, v, t)) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+    
+    dsu.flatten();
+    
+    // Process queries in parallel
+    parlay::sequence<int> results(n);
+    size_t query_offset = 2ULL * m;
+    
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i + 1];
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = (rel == 0 ? 0 : 1);
+        }
+    });
+    
+    // Output results
+    string out;
+    out.reserve(n * 10);
+    const char* s_res[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    
+    for(int r : results) {
+        out.append(s_res[r]);
+    }
+    cout << out;
+
+    return 0;
+}"
+"2025-12-31T23:45:06.299607","16","62.609165339976364","True","21","21","0.01597210240018155","1.9070897655463445e-05","0.03333130000100937","0.3354141504038125","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads entire input into a memory buffer to minimize I/O overhead.
+ * 2. Optimized Mapping: 
+ *    - Parses all street occurrences into an `Item` array.
+ *    - Each `Item` stores a 64-bit hash, string pointer/length, and original index.
+ *    - Uses `parlay::sort_inplace` to sort items. The sort uses 64-bit hashes for primary comparison,
+ *      making it extremely fast compared to pure string sorting.
+ *    - Assigns unique IDs by iterating the sorted array (linear scan), avoiding O(log N) lookups.
+ * 3. Logic:
+ *    - Uses Disjoint Set Union (DSU) with parity tracking for street orientations.
+ *    - Processes observations sequentially to build the graph and detect conflicts (""Waterloo"").
+ *    - Flattens the DSU (path compression on all nodes) to enable O(1) read-only access.
+ * 4. Queries:
+ *    - Processes queries in parallel using `parlay::parallel_for`.
+ *    - Generates output in a single buffer write for maximum speed.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstdint>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O structure to handle large inputs efficiently
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        // Read all standard input into a large buffer
+        buffer.resize(1 << 24); // Start with 16MB
+        size_t total = 0;
+        while (true) {
+            if (total == buffer.size()) buffer.resize(total * 2);
+            cin.read(buffer.data() + total, buffer.size() - total);
+            size_t count = cin.gcount();
+            total += count;
+            if (count == 0) break;
+        }
+        buffer.resize(total);
+        pos = 0;
+        len = total;
+    }
+
+    void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    string_view read_token() {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+};
+
+// FNV-1a Hash function for fast string comparison/sorting
+inline uint64_t hash_string(string_view s) {
+    uint64_t h = 0xcbf29ce484222325ULL;
+    for (char c : s) {
+        h ^= (uint8_t)c;
+        h *= 0x100000001b3ULL;
+    }
+    return h;
+}
+
+// Struct to represent a street name occurrence for sorting
+// Members ordered to minimize padding (alignment)
+struct Item {
+    uint64_t hash;          // 8 bytes
+    const char* str_ptr;    // 8 bytes (64-bit ptr)
+    uint32_t original_index;// 4 bytes
+    uint16_t str_len;       // 2 bytes
+    // 2 bytes padding -> 24 bytes total
+
+    string_view get_view() const {
+        return string_view(str_ptr, str_len);
+    }
+
+    // Comparison optimized by hash check first
+    bool operator<(const Item& other) const {
+        if (hash != other.hash) return hash < other.hash;
+        return get_view() < other.get_view();
+    }
+    
+    bool operator!=(const Item& other) const {
+        return hash != other.hash || get_view() != other.get_view();
+    }
+};
+
+// Disjoint Set Union with parity tracking
+// rel[i]: 0 if parallel to parent, 1 if perpendicular
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; 
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i=0; i<n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] ^= root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite sets. Returns false if contradiction found.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            return (needed == 0);
+        }
+    }
+
+    // Flatten tree for O(1) access
+    void flatten() {
+        for(int i=0; i<(int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastIO io;
+
+    string_view m_sv = io.read_token();
+    string_view n_sv = io.read_token();
+    if (m_sv.empty()) return 0;
+
+    auto parse_int = [](string_view s) {
+        int res = 0;
+        for(char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    int m = parse_int(m_sv);
+    int n = parse_int(n_sv);
+
+    size_t total_items = 2ULL * (m + n);
+    parlay::sequence<Item> items(total_items);
+    vector<uint8_t> obs_types(m); // 0: parallel, 1: intersect
+
+    size_t idx = 0;
+    
+    // Read observations
+    for(int i=0; i<m; ++i) {
+        string_view u = io.read_token();
+        items[idx] = {hash_string(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+
+        string_view v = io.read_token();
+        items[idx] = {hash_string(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+
+        string_view t = io.read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Read queries
+    for(int i=0; i<n; ++i) {
+        string_view u = io.read_token();
+        items[idx] = {hash_string(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+
+        string_view v = io.read_token();
+        items[idx] = {hash_string(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+    }
+
+    // Parallel sort using hash for speed
+    parlay::sort_inplace(items);
+
+    // Assign IDs via linear scan
+    vector<int> mapped_ids(total_items);
+    int unique_count = 0;
+    
+    if (total_items > 0) {
+        mapped_ids[items[0].original_index] = 0;
+        for(size_t i = 1; i < total_items; ++i) {
+            if (items[i] != items[i-1]) {
+                unique_count++;
+            }
+            mapped_ids[items[i].original_index] = unique_count;
+        }
+        unique_count++;
+    }
+
+    DSU dsu(unique_count);
+    
+    // Process observations
+    for(int i=0; i<m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU for lock-free parallel queries
+    dsu.flatten();
+
+    // Process queries in parallel
+    // Results: 0=parallel, 1=intersect, 2=unknown
+    parlay::sequence<uint8_t> results(n);
+    size_t query_offset = 2ULL * m;
+
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i + 1];
+
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = (rel == 0 ? 0 : 1);
+        }
+    });
+
+    // Output buffering
+    const char* answers[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    const int lens[] = {9, 10, 8};
+    
+    size_t total_out_size = 0;
+    for(size_t i=0; i<n; ++i) total_out_size += lens[results[i]];
+    
+    vector<char> out_buf(total_out_size);
+    char* out_ptr = out_buf.data();
+    
+    for(size_t i=0; i<n; ++i) {
+        const char* s = answers[results[i]];
+        int l = lens[results[i]];
+        // Manual copy is extremely fast for small strings
+        for(int k=0; k<l; ++k) *out_ptr++ = s[k];
+    }
+    
+    cout.write(out_buf.data(), total_out_size);
+
+    return 0;
+}"
+"2025-12-31T23:46:44.174957","17","45.326085617925955","True","21","21","0.02206235077146197","3.7412887690500805e-05","0.03307218100235332","0.46330936620070134","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads input into a large buffer to minimize I/O overhead.
+ * 2. ID Mapping via Sorting: 
+ *    - Instead of hash maps or binary search trees, we collect all street name occurrences.
+ *    - We create a list of references {name, original_index}.
+ *    - Sort this list in parallel using Parlay.
+ *    - Iterate through the sorted list to assign unique IDs to each street name.
+ *    - This maps (Observation/Query Index) -> (Street ID) efficiently with high cache locality.
+ * 3. DSU with Parity:
+ *    - Standard DSU with path compression and weighted edges (parity).
+ *    - Tracks relative orientation (0: parallel, 1: perpendicular).
+ *    - Processes observations sequentially to detect contradictions.
+ *    - Flattens the DSU structure (path compression for all nodes) for O(1) read-only access during queries.
+ * 4. Parallel Queries:
+ *    - Processes all queries in parallel using the flattened DSU.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Robust Fast I/O reader
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        // Initial buffer size 32MB, sufficient for the problem constraints
+        buffer.resize(1 << 25); 
+        size_t total_read = 0;
+        
+        // Read until EOF to ensure all input is captured
+        while (true) {
+            cin.read(buffer.data() + total_read, buffer.size() - total_read);
+            size_t count = cin.gcount();
+            total_read += count;
+            
+            if (count == 0 || !cin) break;
+            
+            // Resize if buffer full
+            if (total_read == buffer.size()) {
+                buffer.resize(buffer.size() * 2);
+            }
+        }
+        len = total_read;
+        pos = 0;
+    }
+
+    inline void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    inline string_view read_token() {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+    
+    inline int read_int() {
+        skip_ws();
+        int res = 0;
+        while (pos < len && buffer[pos] > 32) {
+            res = res * 10 + (buffer[pos] - '0');
+            pos++;
+        }
+        return res;
+    }
+};
+
+// Reference to a street name occurrence
+struct NameRef {
+    string_view name;
+    int index; // Index in the global sequence of street mentions
+    
+    // Sort by name
+    bool operator<(const NameRef& other) const {
+        return name < other.name;
+    }
+    bool operator==(const NameRef& other) const {
+        return name == other.name;
+    }
+    bool operator!=(const NameRef& other) const {
+        return name != other.name;
+    }
+};
+
+// Disjoint Set Union with Parity
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; // 0: parallel, 1: perpendicular
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i=0; i<n; ++i) parent[i] = i;
+    }
+
+    // Find root with path compression
+    // Returns {root, parity relative to root}
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] = rel[i] ^ root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite sets. Returns false on contradiction.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        // The required relationship between roots to satisfy rel(i, j) == type
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            // If already in same set, check consistency
+            return (needed == 0);
+        }
+    }
+    
+    // Flatten DSU for O(1) read access
+    void flatten() {
+        for(int i=0; i<(int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastIO io;
+    if (io.pos == io.len) return 0;
+
+    int m = io.read_int();
+    int n = io.read_int();
+
+    // Total street name occurrences: 2 per obs, 2 per query
+    size_t total_refs = 2ULL * (m + n);
+    parlay::sequence<NameRef> refs(total_refs);
+    
+    // Store observation types: 0 (parallel), 1 (intersect)
+    vector<char> obs_types(m);
+    
+    size_t idx = 0;
+    
+    // Read Observations
+    for(int i=0; i<m; ++i) {
+        refs[idx] = {io.read_token(), (int)idx}; idx++;
+        refs[idx] = {io.read_token(), (int)idx}; idx++;
+        string_view t = io.read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+    
+    // Read Queries
+    for(int i=0; i<n; ++i) {
+        refs[idx] = {io.read_token(), (int)idx}; idx++;
+        refs[idx] = {io.read_token(), (int)idx}; idx++;
+    }
+
+    // Parallel sort to group identical street names
+    parlay::sort_inplace(refs);
+    
+    // Map sorted names to unique IDs and scatter back to original positions
+    // mapped_ids[k] will hold the unique integer ID for the k-th street name read from input
+    vector<int> mapped_ids(total_refs);
+    int unique_count = 0;
+    
+    if (total_refs > 0) {
+        mapped_ids[refs[0].index] = 0;
+        for(size_t i = 1; i < total_refs; ++i) {
+            if (refs[i] != refs[i-1]) {
+                unique_count++;
+            }
+            mapped_ids[refs[i].index] = unique_count;
+        }
+        unique_count++;
+    }
+    
+    DSU dsu(unique_count);
+    
+    // Process observations
+    for(int i=0; i<m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        int t = obs_types[i];
+        
+        if (!dsu.unite(u, v, t)) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+    
+    // Flatten DSU structure so parent[i] is always the root
+    dsu.flatten();
+    
+    // Process queries in parallel
+    // 0: parallel, 1: intersect, 2: unknown
+    parlay::sequence<int> results(n);
+    size_t query_offset = 2ULL * m;
+    
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i + 1];
+        
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+        
+        if (root_u != root_v) {
+            results[i] = 2; // unknown (different components)
+        } else {
+            // Same component: check relative orientation
+            // rel(u, v) = rel(u) ^ rel(v)
+            int r = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = r; // 0: parallel, 1: intersect
+        }
+    });
+    
+    // Output results efficiently
+    string out;
+    out.reserve(n * 10);
+    const char* answers[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    
+    for(int r : results) {
+        out.append(answers[r]);
+    }
+    cout.write(out.data(), out.size());
+
+    return 0;
+}"
+"2025-12-31T23:48:30.142912","18","46.72636992421392","True","21","21","0.021401191695864935","5.717013981335396e-07","0.03260630900331307","0.4494250256131636","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads entire input into a memory buffer to minimize I/O overhead.
+ * 2. Optimized Mapping: 
+ *    - Parses all street occurrences into an `Item` array.
+ *    - Each `Item` stores a 64-bit hash, string pointer/length, and original index.
+ *    - Uses `parlay::sort_inplace` to sort items. The sort uses 64-bit hashes for primary comparison,
+ *      making it extremely fast compared to pure string sorting.
+ *    - Assigns unique IDs by iterating the sorted array (linear scan), avoiding O(log N) lookups.
+ * 3. Logic:
+ *    - Uses Disjoint Set Union (DSU) with parity tracking for street orientations.
+ *    - Processes observations sequentially to build the graph and detect conflicts (""Waterloo"").
+ *    - Flattens the DSU (path compression on all nodes) to enable O(1) read-only access.
+ * 4. Queries:
+ *    - Processes queries in parallel using `parlay::parallel_for`.
+ *    - Generates output in a single buffer write for maximum speed.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// Fast I/O structure to handle large inputs efficiently
+struct FastIO {
+    vector<char> buffer;
+    size_t pos;
+    size_t len;
+
+    FastIO() {
+        // Read all standard input into a large buffer
+        // Start with 32MB which covers max input constraints comfortably
+        buffer.resize(1 << 25); 
+        size_t total = 0;
+        while (true) {
+            if (total == buffer.size()) buffer.resize(total * 2);
+            cin.read(buffer.data() + total, buffer.size() - total);
+            size_t count = cin.gcount();
+            total += count;
+            if (count == 0) break;
+        }
+        buffer.resize(total);
+        pos = 0;
+        len = total;
+    }
+
+    void skip_ws() {
+        while (pos < len && buffer[pos] <= 32) pos++;
+    }
+
+    string_view read_token() {
+        skip_ws();
+        if (pos == len) return {};
+        size_t start = pos;
+        while (pos < len && buffer[pos] > 32) pos++;
+        return string_view(buffer.data() + start, pos - start);
+    }
+
+    int read_int() {
+        skip_ws();
+        int res = 0;
+        while (pos < len && buffer[pos] > 32) {
+            res = res * 10 + (buffer[pos] - '0');
+            pos++;
+        }
+        return res;
+    }
+};
+
+// FNV-1a Hash function for fast string comparison/sorting
+inline uint64_t hash_string(string_view s) {
+    uint64_t h = 0xcbf29ce484222325ULL;
+    for (char c : s) {
+        h ^= (uint8_t)c;
+        h *= 0x100000001b3ULL;
+    }
+    return h;
+}
+
+// Struct to represent a street name occurrence for sorting
+// Members ordered to minimize padding (alignment)
+struct Item {
+    uint64_t hash;          // 8 bytes
+    const char* str_ptr;    // 8 bytes (64-bit ptr)
+    uint32_t original_index;// 4 bytes
+    uint16_t str_len;       // 2 bytes
+    // 2 bytes padding -> 24 bytes total
+
+    string_view get_view() const {
+        return string_view(str_ptr, str_len);
+    }
+
+    // Comparison optimized by hash check first
+    bool operator<(const Item& other) const {
+        if (hash != other.hash) return hash < other.hash;
+        return get_view() < other.get_view();
+    }
+    
+    bool operator!=(const Item& other) const {
+        return hash != other.hash || get_view() != other.get_view();
+    }
+};
+
+// Disjoint Set Union with parity tracking
+// rel[i]: 0 if parallel to parent, 1 if perpendicular
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; 
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i=0; i<n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] ^= root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite sets. Returns false if contradiction found.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            return (needed == 0);
+        }
+    }
+
+    // Flatten tree for O(1) access
+    void flatten() {
+        for(int i=0; i<(int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    FastIO io;
+
+    if (io.pos >= io.len) return 0;
+
+    int m = io.read_int();
+    int n = io.read_int();
+
+    size_t total_items = 2ULL * (m + n);
+    parlay::sequence<Item> items(total_items);
+    vector<uint8_t> obs_types(m); // 0: parallel, 1: intersect
+
+    size_t idx = 0;
+    
+    // Read observations
+    for(int i=0; i<m; ++i) {
+        string_view u = io.read_token();
+        items[idx] = {hash_string(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+
+        string_view v = io.read_token();
+        items[idx] = {hash_string(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+
+        string_view t = io.read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Read queries
+    for(int i=0; i<n; ++i) {
+        string_view u = io.read_token();
+        items[idx] = {hash_string(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+
+        string_view v = io.read_token();
+        items[idx] = {hash_string(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+    }
+
+    // Parallel sort using hash for speed
+    parlay::sort_inplace(items);
+
+    // Assign IDs via linear scan
+    vector<int> mapped_ids(total_items);
+    int unique_count = 0;
+    
+    if (total_items > 0) {
+        mapped_ids[items[0].original_index] = 0;
+        for(size_t i = 1; i < total_items; ++i) {
+            if (items[i] != items[i-1]) {
+                unique_count++;
+            }
+            mapped_ids[items[i].original_index] = unique_count;
+        }
+        unique_count++;
+    }
+
+    DSU dsu(unique_count);
+    
+    // Process observations
+    for(int i=0; i<m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU for lock-free parallel queries
+    dsu.flatten();
+
+    // Process queries in parallel
+    // Results: 0=parallel, 1=intersect, 2=unknown
+    parlay::sequence<uint8_t> results(n);
+    size_t query_offset = 2ULL * m;
+
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i + 1];
+
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            int rel = dsu.rel[u] ^ dsu.rel[v];
+            results[i] = (rel == 0 ? 0 : 1);
+        }
+    });
+
+    // Output buffering
+    const char* answers[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    const int lens[] = {9, 10, 8};
+    
+    size_t total_out_size = 0;
+    for(size_t i=0; i<n; ++i) total_out_size += lens[results[i]];
+    
+    vector<char> out_buf(total_out_size);
+    char* out_ptr = out_buf.data();
+    
+    for(size_t i=0; i<n; ++i) {
+        int res = results[i];
+        const char* s = answers[res];
+        int l = lens[res];
+        memcpy(out_ptr, s, l);
+        out_ptr += l;
+    }
+    
+    cout.write(out_buf.data(), total_out_size);
+
+    return 0;
+}"
+"2025-12-31T23:50:34.461476","19","58.780284481047545","True","21","21","0.017012506979656228","3.6289683700426695e-05","0.03324871399672702","0.3572626465727808","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: 
+ *    - Reads standard input into a large memory buffer to minimize system calls.
+ *    - Uses `string_view` for zero-copy string manipulation.
+ *    - Buffers output for a single efficient write.
+ * 2. Optimized Mapping:
+ *    - Parses street names into `Item` structs containing a 64-bit FNV-1a hash.
+ *    - Uses `parlay::sort_inplace` to sort items. The comparison is optimized to check the 64-bit hash first,
+ *      avoiding expensive string comparisons for the vast majority of cases.
+ *    - Assigns unique integer IDs to street names via a linear scan of the sorted items.
+ * 3. Algorithm (DSU):
+ *    - Uses Disjoint Set Union (DSU) with parity tracking to maintain street orientations (parallel vs perpendicular).
+ *    - Builds the graph sequentially to detect contradictions (""Waterloo"").
+ *    - Flattens the DSU (full path compression) to allow lock-free O(1) access during the parallel query phase.
+ * 4. Parallel Processing:
+ *    - Sorts inputs in parallel.
+ *    - Answers queries in parallel using `parlay::parallel_for`.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// FNV-1a Hash function for fast string fingerprinting
+inline uint64_t fnv1a_hash(string_view s) {
+    uint64_t h = 0xcbf29ce484222325ULL;
+    for (char c : s) {
+        h ^= (uint8_t)c;
+        h *= 0x100000001b3ULL;
+    }
+    return h;
+}
+
+// Item struct to represent a street name occurrence.
+// Layout is optimized for size (24 bytes) and alignment (8 bytes).
+struct alignas(8) Item {
+    uint64_t hash;           // 8 bytes: Primary sort key
+    const char* str_ptr;     // 8 bytes: Pointer to string in I/O buffer
+    uint32_t original_index; // 4 bytes: Index in the input sequence
+    uint16_t str_len;        // 2 bytes: Length of string
+    // 2 bytes padding
+
+    string_view get_view() const {
+        return string_view(str_ptr, str_len);
+    }
+
+    // Optimized comparison: Check hash first, then string content
+    bool operator<(const Item& other) const {
+        if (hash != other.hash) return hash < other.hash;
+        return get_view() < other.get_view();
+    }
+
+    bool operator!=(const Item& other) const {
+        return hash != other.hash || get_view() != other.get_view();
+    }
+};
+
+// Disjoint Set Union with parity tracking
+// rel[i]: 0 if parallel to parent, 1 if perpendicular
+struct DSU {
+    vector<int> parent;
+    vector<int> rel;
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find root with path compression, updating relative parity
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] ^= root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite two sets. Returns false if a contradiction is found.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        // The required relationship between roots to satisfy the observation
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            // Consistency check within the same component
+            return (needed == 0);
+        }
+    }
+
+    // Flatten the tree so all nodes point directly to the root
+    void flatten() {
+        for(int i = 0; i < (int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    // Optimize standard I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    // Read entire stdin into a large buffer
+    vector<char> buffer;
+    buffer.reserve(1 << 24); // Start with 16MB
+    
+    while (true) {
+        size_t current = buffer.size();
+        if (buffer.capacity() == current) buffer.reserve(max<size_t>(1 << 20, current * 2));
+        buffer.resize(buffer.capacity());
+        cin.read(buffer.data() + current, buffer.size() - current);
+        size_t read_count = cin.gcount();
+        buffer.resize(current + read_count);
+        if (read_count == 0) break;
+    }
+
+    if (buffer.empty()) return 0;
+
+    // Pointers for parsing
+    const char* ptr = buffer.data();
+    const char* end = ptr + buffer.size();
+
+    // Fast token extraction
+    auto skip_ws = [&]() {
+        while (ptr < end && *ptr <= 32) ptr++;
+    };
+
+    auto read_token = [&]() -> string_view {
+        skip_ws();
+        if (ptr == end) return {};
+        const char* start = ptr;
+        while (ptr < end && *ptr > 32) ptr++;
+        return string_view(start, ptr - start);
+    };
+
+    auto parse_int = [&](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    string_view m_sv = read_token();
+    string_view n_sv = read_token();
+    if (m_sv.empty()) return 0;
+
+    int m = parse_int(m_sv);
+    int n = parse_int(n_sv);
+
+    // Prepare items for mapping
+    size_t total_items = 2ULL * (m + n);
+    parlay::sequence<Item> items(total_items);
+    vector<uint8_t> obs_types(m); // 0: parallel, 1: intersect
+
+    // Parse observations
+    size_t idx = 0;
+    for(int i = 0; i < m; ++i) {
+        string_view u = read_token();
+        items[idx] = {fnv1a_hash(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+
+        string_view v = read_token();
+        items[idx] = {fnv1a_hash(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+
+        string_view t = read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Parse queries
+    for(int i = 0; i < n; ++i) {
+        string_view u = read_token();
+        items[idx] = {fnv1a_hash(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+
+        string_view v = read_token();
+        items[idx] = {fnv1a_hash(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+    }
+
+    // Parallel Sort: Groups identical street names together
+    parlay::sort_inplace(items);
+
+    // Assign unique IDs and map back to original indices
+    vector<int> mapped_ids(total_items);
+    int unique_count = 0;
+    
+    if (total_items > 0) {
+        mapped_ids[items[0].original_index] = 0;
+        for(size_t i = 1; i < total_items; ++i) {
+            if (items[i] != items[i-1]) {
+                unique_count++;
+            }
+            mapped_ids[items[i].original_index] = unique_count;
+        }
+        unique_count++;
+    }
+
+    // Build the graph using DSU
+    DSU dsu(unique_count);
+    
+    // Process observations
+    for(int i = 0; i < m; ++i) {
+        int u = mapped_ids[2*i];
+        int v = mapped_ids[2*i+1];
+        if (!dsu.unite(u, v, obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU structure for O(1) read-only access
+    dsu.flatten();
+
+    // Process queries in parallel
+    // 0: parallel, 1: intersect, 2: unknown
+    parlay::sequence<uint8_t> results(n);
+    size_t query_offset = 2ULL * m;
+
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i + 1];
+
+        // Access flattened DSU: parent[u] is the root
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+
+        if (root_u != root_v) {
+            results[i] = 2; // unknown (different components)
+        } else {
+            // Same component: check relative parity
+            results[i] = (dsu.rel[u] ^ dsu.rel[v]);
+        }
+    });
+
+    // Generate output
+    const char* strs[] = {""parallel\n"", ""intersect\n"", ""unknown\n""};
+    const int lens[] = {9, 10, 8};
+
+    // Calculate total output size
+    size_t out_size = 0;
+    for(size_t i = 0; i < n; ++i) out_size += lens[results[i]];
+    
+    vector<char> out_buf(out_size);
+    char* out_ptr = out_buf.data();
+    
+    // Fill output buffer
+    for(size_t i = 0; i < n; ++i) {
+        int r = results[i];
+        const char* s = strs[r];
+        int l = lens[r];
+        memcpy(out_ptr, s, l);
+        out_ptr += l;
+    }
+    
+    cout.write(out_buf.data(), out_size);
+
+    return 0;
+}"
+"2026-01-01T12:12:38.876121","20","73.64231450514596","True","21","21","0.013579149524559311","0.00014478226155943843","0.03260971400595736","0.2851621400157455","","/**
+ * Canadian Computing Competition: 2008 Stage 2, Day 1, Problem 2
+ * Problem: Streets
+ * 
+ * Solution Overview:
+ * 1. Fast I/O: Reads entire input into a memory buffer to minimize system calls.
+ * 2. Optimized Mapping: 
+ *    - Parses street names into `Item` structs (hash + ptr + len).
+ *    - Uses `parlay::sort_inplace` for parallel sorting of street names.
+ *    - Assigns IDs via linear scan of the sorted items.
+ * 3. Algorithm:
+ *    - Uses Disjoint Set Union (DSU) with parity tracking for relative orientations.
+ *    - Builds the DSU sequentially to detect ""Waterloo"" contradictions.
+ *    - Flattens the DSU for O(1) query access.
+ * 4. Parallel Queries & Output:
+ *    - Queries are processed in parallel.
+ *    - Output buffer is constructed in parallel using `parlay::scan` and `parlay::parallel_for` 
+ *      to calculate offsets and copy strings concurrently.
+ */
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
+
+#include <parlay/sequence.h>
+#include <parlay/parallel.h>
+#include <parlay/primitives.h>
+
+using namespace std;
+
+// FNV-1a Hash function for fast string fingerprinting
+inline uint64_t fnv1a_hash(string_view s) {
+    uint64_t h = 0xcbf29ce484222325ULL;
+    for (char c : s) {
+        h ^= (uint8_t)c;
+        h *= 0x100000001b3ULL;
+    }
+    return h;
+}
+
+// Item struct optimized for size and comparison speed
+// Aligned to 8 bytes for efficient access
+struct alignas(8) Item {
+    uint64_t hash;           // 8 bytes
+    const char* str_ptr;     // 8 bytes
+    uint32_t original_index; // 4 bytes
+    uint16_t str_len;        // 2 bytes
+    // 2 bytes padding to reach 24 bytes
+
+    // Comparison optimized: hash -> length -> memcmp
+    // This avoids expensive string comparisons unless strictly necessary (collisions)
+    bool operator<(const Item& other) const {
+        if (hash != other.hash) return hash < other.hash;
+        if (str_len != other.str_len) return str_len < other.str_len;
+        return memcmp(str_ptr, other.str_ptr, str_len) < 0;
+    }
+
+    bool operator!=(const Item& other) const {
+        return hash != other.hash || str_len != other.str_len || memcmp(str_ptr, other.str_ptr, str_len) != 0;
+    }
+};
+
+// Disjoint Set Union with parity tracking
+// rel[i]: 0 if parallel to parent, 1 if perpendicular
+struct DSU {
+    vector<int> parent;
+    vector<int> rel; 
+
+    DSU(int n) {
+        parent.resize(n);
+        rel.assign(n, 0);
+        for(int i = 0; i < n; ++i) parent[i] = i;
+    }
+
+    // Find with path compression
+    pair<int, int> find(int i) {
+        if (parent[i] != i) {
+            pair<int, int> root = find(parent[i]);
+            parent[i] = root.first;
+            rel[i] ^= root.second;
+        }
+        return {parent[i], rel[i]};
+    }
+
+    // Unite sets. Returns false if contradiction.
+    bool unite(int i, int j, int type) {
+        pair<int, int> root_i = find(i);
+        pair<int, int> root_j = find(j);
+        
+        int ri = root_i.first;
+        int rj = root_j.first;
+        // Needed relationship: rel(i, j) == type
+        // rel(i, j) = rel(i, ri) ^ rel(ri, rj) ^ rel(j, rj)
+        // type = rel(i) ^ rel(ri, rj) ^ rel(j)
+        int needed = type ^ root_i.second ^ root_j.second;
+        
+        if (ri != rj) {
+            parent[ri] = rj;
+            rel[ri] = needed;
+            return true;
+        } else {
+            // Check consistency
+            return (needed == 0);
+        }
+    }
+
+    // Flatten for O(1) read-only access
+    void flatten() {
+        for(int i = 0; i < (int)parent.size(); ++i) find(i);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    // Read entire stdin into a large buffer
+    vector<char> buffer;
+    buffer.reserve(1 << 24); // 16MB initial
+    
+    while (cin) {
+        size_t old_size = buffer.size();
+        if (old_size == buffer.capacity()) {
+            buffer.reserve(max<size_t>(old_size * 2, 1 << 24));
+        }
+        buffer.resize(buffer.capacity());
+        cin.read(buffer.data() + old_size, buffer.size() - old_size);
+        buffer.resize(old_size + cin.gcount());
+    }
+
+    if (buffer.empty()) return 0;
+
+    const char* ptr = buffer.data();
+    const char* end = ptr + buffer.size();
+
+    // Helper lambdas for fast parsing
+    auto skip_ws = [&]() {
+        while (ptr < end && *ptr <= 32) ptr++;
+    };
+
+    auto read_token = [&]() -> string_view {
+        skip_ws();
+        if (ptr == end) return {};
+        const char* start = ptr;
+        while (ptr < end && *ptr > 32) ptr++;
+        return string_view(start, ptr - start);
+    };
+
+    auto parse_int = [&](string_view s) {
+        int res = 0;
+        for (char c : s) res = res * 10 + (c - '0');
+        return res;
+    };
+
+    string_view m_sv = read_token();
+    string_view n_sv = read_token();
+    if (m_sv.empty()) return 0;
+
+    int m = parse_int(m_sv);
+    int n = parse_int(n_sv);
+
+    size_t total_items = 2ULL * (m + n);
+    vector<Item> items(total_items);
+    vector<uint8_t> obs_types(m);
+
+    size_t idx = 0;
+    // Parse Observations
+    for(int i = 0; i < m; ++i) {
+        string_view u = read_token();
+        items[idx] = {fnv1a_hash(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+        string_view v = read_token();
+        items[idx] = {fnv1a_hash(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+        string_view t = read_token();
+        obs_types[i] = (t[0] == 'i' ? 1 : 0);
+    }
+
+    // Parse Queries
+    for(int i = 0; i < n; ++i) {
+        string_view u = read_token();
+        items[idx] = {fnv1a_hash(u), u.data(), (uint32_t)idx, (uint16_t)u.size()};
+        idx++;
+        string_view v = read_token();
+        items[idx] = {fnv1a_hash(v), v.data(), (uint32_t)idx, (uint16_t)v.size()};
+        idx++;
+    }
+
+    // Parallel Sort to group identical strings
+    parlay::sort_inplace(items);
+
+    // Assign unique IDs
+    vector<int> mapped_ids(total_items);
+    int unique_count = 0;
+    
+    if (total_items > 0) {
+        mapped_ids[items[0].original_index] = 0;
+        for(size_t i = 1; i < total_items; ++i) {
+            if (items[i] != items[i-1]) {
+                unique_count++;
+            }
+            mapped_ids[items[i].original_index] = unique_count;
+        }
+        unique_count++;
+    }
+
+    // Build Graph (Sequential due to dependency)
+    DSU dsu(unique_count);
+    for(int i = 0; i < m; ++i) {
+        if (!dsu.unite(mapped_ids[2*i], mapped_ids[2*i+1], obs_types[i])) {
+            cout << ""Waterloo\n"";
+            return 0;
+        }
+    }
+
+    // Flatten DSU for lock-free parallel queries
+    dsu.flatten();
+
+    // Process Queries in Parallel
+    parlay::sequence<uint8_t> results(n);
+    size_t query_offset = 2ULL * m;
+
+    parlay::parallel_for(0, n, [&](size_t i) {
+        int u = mapped_ids[query_offset + 2*i];
+        int v = mapped_ids[query_offset + 2*i + 1];
+
+        int root_u = dsu.parent[u];
+        int root_v = dsu.parent[v];
+
+        if (root_u != root_v) {
+            results[i] = 2; // unknown
+        } else {
+            results[i] = (dsu.rel[u] ^ dsu.rel[v]);
+        }
+    });
+
+    // Generate Output in Parallel
+    // Calculate lengths of output strings
+    auto lengths = parlay::delayed_seq<int>(n, [&](size_t i) {
+        return (results[i] == 0) ? 9 : (results[i] == 1 ? 10 : 8);
+    });
+    
+    // Compute write offsets
+    auto [offsets, total_size] = parlay::scan(lengths);
+    
+    vector<char> out_buf(total_size);
+    
+    // Parallel copy into output buffer
+    parlay::parallel_for(0, n, [&](size_t i) {
+        const char* s;
+        int l;
+        if (results[i] == 0) { s = ""parallel\n""; l = 9; }
+        else if (results[i] == 1) { s = ""intersect\n""; l = 10; }
+        else { s = ""unknown\n""; l = 8; }
+        
+        memcpy(out_buf.data() + offsets[i], s, l);
+    });
+    
+    cout.write(out_buf.data(), total_size);
+
+    return 0;
+}"

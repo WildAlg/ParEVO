@@ -1,0 +1,9 @@
+metric,value
+problem_id,ccc15s1
+best_score,155.22618905590176
+has_solution,True
+metric_combined_score,155.22618905590176
+metric_passed,True
+metric_tests_passed,5
+metric_tests_total,5
+metric_avg_time,0.006442211885005236

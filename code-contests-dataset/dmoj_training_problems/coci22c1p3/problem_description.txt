@@ -1,0 +1,140 @@
+<style>
+.table{width:auto;}
+</style>
+
+<div style="float:right; width:200px; padding: 10px 10px">
+<img src="https://static.dmoj.ca/media/martor/1bc1d41f-79bf-4f4c-ac9b-6c88e48b3149.png" style="margin: 0 auto; width:100%; height:50%;">
+</div>
+
+Little sheep Be (short for Berilij) was kidnapped by the aliens, and they have a
+rather unusual request for her. They want to hire her.
+
+Precisely on Saturday, November 5<sup>th</sup>, the aliens plan to visit Earth with ~n~ spaceships
+and reward the best COCI contestants (and maybe hire them too). Their spaceships
+are perfect circles.
+
+Due to safety reasons, they chose ~m~ pairs of spaceships that have to touch externally
+when they land. They have already determined the landing coordinates
+of the center point for each of the spaceships, and Be's task is to determine the radius of each of the
+spaceships, so the conditions are satisfied.
+
+<latex>
+\documentclass[tikz]{standalone}
+\begin{document}
+\begin{tikzpicture}[scale=0.5]
+\draw[very thick] \foreach \x/\y/\r in {0/0/4,2/0/2,12/0/4,12/6/2,23/0/3,25/0/4} {(\x,\y) circle (\r)};
+\end{tikzpicture}
+\end{document}
+</latex>
+
+<center>
+*In the image, the left and the right pairs of spaceships do **not** satisfy the condition of touching externally.
+The pair of spaceships in the middle fulfills the condition of touching externally.*
+</center>
+
+Spaceships are very expensive, and their cost is equal to their area, so the aliens are asking Be to determine
+the radii with the **minimum cost** of the spaceships.
+
+Their advanced technology allows spaceships to overlap, and, even more interestingly, they know how to
+make a spaceship with radius equal to ~0~.
+
+If there is no set of radii that satisfies the conditions, aliens expect Be to inform them about it. If Be
+doesn't succeed in determining the radii, they will hire her as lunch.
+
+## Input Specification
+The first line contains two integers ~n~ and ~m~ ~(1 \le n, m \le 10^5)~, the number of spaceships, and the number
+of conditions.
+
+The following ~n~ lines contain real numbers ~x_i~ and ~y_i~ ~(-10\,000 \le x_i, y_i \le 10\,000)~, the coordinates of the
+center point of the ~i~-th spaceship. Each of the numbers will be given with ~10~ decimal places.
+
+The following ~m~ lines contain two integers ~a_i~ and ~b_i~ ~(1 \le a_i, b_i \le n, a_i \ne b_i)~, representing the condition
+that the ~a_i~-th and ~b_i~-th spaceship must touch externally after landing. For each unordered pair ~(a_i, b_i)~
+there will be at most one such condition.
+
+## Output Specification
+If there is no solution, in the first and only line print `NE`. Otherwise, in the first line print `DA`, and in the
+~i~-th of the following ~n~ lines print the radius of the ~i~-th spaceship.
+
+Your answer will be considered correct if, for each radius of the ~n~ spaceships, its absolute or relative error
+doesn't exceed ~10^{-4}~. In other words, if your answer for the ~i~-th spaceship is ~r_{si}~, and the correct answer
+~r_{ci}~, then your answer will be considered correct if ~|r_{si} - r_{ci}| \le 10^{-4}~ or ~|\frac{r_{si} - r_{ci}}{r_{ci}}| \le 10^{-4}~.
+
+## Constraints
+| Subtask | Points | Constraints |
+| - | - | - |
+| ~1~ | ~15~ | ~n~ is odd, and each of the spaceships should touch exactly two other spaceships. |
+| ~2~ | ~25~ | There exists at least one way to determine the radii so the conditions are satisfied. |
+| ~3~ | ~30~ | For each pair of spaceships ~(a, b)~, there's at most one sequence of distinct spaceships that starts in ~a~, and finishes in ~b~, and all adjacent spaceships in the sequence are necessarily touching. |
+| ~4~ | ~40~ | No additional constraints. |
+
+## Sample Input 1
+```
+3 3
+0.0000000000 0.0000000000
+0.0000000000 2.0000000000
+2.0000000000 0.0000000000
+1 2
+2 3
+3 1
+```
+
+## Sample Output 1
+```
+DA
+0.585786
+1.414214
+1.414214
+```
+
+## Explanation for Sample Output 1
+This is the only solution that satisfies all the touching conditions. Please note that solution ~(0.585700,
+1.414357, 1.414357)~ is also considered correct, even though spaceships ~2~ and ~3~ aren't touching, because
+the absolute error doesn't exceed ~10^{-4}~.
+
+## Sample Input 2
+```
+5 4
+-0.4585133080 0.2893567973
+9.9368007273 7.1806641913
+-8.4621834970 -2.8309311865
+0.0122121945 -2.8309311865
+2.3991780589 -8.8626906628
+2 1
+3 2
+4 3
+5 1
+```
+
+## Sample Output 2
+```
+DA
+0.000000
+12.472076
+8.474396
+0.000000
+9.587824
+```
+
+## Sample Input 3
+```
+5 5
+0.0000000000 0.0000000000
+1.0000000000 2.0000000000
+2.0000000000 4.0000000000
+3.0000000000 6.0000000000
+4.0000000000 8.0000000000
+1 2
+2 3
+3 4
+4 5
+5 1
+```
+
+## Sample Output 3
+```
+NE
+```
+
+## Explanation for Sample Output 3
+There is no arrangement of the radii that satisfies all conditions.
