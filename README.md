@@ -15,7 +15,7 @@ If you use ParEVO or the Parlay-Instruct Corpus in your research, please use the
 @inproceedings{yang2026parevo,
   title={ParEVO: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution},
   author={Yang, Liu and Nie, Zeyu and Liu, Andrew and Zou, Felix and Altinb{\"u}ken, Deniz and Yazdanbakhsh, Amir and Liu, Quanquan C.},
-  booktitle={ICML},
+  booktitle={arXiv Preprint},
   year={2026}
 }
 ```
